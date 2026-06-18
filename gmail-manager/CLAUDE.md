@@ -66,6 +66,44 @@ exgatta@gmail.com の受信メールを毎朝自動で「メルマガ削除＋�
 
 ---
 
+## ⚙️ 自動化（GitHub Actions）— 貼り付け・手動デプロイをやめる
+
+このリポジトリ（`exgatta/gmail-manager`）が**唯一の正（source of truth）**。Mac もここを clone して使い、
+Web セッションの Claude もここを直接編集する。**コードを貼り付ける必要はない。**
+
+**仕様変更のループ（全自動）**
+1. Claude が `main.py` を編集して push
+2. `main` に入ると `.github/workflows/deploy.yml` が走り、**Cloud Run Job を自動デプロイ**（手動 `deploy_job.sh` 不要）
+3. Claude が `.github/workflows/ops.yml` を **dry-run** で起動 → ログを読んで**検証して報告**
+
+→ ユーザーは「貼る・実行する・確認する」をしなくてよい。
+
+**ワークフロー**
+| ファイル | 役割 | トリガー |
+|---|---|---|
+| `deploy.yml` | Cloud Run Job をデプロイ | `main` への push（main.py等）/ 手動 |
+| `ops.yml` | ジョブ実行 `dry-run` / `live` / `logs` | 手動（Claude が MCP から起動して検証） |
+
+**一度だけの初期設定（GCP↔GitHub の信頼。Macで実施）**
+Claude は GCP 認証情報を作れないので、ここだけ手作業。
+```bash
+PROJECT_ID=gmail-manager-auto
+# デプロイ用サービスアカウント作成
+gcloud iam service-accounts create gh-deployer --project=$PROJECT_ID
+SA=gh-deployer@$PROJECT_ID.iam.gserviceaccount.com
+# 権限（簡易版。後で絞ってよい）
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA" --role="roles/editor"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA" --role="roles/iam.serviceAccountUser"
+# 鍵を作成して GitHub Secrets に登録
+gcloud iam service-accounts keys create key.json --iam-account=$SA
+gh secret set GCP_SA_KEY --repo exgatta/gmail-manager < key.json
+rm key.json   # ローカルには残さない
+```
+これで `GCP_SA_KEY` が入り、以後はデプロイも実行検証も Claude 側だけで完結する。
+（より安全にするなら鍵レスの Workload Identity Federation に置き換え可能。）
+
+---
+
 ## 運用コマンド（このフォルダから実行）
 
 ```bash

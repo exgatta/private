@@ -1,0 +1,68 @@
+name: Run Gmail Manager Job
+
+# 手動トリガーでジョブを実行する。Claude がMCPからこのワークフローを起動して検証に使う。
+#   dry-run … DRY_RUN=1 にして実行し、消す/動かす予定だけログ出力（本番は変更しない）。終了時に必ずDRY_RUN解除。
+#   live    … 通常実行（実際に削除・移動する）。
+#   logs    … 直近の実行ログを表示するだけ（実行はしない）。
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "実行モード"
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - live
+          - logs
+
+concurrency:
+  group: ops-gmail-manager
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: gmail-manager-auto
+  REGION: asia-northeast1
+  JOB_NAME: gmail-manager-job
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Enable DRY_RUN
+        if: ${{ inputs.mode == 'dry-run' }}
+        run: |
+          gcloud run jobs update "$JOB_NAME" --region="$REGION" --project="$PROJECT_ID" \
+            --update-env-vars DRY_RUN=1
+
+      - name: Execute
+        if: ${{ inputs.mode != 'logs' }}
+        run: |
+          gcloud run jobs execute "$JOB_NAME" --region="$REGION" --project="$PROJECT_ID" --wait
+
+      - name: Disable DRY_RUN (always)
+        if: ${{ always() && inputs.mode == 'dry-run' }}
+        run: |
+          gcloud run jobs update "$JOB_NAME" --region="$REGION" --project="$PROJECT_ID" \
+            --remove-env-vars DRY_RUN
+
+      - name: Show latest execution logs
+        if: ${{ always() }}
+        run: |
+          EXEC=$(gcloud run jobs executions list --job="$JOB_NAME" \
+            --region="$REGION" --project="$PROJECT_ID" \
+            --limit=1 --format="value(name)")
+          echo "::group::Execution $EXEC"
+          gcloud logging read \
+            "resource.type=\"cloud_run_job\" AND labels.\"run.googleapis.com/execution_name\"=\"$EXEC\"" \
+            --project="$PROJECT_ID" --limit=5000 \
+            --format="value(textPayload)" --order=asc
+          echo "::endgroup::"
