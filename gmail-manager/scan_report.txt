@@ -1,0 +1,4118 @@
+======================================================================
+Gmail全ラベル スキャンレポート
+======================================================================
+
+【A】同一ドメインが複数ラベルに存在（マージ候補）
+------------------------------------------------------------
+  
+    → 【ソファ専門店 NOYES】 お問い合わせ窓口
+    → ショッピング/家電EC/総合通販PREMOA（プレモア）
+    → ショッピング/楽天ペイ
+    → ショッピング/楽天市場からのお知らせ
+    → マネー・金融/楽天証券
+    → 住まい/不動産/大東建託株式会社 柏支店
+    → 住まい/不動産/大東建託株式会社 野田店
+    → 住まい/引越し/relonet
+    → 株式会社FOX
+    → 送信専用（返信不可）
+    → ＢＡＳコールセンター
+  ac.playstation.net
+    → playstation
+    → ゲーム/PlayStation Network
+  accounts.google.com
+    → テック・アプリ/The Google Account Team
+    → テック・アプリ/google
+  adobe.com
+    → テック・アプリ/'Adobe'
+    → テック・アプリ/Adobe Creative Cloud
+    → テック・アプリ/Adobe Document Cloud
+    → テック・アプリ/adobe
+  aig.com
+    → 保険/aig
+    → 保険/no-reply-aiuinsurance@aig.com
+  akindo-sushiro.co.jp
+    → NoReply
+    → グルメ/【スシローお持ち帰りネット注文】
+  akippa.com
+    → 交通・移動/駐車場/akippa
+    → 交通・移動/駐車場/akippa（あきっぱ）
+  amazon.co.jp
+    → impulse-blue@auone.jp
+    → ショッピング/Amazon
+  ameba.jp
+    → impulse-blue@auone.jp
+    → テック・アプリ/Ameba（アメーバ）
+    → テック・アプリ/アメブロ
+    → テック・アプリ/アメーバ事業本部
+    → テック・アプリ/アメーバ最新ニュース
+  amulech.com
+    → テック・アプリ/音響機器/amulech
+    → 商品等についての問い合わせ
+  anaintercontinental-tokyo.jp
+    → Restaurant-Reservation
+    → 旅行/ANAインターコンチネンタルホテル東京
+  anshinmy.com
+    → anshinmy
+    → anshinmy.com
+  apa.co.jp
+    → 旅行/アパホテル〈富山駅前〉
+    → 旅行/アパヴィラホテル〈富山駅前〉
+  apahotel.com
+    → 旅行/アパホテル〈大垣駅前〉
+    → 旅行/アパホテル〈富山駅前南〉
+    → 旅行/アパホテル〈金沢片町〉EXCELLENT
+    → 旅行/アパホテル株式会社
+  art.the0123.com
+    → the0123
+    → 住まい/引越し/アート引越センター
+  athuman.com
+    → ヒューマンアカデミー Lynx事務局
+    → 向原奈穂
+  au-cs-mail.kddi.com
+    → au-hpcustomerservice@au-cs-mail.kddi.com
+    → 通信キャリア/kddi
+  au-cs.ezweb.ne.jp
+    → ne
+    → 通信キャリア/auからの重要なお知らせ
+    → 重要なお知らせメール
+  auction.goo-net.com
+    → 自動車・バイク/自動車/【グーネット買取】
+    → 自動車・バイク/自動車/グーネット買取
+  auone-mail.com
+    → auone-mail
+    → impulse-blue@auone.jp
+    → 通信キャリア/au one メールからのお知らせ
+  auone.jp
+    → S Kataoka
+    → Tommy
+    → 片岡秀一郎
+  bank.orix.jp
+    → マネー・金融/オリックス/オリックス銀行株式会社
+    → マネー・金融/オリックス銀行
+    → マネー・金融/オリックス銀行 キャンペーンデスク
+  benry.com
+    → 住まい/リフォーム/Benry東林間店
+    → 住まい/リフォーム/benry
+  boy.co.jp
+    → マネー・金融/株式会社 横浜銀行
+    → マネー・金融/横浜銀行コンタクトセンター
+    → マネー・金融/横浜銀行セミナー事務局
+    → マネー・金融/銀行/〈はまぎん〉マイダイレクト
+  bybit.com
+    → bybit
+    → マネー・金融/仮想通貨/Bybit
+  canadacorp.ca
+    → C.L.C BOARD
+    → C.L.C COMMITTEE
+  car-rental.jp
+    → 交通・移動/交通/ニッポンレンタカー 沖縄（予約システム）
+    → 自動車・バイク/日産レンタカー 沖縄（予約システム）
+  car.orix.co.jp
+    → 旅行/予約/オリックスレンタカー
+    → 自動車・バイク/自動車/オリックス自動車
+  carmate.co.jp
+    → 【カーメイト】保証登録
+    → 【カーメイトくらぶ】
+    → カーメイトくらぶ
+  cc.biccamera.com
+    → ショッピング/support@cc.biccamera.com
+    → ショッピング/家電EC/ビックカメラ.com
+  cedyna-mail.jp
+    → impulse-blue@auone.jp
+    → マネー・金融/クレジットカード/「OMC Plus」Mail Magazine
+    → マネー・金融/クレジットカード/【セディナ】OMC Plusメールマガジン
+    → マネー・金融/クレジットカード/株式会社セディナ
+  codmon.com
+    → 子育て/コドモン運営事務局
+    → 子育て/木下の保育園相模大野
+    → 子育て/谷口台児童クラブ
+  confirmation.all.com
+    → 旅行/ALL - Accor Live Limitless
+    → 旅行/ALL Accor
+  connect.auone.jp
+    → auto@connect.auone.jp
+    → ゲーム/GeForce NOW(au)
+    → 通信キャリア/auone
+  crowdloan.jp
+    → マネー・金融/仮想通貨/CROWDLOAN 事務局
+    → マネー・金融/仮想通貨/crowdloan
+  cs.sompo-swt.com
+    → SOMPOワランティ（延長保証運営会社）
+    → 保険/sompo-swt
+  cucannetshop.jp
+    → クーカンネットショップ
+    → クーカンネットショップ 本店
+  demae-can.com
+    → グルメ/demae-can
+    → グルメ/no-reply@demae-can.com
+    → グルメ/support@demae-can.com
+    → グルメ/出前館カスタマーセンター
+    → グルメ/出前館カスタマーセンター(PC)
+    → グルメ/出前館サポート
+  difference.tokyo
+    → DIFFERENCE
+    → ディファレンス海老名ビナウォーク店
+  digiq.jp
+    → レジャー・チケット/レジャー/デジキューBBQCAFE デックス東京ビーチ店予約センター
+    → レジャー・チケット/レジャー/バーベキュー予約センター
+  dji.com
+    → テック・アプリ/DJI JAPAN (DJI Support)
+    → テック・アプリ/DJI Support
+  dlsite.com
+    → エンタメ配信/DLsite comipo
+    → ゲーム/DLsite
+    → ゲーム/DLsite サポート係
+  docomo.ne.jp
+    → ne
+    → お知らせ
+    → 通知
+  driveplaza.com
+    → ドラ割事務局(NEXCO東日本)
+    → 旅行/ドラ割事務局（NEXCO東日本）
+  dropboxmail.com
+    → ぷりちぃなぁご
+    → テック・アプリ/The Dropbox Team
+  e-onkyo.com
+    → エンタメ配信/e-onkyo
+    → エンタメ配信/e-onkyo music
+  edion.com
+    → ショッピング/家電EC/edion
+    → ショッピング/家電EC/エディオンネットショップ
+  eki-net.com
+    → 交通・移動/交通/えきねっと
+    → 旅行/予約/JR
+  emails.povo.jp
+    → 通信キャリア/povo2.0からの重要なお知らせ
+    → 通信キャリア/povo2.0からの重要なご案内
+  enjoy.point.auone.jp
+    → プラスポイントアンケート
+    → マネー・金融/家計/ためる事務局
+    → マネー・金融/家計/ポイントためる事務局
+    → 通信キャリア/au WALLET ポイントプログラム 貯める
+    → 通信キャリア/au WALLETポイント貯める
+  etix.com
+    → etix
+    → レジャー・チケット/チケット/Etix
+  expandrive.com
+    → ExpanDrive
+    → Jeff Mancuso
+  ezweb.ne.jp
+    → g-himagotanjyou@ezweb.ne.jp
+    → gleam_le_el@ezweb.ne.jp
+    → impulse-blue@auone.jp
+    → peach-sparrow21@ezweb.ne.jp
+    → 村野瑞葉
+    → 渋谷 携帯
+    → 片岡秀一郎
+  fancl.co.jp
+    → ヘルス・美容/FANCL
+    → ヘルス・美容/ファンケルオンライン
+  fc2.la
+    → impulse-blue@auone.jp
+    → テック・アプリ/FC2 Information
+  fedex.com
+    → 宅配・物流/FedEx Delivery Manager
+    → 宅配・物流/FedEx Tracking
+    → 宅配・物流/FedEx.com Online Services
+    → 宅配・物流/TrackingUpdates@fedex.com
+  fi.fukoku-life.co.jp
+    → 保険/フコク生命／資料受付係
+    → 保険/フコク生命／資料請求受付担当
+  fm.fukoku-life.co.jp
+    → 保険/フコク生命
+    → 保険/フコク生命／資料請求受付担当
+  fril.jp
+    → ショッピング/フリマ/ラクマ
+    → ショッピング/フリマ/ラクマカスタマーサポート
+    → ショッピング/フリマ/新ラクマカスタマーサポート（旧フリル）
+  fujikyu-travel.co.jp
+    → レジャー・チケット/レジャー/さがみ湖リゾートプレジャーフォレスト前売り券
+    → レジャー・チケット/レジャー/富士芝桜まつり WEB予約
+  fujisan.co.jp
+    → エンタメ配信/電子書籍/タダ読みお知らせ便
+    → ニュース・メディア/／~＼Fujisan.co.jp
+  fulltimesystem.jp
+    → fulltimesystem
+    → フルタイムシステム
+  ga-tech.co.jp
+    → 住まい/不動産/【Renosy】マンション探し
+    → 高畑有里
+  gmail.com
+    → Hideaki kataoka
+    → Kataoka hideaki
+    → Sakai
+    → T.koyasu
+    → ankontabetai@gmail.com
+    → gmail
+    → ishida
+    → ishiharaju
+    → kaiyaku@tapnow.jp
+    → kult koruku
+    → qjican@gmail.com
+    → takayo kataoka
+    → はぜのき
+    → ウインストン小澄
+    → ウインストン小澄G-mail
+    → テック・アプリ/Gmail
+    → テック・アプリ/Microsoft Outlook
+    → テック・アプリ/カメラ/ceeniu
+    → テック・アプリ/サポート自動化マクロ
+    → テック・アプリ/音響機器/ProCable
+    → テック・アプリ/音響機器/プロケーブル
+    → 坂井作
+    → 子育て/まあむキッズ相模大野南口
+    → 恵那警察署
+    → 杉田 淳一
+    → 杉田淳一
+    → 横井翔太
+    → 渡辺 典男
+    → 片岡 秀一郎
+    → 秀一郎片岡
+  gnavi.co.jp
+    → グルメ/ぐるなびネット予約
+    → グルメ/楽天ぐるなび
+  goo.ne.jp
+    → goo事務局
+    → 通信キャリア/ISP/【OCN・goo dポイントがたまる！つかえる！】おトクなポイント情報
+  google.com
+    → Google マップ
+    → エンタメ配信/Google Play Music
+    → ショッピング/Android Market
+    → テック・アプリ/Bard
+    → テック・アプリ/Bard - Google による試験運用中の AI サービス
+    → テック・アプリ/Gmail チーム
+    → テック・アプリ/Google Account
+    → テック・アプリ/Google Antigravity
+    → テック・アプリ/Google Calendar
+    → テック・アプリ/Google Chromecast
+    → テック・アプリ/Google Cloud
+    → テック・アプリ/Google Gemini
+    → テック・アプリ/Google Home
+    → テック・アプリ/Google Home Mini
+    → テック・アプリ/Google Location History
+    → テック・アプリ/Google News
+    → テック・アプリ/Google One
+    → テック・アプリ/Google Photos
+    → テック・アプリ/Google Play
+    → テック・アプリ/Google Workspace チーム
+    → テック・アプリ/Google の「デバイスを探す」
+    → テック・アプリ/Google アシスタント
+    → テック・アプリ/Google カレンダー
+    → テック・アプリ/Google フォーム
+    → テック・アプリ/Google+
+    → テック・アプリ/Inbox by Gmail
+    → テック・アプリ/NotebookLM
+    → テック・アプリ/The G Suite Team
+    → テック・アプリ/The Google Account Team
+    → テック・アプリ/The Google Cloud Team
+    → テック・アプリ/The Google Play Team
+    → テック・アプリ/The Google Workspace Team
+    → テック・アプリ/The Google team
+    → テック・アプリ/はせとも さん(Google フォト経由)
+    → テック・アプリ/デバイスを探す
+    → テック・アプリ/ファミリー リンク
+    → マネー・金融/Google Pay
+    → マネー・金融/Google Payments
+    → マネー・金融/Google Wallet
+    → 交通・移動/Google Maps Timeline
+  hello.qobuz.com
+    → Xandrie Japan
+    → エンタメ配信/音楽配信/Qobuz Japan
+  hikkoshi-sakai.co.jp
+    → 住まい/引越し/サカイ引越センター
+    → 住まい/引越し/サカイ引越センター インターネット課
+  hudini.io
+    → 旅行/Grand Mercure Lake Hamana Resort & Spa
+    → 旅行/Grand Mercure Okinawa Cape Zanpa Resort
+    → 旅行/Grand Mercure Yatsugatake Resort & Spa
+  i.softbank.jp
+    → kanzaki.t@i.softbank.jp
+    → stopsandglass@i.softbank.jp
+    → x250yen_for_7nights_and_8days@i.softbank.jp
+    → タシロ
+    → 三浦 淳史
+    → 岸 尚平
+    → 杉田淳一
+    → 村野瑞葉
+    → 通信キャリア/softbank
+    → 須藤 亜紀子
+  icloud.com
+    → テック・アプリ/Find My iPhone
+    → 長谷部友子
+    → 須藤 亜紀子
+  ienakama.com
+    → 住まい/リフォーム/リフォームのことなら家仲間コム
+    → 住まい/リフォーム/家仲間コム
+  ieshil.com
+    → 住まい/不動産/ieshil
+    → 住まい/不動産/マンション
+  ifcreate.com
+    → 保険/アイエフクリエイト生命保険 連絡窓口
+    → 保険/株式会社アイ・エフ・クリエイト
+  ikyu.com
+    → 旅行/一休.com
+    → 旅行/一休.comレストラン
+  infotop.jp
+    → インフォトップ
+    → 株式会社インフォトップ
+  ipet-ins.com
+    → ipet-ins
+    → 保険/お申込み手続きが完了｜アイペット損保
+    → 保険/アイペット損保│うちの子フォトコンテスト2022事務局
+    → 保険/アイペット損害保険
+    → 保険/アイペット損害保険株式会社
+    → 保険/ワンにゃんかるた事務局｜アイペット損保
+  iqos.jp
+    → IQOS
+    → IQOSチーム
+  isao.net
+    → isao
+    → ゲーム/SEGA IDサポート
+    → ゲーム/pso2admin@isao.net
+  isp-support.jp
+    → 通信キャリア/ISP/ISPサポートセンター
+    → 通信キャリア/ISP/isp-support
+    → 通信キャリア/ISP/ネットフォレスト ISPサポートセンター（マイページ）
+    → 通信キャリア/ISP/（株）ネットフォレスト ISP サポートセンター
+  issei-syoji.co.jp
+    → 住まい/不動産/一誠商事（株） みらい平支店
+    → 住まい/不動産/五十嵐悟［一誠商事株式会社］
+  itunes.com
+    → itunes
+    → テック・アプリ/iTunes Store
+  japan-insurance.jp
+    → 保険/弁護士費用保険
+    → 保険/弁護士費用保険担当
+  jp.nomura.com
+    → マネー・金融/野村メール交付
+    → マネー・金融/野村證券確定拠出年金部
+    → 野村證券株式会社
+  jp.sony.com
+    → テック・アプリ/sony
+    → テック・アプリ/ソニーストア
+  junglejapan.com
+    → JUNGLE
+    → 株式会社ジャングル
+  justpass.epark.jp
+    → EPARK
+    → グルメ/焼肉きんぐ つきみ野店
+    → グルメ/焼肉きんぐ 三ツ境店
+    → グルメ/焼肉きんぐ 佐久平店
+    → グルメ/焼肉きんぐ 横浜青葉台店
+    → グルメ/焼肉きんぐ 町田店
+  kaago.com
+    → @Next Select【Kaago店】
+    → @Next Select【Kaago店】【No Reply】
+    → @Next Select【No Reply】
+    → Kaago運営事務局
+  kaden119-shop.net
+    → ショッピング/家電EC/kaden119-shop
+    → ショッピング/家電EC/カデンの救急社
+  kakaku.com
+    → kakaku
+    → 価格.com 自動車保険一括見積もり
+    → 株式会社カカクコム
+  kasperskystore.jp
+    → セキュリティ/kasperskystore
+    → セキュリティ/カスペルスキーストア
+    → セキュリティ/カスペルスキー月額サービス
+  kawasaki-plaza.net
+    → kawasaki-plaza
+    → カワサキプラザ相模原
+  kikuya-oita.net
+    → kikuya-oita
+    → お菓子の菊家オンラインショップ
+  konicaminolta.jp
+    → コニカミノルタプラネタリウム“満天”
+    → レジャー・チケット/コニカミノルタプラネタリウム 満天
+    → レジャー・チケット/コニカミノルタプラネタリウム 満天 (池袋サンシャインシティ)
+  llbean.co.jp
+    → L.L.Beanカスタマーサービスセンター
+    → co
+  ma.store.uniqlo.com
+    → ショッピング/＜ユニクロ・ジーユー＞
+    → ショッピング/＜ユニクロ＞
+  magazine.nissan.co.jp
+    → 自動車・バイク/[日産] N-Link OWNERS
+    → 自動車・バイク/日産：車検／点検ご案内事務局
+  mail.anthropic.com
+    → AI・クラウド/Anthropic
+    → AI・クラウド/Anthropic, PBC
+  mail.capcom-onlinegames.jp
+    → ゲーム/Capcom Online Games
+    → ゲーム/カプコンオンラインゲームズ
+  mail.dmm.com
+    → ゲーム/DMM.com
+    → ゲーム/dmm
+  mail.hotels.com
+    → 旅行/Hotels.com Rewards
+    → 旅行/Hotels.com ジャパン
+    → 旅行/ホテルズドットコム ジャパン
+  mail.nitori-net.jp
+    → Customer Services Team
+    → From Website
+  mail.pf.ateamid.com
+    → ゲーム/Ateam Inc.
+    → ゲーム/AteamID
+    → ゲーム/【三国大戦スマッシュ！】運営チーム
+    → ゲーム/株式会社エイチーム
+    → ゲーム/株式会社エイチームエンターテインメント
+  mail.recochoku.jp
+    → エンタメ配信/【レコチョク】
+    → エンタメ配信/レコチョク Bestおすすめ
+    → エンタメ配信/レコチョク ランキング
+    → エンタメ配信/レコチョク 新着情報
+    → エンタメ配信/レコチョク 日刊レコチョク通信
+    → エンタメ配信/＜レコチョク＞
+  mail.uccard.co.jp
+    → マネー・金融/クレジットカード/UCカード
+    → マネー・金融/クレジットカード/UC永久不滅ポイント
+  mail2.apl01.spmode.ne.jp
+    → ne
+    → 保険/AIほけん
+    → 通信キャリア/dPOINT CLUB
+    → 通信キャリア/d払い
+  mbtn.jp
+    → EPARK
+    → くら寿司名古屋栄店
+    → グルメ/焼肉きんぐ つきみ野店
+    → グルメ/焼肉きんぐ 佐久平店
+    → グルメ/焼肉きんぐ 町田店
+  mec-r.com
+    → 住まい/不動産/ザ・パークハウス 相模大野
+    → 住まい/不動産/三菱地所レジデンスからのお知らせ
+  megalos.co.jp
+    → SS再送
+    → co
+    → ヘルス・美容/フィットネス/メガロス相模大野
+  message.netgear.com
+    → netgear
+    → 住まい/スマートホーム/NETGEAR
+  microsoft.com
+    → テック・アプリ/Microsoft Cashback
+    → テック・アプリ/Microsoft Family Safety
+    → テック・アプリ/microsoft
+  mixi.jp
+    → SNS/mixi
+    → impulse-blue@auone.jp
+    → info-lrxpfdsfsznmq@bornrich.org
+    → 片岡秀一郎
+  ml.post.japanpost.jp
+    → japanpost
+    → yubin-info
+  ml.store.uniqlo.com
+    → ショッピング/＜ユニクロ オンラインストア＞
+    → ショッピング/＜ユニクロ＞
+  mobilesuica.com
+    → 交通・移動/交通/mobilesuica
+    → 交通・移動/交通/モバイルSuica
+  monotaro.com
+    → ショッピング/MonotaRO.com
+    → ショッピング/株式会社MonotaRO
+  mora-qualitas.com
+    → エンタメ配信/mora qualitas
+    → エンタメ配信/mora qualitas News
+    → エンタメ配信/mora qualitasお知らせ
+  motojp.main.jp
+    → main
+    → 自動車・バイク/バイク/MotoJP
+  motor-fan.jp
+    → 自動車・バイク/バイク/Motor-Fan
+    → 自動車・バイク/バイク/MotorFanTECHメルマガ[モーターファン]
+  motospot.jp
+    → 自動車・バイク/バイク/MotoSpot
+    → 自動車・バイク/バイク/モトスポット
+  moumantai.biz
+    → MOUMANTAI-無問題オンラインショップ-
+    → impulse-blue@auone.jp
+  msa-life.co.jp
+    → 保険/三井住友海上あいおい生命
+    → 医療/ＭＳＡケアＷｅｂサービス
+  mx.nikkei.com
+    → ニュース・メディア/日経IDからのお知らせ
+    → ニュース・メディア/日経からのお知らせ
+    → ニュース・メディア/日経電子版からのご案内
+  nano-u.com
+    → ショッピング/nano-u
+    → ショッピング/nano・universe
+  netprotections.co.jp
+    → マネー・金融/クレジットカード/NP後払い
+    → マネー・金融/クレジットカード/NP後払い[送信専用]
+  nicovideo.jp
+    → impulse-blue@auone.jp
+    → エンタメ配信/niconico
+    → エンタメ配信/nicovideo
+    → エンタメ配信/【niconico】
+    → エンタメ配信/【niconico】ニコレポメール
+    → エンタメ配信/【ニコニコ動画】
+    → エンタメ配信/【ニコニコ動画】ニコレポメール
+  nidokuretai.jp
+    → gooya@nidokuretai.jp
+    → www.ashitaira.xyz
+  nissan-rentacar.com
+    → 【日産レンタカー】
+    → 自動車・バイク/【いつも笑顔の日産レンタカー】
+  nomura-re.co.jp
+    → 住まい/野村不動産(プラウドつくば)
+    → 住まい/野村不動産(プラウド中野島)
+    → 住まい/野村不動産(プラウド水戸三の丸)
+    → 住まい/野村不動産(プラウド水戸桜川)
+    → 住まい/野村不動産(周年記念)
+  nomura.com
+    → マネー・金融/nomura
+    → マネー・金融/野村メール交付
+    → マネー・金融/野村證券
+    → マネー・金融/野村證券確定拠出年金部
+  note.mu
+    → ニュース・メディア/note 事務局
+    → ニュース・メディア/note運営事務局
+  ntt.com
+    → 通信キャリア/ISP/OCN モバイル ONE お友達紹介キャンペーン
+    → 通信キャリア/NTTコミュニケーションズ株式会社
+  ototoy.jp
+    → ototoy
+    → エンタメ配信/OTOTOY MUSIC STORE
+  otterbox.com
+    → Otterbox APAC
+    → Otterbox Customer Service
+  outlook.jp
+    → itou281111@outlook.jp
+    → テック・アプリ/outlook
+  paidy.com
+    → マネー・金融/ペイディカスタマーサポート
+    → マネー・金融/後払い/Paidy
+  panasonic-pcshop.ocnk.net
+    → ocnk
+    → shop8888
+  paypal.com
+    → impulse-blue@auone.jp
+    → マネー・金融/クレジットカード/paypal
+  paytouch.jp
+    → paytouch
+    → ショッピング/家電EC/PCボンバー
+  pcdepot.co.jp
+    → ショッピング/家電EC/ピーシーデポグループユニオン連合会
+    → 小関 絵里香
+    → 山崎 未貴
+    → 松原 実
+    → 松尾 裕子
+    → 片岡 秀一郎
+    → 石田 さやか
+    → 福田 真弓
+    → 自社株売買事前相談窓口
+    → 転職/PCD人事・採用担当
+    → 須藤 亜紀子
+  pingidentity.com
+    → Insight
+    → 住まい/スマートホーム/Orbi
+  plala.or.jp
+    → 通信キャリア/ISP/ぷららサポートセンター
+    → 通信キャリア/NTTぷらら
+  plimus.com
+    → Plimus Sales
+    → plimus
+  plus.google.com
+    → テック・アプリ/Google+
+    → テック・アプリ/Google+ Team
+  pmmail.ezweb.ne.jp
+    → 通信キャリア/auマイプレミアショップ
+    → 通信キャリア/マイプレミアショップ
+  point.gmo.jp
+    → テック・アプリ/GMOとくとくショッピング
+    → テック・アプリ/GMOとくとくポイント
+    → テック・アプリ/GMOとくとく通信
+  point.recruit.co.jp
+    → [じゃらん×ホットペッパー]
+    → じゃらん×ホットペッパー新着ニュース
+    → グルメ/ホットペッパーグルメ
+    → マネー・金融/Ponta Web（旧リクルートポイントサイト）
+    → マネー・金融/PontaWeb（旧リクルートポイントサイト）
+    → マネー・金融/Pontaからのお知らせ
+    → マネー・金融/【PontaWeb】
+    → 旅行/じゃらんnet
+    → 転職/【リクルートID】
+    → 転職/株式会社リクルート
+  ponta.jp
+    → マネー・金融/Pontaからのお知らせ
+    → マネー・金融/ponta
+    → マネー・金融/【みんなのPontaナビ】
+  portalmail.kddi.com
+    → support-info@portalmail.kddi.com
+    → 通信キャリア/kddi
+  premoa.co.jp
+    → ショッピング/家電EC/PREMOA.co.jp
+    → ショッピング/家電EC/premoa本店
+    → ショッピング/家電EC/総合通販プレモア
+  qrioinc.com
+    → no-reply
+    → qrioinc
+  r-agent.com
+    → 転職/R-AGENT求人紹介窓口
+    → 転職/RECRUIT AGENT_2
+    → 転職/リクルートエージェント求人紹介
+  reelsteady.com
+    → テック・アプリ/カメラ/ReelSteady
+    → テック・アプリ/カメラ/ReelSteady Purchases
+  reform-market.com
+    → 住まい/リフォーム/reform-market
+    → 住まい/リフォーム/リフォマサポート
+  relo.jp
+    → 住まい/引越し/relo
+    → 住まい/引越し/リロケーション情報センター
+  relonet.jp
+    → 住まい/引越し/relonet
+    → 住まい/引越し/リロネットサポートデスク
+  rental819.com
+    → 自動車・バイク/バイク/RENTAL819
+    → 自動車・バイク/バイク/Rental819 Web Reservation
+  roblox.com
+    → ゲーム/Roblox
+    → ゲーム/Roblox no-reply
+  sagawa-exp.co.jp
+    → 宅配・物流/佐川急便
+    → 宅配・物流/佐川急便スマートクラブ
+    → 宅配・物流/佐川急便（株）メルマガ事務局
+  san-ei-corp.co.jp
+    → レジャー・チケット/チケット/三栄IDからのご案内［三栄ID事務局］
+    → レジャー・チケット/チケット/三栄ID事務局
+    → レジャー・チケット/チケット/三栄チケットサービス
+  sankou-tkh.co.jp
+    → ラクラ
+    → 住まい/不動産/三興土地開発
+  scei.co.jp
+    → ゲーム/SCE インフォメーションセンター
+    → ゲーム/SCEJ オンライン受付サービス
+    → ゲーム/SIEJA 延長保証受付サービス
+    → ゲーム/ソニー・コンピュータエンタテインメント
+  select-type.com
+    → C&C WORKS
+    → 医療/（一社）専門医ヘルスケアネットワーク
+    → 自動車・バイク/自動車/タイヤセンターJEI 相模原店
+  sevenmp.omni7.jp
+    → ショッピング/セブン&アイ/セブンマイルプログラム
+    → ショッピング/セブン&アイ/セブン＆アイ・ホールディングス
+  shade-inc.co.jp
+    → シェード カスタマーサポート
+    → デジモク
+  shop.euglena.jp
+    → ヘルス・美容/euglena
+    → ヘルス・美容/ユーグレナ・オンライン
+    → ヘルス・美容/ユーグレナ・オンラインショップ
+  shop.rakuten.co.jp
+    → ショッピング/岩手県花巻市ふるさと納税
+    → 住まい/住設プロ
+  skyticket.com
+    → 旅行/SKYTICKET
+    → 旅行/スカイチケットレンタカー
+  sompo-japan.co.jp
+    → 保険/スマホでピタッと充実保険
+    → 保険/損害保険ジャパン株式会社 損保ジャパン 共通ID（送信専用）
+  sourcenext.info
+    → テック・アプリ/SOURCENEXT
+    → テック・アプリ/ソースネクスト・インフォメーションセンター
+  square-enix.com
+    → ゲーム/FINAL FANTASY XIV
+    → ゲーム/SQUARE ENIX BRIDGE
+    → ゲーム/square-enix
+  steampowered.com
+    → ゲーム/Steam Store
+    → ゲーム/Steam Support
+    → ゲーム/Steam Team
+    → ゲーム/Steam サポート
+  stripe.com
+    → Plus Docs Inc.
+    → レジャー・チケット/レジャー/KoizumiAfrica・Lion・Safari
+    → レジャー・チケット/レジャー/アソビュー株式会社
+  sumainohiroba.com
+    → 住まい/不動産/sumainohiroba
+    → 住まい/不動産/株式会社住まいの広場ＴＯＷＮＳ
+    → 住まい/不動産/株式会社住まいの広場ＴＯＷＮＳ ㈱住まいの広場
+    → 住まい/不動産/株式会社住まいの広場ＴＯＷＮＳ 小野
+    → 住まい/不動産/株式会社住まいの広場ＴＯＷＮＳ 松岡
+    → 営業岸田
+  sumirin-hs.co.jp
+    → 柳澤 一範
+    → 藤本 南
+  support-rls.recruit.jp
+    → Go To トラベルじゃらん事後還付サポートデスク
+    → 転職/help@support-rls.recruit.jp
+  takara-standard.co.jp
+    → co
+    → 出野 宏喜
+  teamviewer.com
+    → テック・アプリ/TeamViewer Sign In Confirmation
+    → テック・アプリ/teamviewer
+  timy.jp
+    → timyサポートセンター
+    → timyサポート窓口
+  tire-fitter.co.jp
+    → 自動車・バイク/自動車/タイヤフィッター横浜町田店
+    → 自動車・バイク/自動車/タイヤフィッティングサービス株式会社
+  toho-machida.co.jp
+    → 住まい/東宝ハウス町田/奥田 晃太朗
+    → 奥田晃太朗
+    → 廣部裕次郎
+  token.co.jp
+    → 守谷支店代表
+    → 根本 恭輔
+  toyoko-inn.com
+    → 旅行/toyoko-inn
+    → 旅行/東横INN
+  tr-ipy.com
+    → tr-ipy
+    → トータルリペアIPY
+  trip.com
+    → trip
+    → 旅行/jp_hotel@trip.com
+    → 旅行/携程旅行网酒店预订部（海外）
+  twitter.com
+    → SNS/Twitter
+    → impulse-blue@auone.jp
+    → さいか (Twitter)
+  ups-bike.com
+    → 自動車・バイク/バイク/ups-bike
+    → 自動車・バイク/バイク/アップス
+    → 自動車・バイク/バイク/アップスバイク編集部
+    → 自動車・バイク/バイク/バイク売買サイト【アップス】
+  usj.co.jp
+    → co
+    → レジャー・チケット/レジャー/ユニバーサル・スタジオ・ジャパン
+  vendome.co.jp
+    → VendomeAoyama|ヴァンドーム青山 オンラインショップ
+    → ヴァンドームジュエリーオンラインストア
+    → ヴァンドーム青山オンラインショップ
+  volvocars.com
+    → 自動車・バイク/自動車/Volvo Car Japan
+    → 自動車・バイク/自動車/volvocars
+  wallet.auone.jp
+    → info@wallet.auone.jp
+    → 通信キャリア/auone
+  wdy.docomo.ne.jp
+    → message_r
+    → ne
+    → 通信キャリア/(株)NTTドコモ
+    → 通信キャリア/dポイントクラブアンケート
+  webike-style.net
+    → 自動車・バイク/バイク/ウェビック
+    → 自動車・バイク/バイク/ウェビックキャンペーン
+  welcome.aexp.com
+    → マネー・金融/クレジットカード/American Express
+    → マネー・金融/クレジットカード/American Express SafeKey
+  win-stone.jp
+    → ウインストン 小澄 太祐
+    → ウインストン小澄
+  wrtn.io
+    → AI・クラウド/Wrtn
+    → AI・クラウド/リートン
+    → wrtn
+  xebio-online.com
+    → ヘルス・美容/フィットネス/SuperSportsXEBIO
+    → ヘルス・美容/フィットネス/XEBIO OnlineStore事務局
+  youtube.com
+    → エンタメ配信/YouTube
+    → エンタメ配信/YouTube Kids
+    → エンタメ配信/YouTube Music
+    → エンタメ配信/YouTube Premium
+
+【B】スレッド数0の空ラベル
+------------------------------------------------------------
+  AI・クラウド
+  Money Sense
+  SNS
+  エネルギー
+  エンタメ配信
+  エンタメ配信/動画配信
+  エンタメ配信/電子書籍
+  エンタメ配信/音楽配信
+  グルメ
+  ゲーム
+  ショッピング
+  ショッピング/アウトドア
+  ショッピング/セブン&アイ
+  ショッピング/ファッション
+  ショッピング/フリマ
+  ショッピング/家電EC
+  セキュリティ
+  テック・アプリ
+  テック・アプリ/カメラ
+  テック・アプリ/音響機器
+  ニュース・メディア
+  ヘルス・美容
+  ヘルス・美容/フィットネス
+  マネー・金融
+  マネー・金融/オリックス
+  マネー・金融/クレジットカード
+  マネー・金融/仮想通貨
+  マネー・金融/家計
+  マネー・金融/後払い
+  マネー・金融/銀行
+  レジャー・チケット
+  レジャー・チケット/アウトドア
+  レジャー・チケット/チケット
+  レジャー・チケット/レジャー
+  交通・移動
+  交通・移動/交通
+  交通・移動/駐車場
+  住まい
+  住まい/スマートホーム
+  住まい/リフォーム
+  住まい/不動産
+  住まい/引越し
+  住まい/東宝ハウス町田
+  保険
+  医療
+  子育て
+  宅配・物流
+  旅行
+  旅行/予約
+  旅行/予約/星野リゾート BEB5土浦
+  自動車・バイク
+  自動車・バイク/カー用品
+  自動車・バイク/バイク
+  自動車・バイク/自動車
+  行政
+  通信キャリア
+  通信キャリア/ISP
+
+【C】フラットラベル内の送信者ドメイン（階層化候補）
+------------------------------------------------------------
+  [2件] 'うさマート'
+    From: "'うさマート'" <noreply@usamart.shop>
+    件名: [Usappy]登録完了
+    ---
+    From: "'うさマート'" <noreply@usamart.shop>
+    件名: ユーザ仮登録完了
+    ---
+  [3件] (株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]
+    From: "(株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]" <luminous-club@dosh
+    件名: 商品の出荷準備が整いました 【(株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]】
+    ---
+    From: "(株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]" <luminous-club@dosh
+    件名: ご注文ありがとうございます 【(株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]】
+    ---
+    From: "(株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]" <luminous-club@dosh
+    件名: 会員登録のご完了 【(株)ドウシシャ運営のルミナスラック直販サイト[Luminous-CLUB]】
+    ---
+  [1件] 2011shop@hankoya.co.jp
+    From: "2011shop@hankoya.co.jp" <2011shop@hankoya.co.jp>
+    件名: ハンコヤドットコム 注文内容ご確認【受注番号=2391786】（自動配信メール）
+    ---
+  [1件] 489map
+    From: 489map@489map.com
+    件名: つくば豊里耳鼻咽喉科医院　受付完了のお知らせ
+    ---
+  [1件] 4dusjc
+    From: <info@4dusjc.com>
+    件名: 󾔴 女子バスケのユニホーム着て...才ナ二ーw[写メ有り]
+    ---
+  [1件] 77777mbga
+    From: xp-patiumai@77777mbga.jp
+    件名: 󾔴 ���N�����������o�C�g�����N�����������������I�I�I
+    ---
+  [1件] @Next Select【Kaago店】
+    From: "@Next Select【Kaago店】" <a-next1@kaago.com>
+    件名: @Next Select【Kaago】ご注文を確定いたしました
+    ---
+  [1件] @Next Select【Kaago店】【No Reply】
+    From: "@Next Select【Kaago店】【No Reply】" <a-next1@kaago.com>
+    件名: @Next Select【Kaago】ご注文を受付けました（自動送信）
+    ---
+  [1件] @Next Select【No Reply】
+    From: "@Next Select【No Reply】" <a-next1@kaago.com>
+    件名: @Next Select【Kaago】商品を出荷いたしました
+    ---
+  [4件] ARIGATO ID
+    From: ARIGATO ID <noreply@arigatobank.com>
+    件名: 【arigatobank】ARIGATO ID パスワードリセット
+    ---
+    From: ARIGATO ID <noreply@arigatobank.com>
+    件名: 【arigatobank】ARIGATO ID パスワードリセット
+    ---
+    From: ARIGATO ID <noreply@arigatobank.com>
+    件名: 【kifutown】ARIGATO ID パスワードリセット
+    ---
+  [1件] BAS SHOP
+    From: BAS SHOP <info819@bas-bike.jp>
+    件名: WEB発注確認（自動返信）
+    ---
+  [1件] BEN’S SHOP
+    From: BEN’S　SHOP <b-s@kansai.me>
+    件名: ノート E11 H19 Ｇ インナーレバーカバー4個【nai】
+    ---
+  [1件] BeautifulCars(ビューティフルカーズ)
+    From: "BeautifulCars(ビューティフルカーズ)" <shop@beautifulcars.biz>
+    件名: 【ビューティフルカーズ】ご注文ありがとうございます！
+    ---
+  [4件] Box
+    From: "Box" <noreply@box.com>
+    件名: Email removed from Box account: exgatta@gmail.com
+    ---
+    From: "Box" <noreply@box.com>
+    件名: Primary Box account email changed
+    ---
+    From: "Box" <noreply@box.com>
+    件名: Email successfully added to Box account: impulse-blue@auone.
+    ---
+  [2件] C&C WORKS
+    From: "C&C WORKS" <no-reply@select-type.com>
+    件名: 明日のご予約の確認メールです
+    ---
+    From: "C&C WORKS" <no-reply@select-type.com>
+    件名: ご予約を受付しました
+    ---
+  [1件] C.L.C BOARD
+    From: "C.L.C BOARD" <AWARD@CANADACORP.CA>
+    件名: I WISH TO CONGRATULATE YOU!
+    ---
+  [1件] C.L.C COMMITTEE
+    From: "C.L.C COMMITTEE" <AWARD@CANADACORP.CA>
+    件名: MESSAGE FROM CANADA CORPORATION
+    ---
+  [1件] Canva
+    From: Canva <no-reply@account.canva.com>
+    件名: ご利用のCanvaアカウントにパスキー認証が追加されました
+    ---
+  [1件] Customer Services Team
+    From: Customer Services Team <info@mail.nitori-net.jp>
+    件名: [ニトリネット]ご注文ありがとうございます
+    ---
+  [7件] CustomerCare
+    From: CustomerCare <customercare.jp@panasonic.aero>
+    件名: ANA Wi-Fiサービス ご利用明細書
+    ---
+    From: CustomerCare <customercare.jp@panasonic.aero>
+    件名: ANA Wi-Fiサービス ご利用明細書
+    ---
+    From: CustomerCare <customercare.jp@panasonic.aero>
+    件名: ANA Wi-Fiサービス ご利用明細書
+    ---
+  [11件] DIFFERENCE
+    From: DIFFERENCE <support@difference.tokyo>
+    件名: シャツ1点とその他の商品1点を発送いたしました
+    ---
+    From: DIFFERENCE <support@difference.tokyo>
+    件名: シャツ1点とその他の商品1点のご注文を承りました
+    ---
+    From: DIFFERENCE <support@difference.tokyo>
+    件名: 片岡様のご来店予約を承りました
+    ---
+  [30件] Dropbox
+    From: Dropbox <no-reply@dropbox.com>
+    件名: Google太郎 様、お客様の Dropbox アカウントに新しいログインがありました
+    ---
+    From: Dropbox <no-reply@dropbox.com>
+    件名: 新しいアプリを Dropbox に接続しました
+    ---
+    From: Dropbox <no-reply@dropbox.com>
+    件名: Google太郎 様、お客様の Dropbox アカウントに新しいログインがありました
+    ---
+  [20件] EPARK
+    From: EPARK <mt_admin@mbtn.jp>
+    件名: [くら寿司]受付時間のお知らせ
+    ---
+    From: EPARK <mt_admin@mbtn.jp>
+    件名: [くら寿司]予約を受け付けました
+    ---
+    From: EPARK <epark_info.671@justpass.epark.jp>
+    件名: [EPARK]受付時間のお知らせ
+    ---
+  [1件] EPARKおでかけ
+    From: "EPARKおでかけ" <info@mamakoe.jp>
+    件名: 【EPARKおでかけ】ご注文ありがとうございます
+    ---
+  [1件] Evernote
+    From: Evernote <no-reply@evernote.com>
+    件名: あなたの新しいワークスペースへようこそ！
+    ---
+  [1件] ExpanDrive
+    From: ExpanDrive <support@expandrive.com>
+    件名: Purchase Receipt for Order #102233
+    ---
+  [5件] FgGファンクラブ運営事務局
+    From: "FgGファンクラブ運営事務局" <fc-noreply@fg-games.co.jp>
+    件名: 『ラグナドール』最新情報のお知らせ
+    ---
+    From: "FgGファンクラブ運営事務局" <fc-noreply@fg-games.co.jp>
+    件名: 『ラグナドール』正式リリースのお知らせ
+    ---
+    From: "FgGファンクラブ運営事務局" <fc-noreply@fg-games.co.jp>
+    件名: 『舞台版 誰ガ為のアルケミスト』～宛名ノナイ光～ 開幕のお知らせ
+    ---
+  [2件] From Website
+    From: From Website <info@mail.nitori-net.jp>
+    件名: [ニトリネット］お荷物問合せ番号のお知らせ (発送のご案内）
+    ---
+    From: From Website <info@mail.nitori-net.jp>
+    件名: [ニトリネット]配送日・お支払いのお知らせ
+    ---
+  [1件] GSM Unlock USA
+    From: GSM Unlock USA <no-reply@freeunlockusa.com>
+    件名: Your Unlock Code for IMEI : 355709062611048
+    ---
+  [2件] Giftpad
+    From: Giftpad <card_order@giftpad.jp>
+    件名: PayPayポイント　20,000円分
+    ---
+    From: Giftpad <card_order@giftpad.jp>
+    件名: 【Giftpad】ご注文ありがとうございます
+    ---
+  [1件] Go To トラベルじゃらん事後還付サポートデスク
+    From: "Go To トラベルじゃらん事後還付サポートデスク" <autoresponse@support-rls.recrui
+    件名: 【Go To トラベルじゃらん事後還付】申請を受け付けました_200901-07656832 ref:_00D6F1Oz
+    ---
+  [4件] Google マップ
+    From: "Google マップ" <google-maps-noreply@google.com>
+    件名: 投稿した写真が高く評価されています
+    ---
+    From: "Google マップ" <google-maps-noreply@google.com>
+    件名: 写真の投稿ありがとうございました
+    ---
+    From: "Google マップ" <google-maps-noreply@google.com>
+    件名: 写真の投稿ありがとうございました
+    ---
+  [1件] Hideaki Kataoka(sato)
+    From: "Hideaki Kataoka(sato)" <h-kataoka@sato-k.co.jp>
+    件名: 任意保険
+    ---
+  [1件] Hideaki kataoka
+    From: Hideaki kataoka <qjican@gmail.com>
+    件名: 保険
+    ---
+  [2件] IQOS
+    From: IQOS <info@communication.iqos.jp>
+    件名: IQOS.JPのプロフィールが更新されました。
+    ---
+    From: IQOS <noreply@iqos.jp>
+    件名: 会員登録完了のお知らせ
+    ---
+  [1件] IQOSチーム
+    From: "IQOSチーム" <no-reply@iqos.jp>
+    件名: メールアドレス認証のご案内
+    ---
+  [1件] Info
+    From: Info <info@gggward.com>
+    件名: Google rewards you on its 13th Anniversary Celebration
+    ---
+  [1件] Insight
+    From: Insight <noreply@pingidentity.com>
+    件名: Email authentication
+    ---
+  [1件] JUNGLE
+    From: JUNGLE <campaign2@junglejapan.com>
+    件名: [Jungle]筆ぐるめ Ver.19 体験版 ご本人様確認メール
+    ---
+  [1件] Japan, cc_hoten_br
+    From: "Japan, cc_hoten_br" <cc_hoten_bridal.Japan@tiffany.com>
+    件名: 片岡 秀一郎様　ティファニー銀座本店ブライダルブティックよりご連絡
+    ---
+  [1件] Jeff Mancuso
+    From: Jeff Mancuso <jmancuso@expandrive.com>
+    件名: How is ExpanDrive working out for you?
+    ---
+  [1件] Jetstar Survey
+    From: Jetstar Survey <jetstarsurveysupport@forethought.com.au>
+    件名: ジェットスターの調査にご協力ください。アップル社iPadの懸賞を当たる可能性があります！
+    ---
+  [1件] KARIKARI SP
+    From: KARIKARI SP <cam@kksp.blue>
+    件名: exkataoka:KARIKARI SPへようこそ
+    ---
+  [1件] Kaago運営事務局
+    From: "Kaago運営事務局" <sitemaster@kaago.com>
+    件名: 【Kaago】Kaago会員登録が完了いたしました(自動送信)
+    ---
+  [17件] Kataoka hideaki
+    From: Kataoka hideaki <qjican@gmail.com>
+    件名: 駐車場
+    ---
+    From: Kataoka hideaki <qjican@gmail.com>
+    件名: １月1日
+    ---
+    From: Kataoka hideaki <qjican@gmail.com>
+    件名: 住所
+    ---
+  [1件] L.L.Beanカスタマーサービスセンター
+    From: "L.L.Beanカスタマーサービスセンター" <info@llbean.co.jp>
+    件名: ご返送品を受領いたしました
+    ---
+  [4件] MATSUSHITA LUGGAGE Online Store
+    From: "MATSUSHITA LUGGAGE Online Store" <shop@luggage.co.jp>
+    件名: 商品の発送完了致しました。【MATSUSHITA LUGGAGE Online Store　本店】
+    ---
+    From: "MATSUSHITA LUGGAGE Online Store" <shop@luggage.co.jp>
+    件名: 発送予定日のご案内。【MATSUSHITA LUGGAGE Online Store 本店】
+    ---
+    From: "MATSUSHITA LUGGAGE Online Store" <shop@luggage.co.jp>
+    件名: ご予約いただき誠にありがとうございます。【MATSUSHITA LUGGAGE Online Store 本店】
+    ---
+  [30件] MOUMANTAI-無問題オンラインショップ-
+    From: "MOUMANTAI -無問題オンラインショップ-" <info@moumantai.biz>
+    件名: 【MOUMANTAI - 無問題オンラインショップ】ご無沙汰しております！
+    ---
+    From: "MOUMANTAI -無問題オンラインショップ-" <info@moumantai.biz>
+    件名: 【MOUMANTAI - 無問題オンラインショップ】iPhone5s iPad5 あのパーツ取扱い開始！？
+    ---
+    From: "MOUMANTAI -無問題オンラインショップ-" <info@moumantai.biz>
+    件名: 【MOUMANTAI - 無問題オンラインショップ】5cのバックカバーなんてあります。5sは2色展開！？
+    ---
+  [30件] MZDAO
+    From: MZDAO <no-reply@mzdao.jp>
+    件名: 【MZDAO新着記事】#17【間もなく開催！】あなたにピッタリな保険が分かる無料オンラインセミナー
+    ---
+    From: MZDAO <no-reply@mzdao.jp>
+    件名: 【MZDAO新着記事】#8 CheerDriveの広告効果の調査結果について
+    ---
+    From: MZDAO <no-reply@mzdao.jp>
+    件名: 【MZDAO新着記事】#16【第2回無料オンラインセミナー開催！】あなたにピッタリな保険を教えます！
+    ---
+  [1件] Million Lynelle
+    From: Million Lynelle <MillionLynejiofholle@outlook.com>
+    件名: Impulse blue
+    ---
+  [1件] MobiSystems
+    From: MobiSystems <noreply@mobisystems.com>
+    件名: あなたのMobiSystemsアカウントが削除されようとしています。
+    ---
+  [30件] MoneySense
+    From: Money Sense <support@money-sense.net>
+    件名: 株式会社Money Senseより請求書兼領収書
+    ---
+    From: Money Sense <support@money-sense.net>
+    件名: 株式会社Money Senseより請求書兼領収書
+    ---
+    From: Money Sense <support@money-sense.net>
+    件名: 株式会社Money Senseより請求書兼領収書
+    ---
+  [8件] NVIDIA Accounts
+    From: NVIDIA Accounts <account@nvidia.com>
+    件名: Authenticate Your Email Address
+    ---
+    From: NVIDIA Accounts <account@tmail.nvidia.com>
+    件名: Authenticate Your Email Address
+    ---
+    From: NVIDIA Accounts <account@tmail.nvidia.com>
+    件名: Authenticate Your Email Address
+    ---
+  [7件] Niantic Kids Parent Portal
+    From: Niantic Kids Parent Portal <niantickids@parents.nianticlabs.
+    件名: お子様に新しいフレンドができました
+    ---
+    From: Niantic Kids Parent Portal <niantickids@parents.nianticlabs.
+    件名: お子様に新しいフレンドができました
+    ---
+    From: Niantic Kids Parent Portal <niantickids@parents.nianticlabs.
+    件名: お子様に新しいフレンドができました
+    ---
+  [1件] NoReply
+    From: NoReply <noreply@akindo-sushiro.co.jp>
+    件名: スシローのアカウントを作成(Creating an account for SUSHIRO)
+    ---
+  [6件] ONESTOP
+    From: ONESTOP <service@onestop-ex.jp>
+    件名: 商品発送のお知らせ 34643＜ONESTOP EXPRESS＞
+    ---
+    From: ONESTOP <service@onestop-ex.jp>
+    件名: 入荷予定日のお知らせ 34643＜ONESTOP EXPRESS＞
+    ---
+    From: ONESTOP <service@onestop-ex.jp>
+    件名: ご注文受付のお知らせ 34643＜ONESTOP EXPRESS＞
+    ---
+  [6件] OtterBox
+    From: OtterBox <no-reply@email.otterbox.com>
+    件名: OtterBox : ご注文商品 発送のお知らせ - 16145627
+    ---
+    From: OtterBox <no-reply@email.otterbox.com>
+    件名: OtterBox : 注文確定メール - 16145627
+    ---
+    From: OtterBox <no-reply@email.otterbox.com>
+    件名: OtterBox : ご注文商品 発送のお知らせ - 15093732
+    ---
+  [1件] Otterbox APAC
+    From: Otterbox APAC <otterbox.cs-apac@otterbox.com>
+    件名: Update from OtterBox Customer Service -- Case #07727118 ref:
+    ---
+  [2件] Otterbox Customer Service
+    From: Otterbox Customer Service <otterbox.cs-apac@otterbox.com>
+    件名: Update from OtterBox Customer Service -- Case # 11228732    
+    ---
+    From: Otterbox Customer Service <otterbox.cs-apac@otterbox.com>
+    件名: Update from OtterBox Customer Service -- Case # 07727118    
+    ---
+  [5件] PayBからのお知らせ
+    From: "PayBからのお知らせ" <no-reply@billingsystem.co.jp>
+    件名: PayB お取引のお知らせ（お支払）
+    ---
+    From: "PayBからのお知らせ" <no-reply@billingsystem.co.jp>
+    件名: PayB お取引のお知らせ（お支払）
+    ---
+    From: "PayBからのお知らせ" <no-reply@billingsystem.co.jp>
+    件名: PayB お取引のお知らせ（お支払）
+    ---
+  [7件] PlayMemories Online
+    From: PlayMemories Online <no-reply@playmemoriesonline.com>
+    件名: PlayMemories Online サービス終了のお知らせ
+    ---
+    From: PlayMemories Online <no-reply@playmemoriesonline.com>
+    件名: [更新]「PlayMemories Online」サービス終了のお知らせ および、サービス終了に伴う預かりコンテンツお引
+    ---
+    From: PlayMemories Online <no-reply@playmemoriesonline.com>
+    件名: [更新]「PlayMemories Online」サービス終了のお知らせ および、サービス終了に伴う預かりコンテンツお引
+    ---
+  [1件] Plimus Sales
+    From: Plimus Sales <do-not-reply@plimus.com>
+    件名: Receipt for your Payment (Ref# 62431768)
+    ---
+  [1件] Plus Docs Inc.
+    From: "Plus Docs Inc." <trial-ending+acct_1MYhcyJjzPdzoSGY@stripe.
+    件名: Plus Docs Inc. のトライアル期間がまもなく終了します
+    ---
+  [2件] RIMOWA
+    From: RIMOWA <noreply@rimowa.com>
+    件名: RIMOWA保証登録
+    ---
+    From: RIMOWA <noreply@rimowa.com>
+    件名: RIMOWAへようこそ
+    ---
+  [4件] Raku-P
+    From: Raku-P <register@raku-p.jp>
+    件名: 【D-Wash】予約キャンセルのご案内
+    ---
+    From: Raku-P <register@raku-p.jp>
+    件名: 【D-Wash】予約内容
+    ---
+    From: Raku-P <register@raku-p.jp>
+    件名: お支払い完了のご連絡
+    ---
+  [1件] Reluxコンシェルジュデスク
+    From: "Reluxコンシェルジュデスク" <concierge@rlx.jp>
+    件名: 【重要】Go To トラベル新規受付一時停止のお知らせ｜Relux
+    ---
+  [1件] Restaurant-Reservation
+    From: Restaurant-Reservation <restaurant-reservation@anainterconti
+    件名: ご予約ありがとうございます　ANAインターコンチネンタルホテル東京
+    ---
+  [1件] Root User
+    From: "Root User <DontReply_This_MAIL>" <DontReply@dainichi-net.co
+    件名: 2188901　石油暖房機器以外の修理依頼
+    ---
+  [1件] S Kataoka
+    From: S Kataoka <impulse-blue@auone.jp>
+    件名: Cook pad: 今日の料理に困ったら、食材から逆検索が出来るようになる。
+    ---
+  [3件] SOMPOワランティ（延長保証運営会社）
+    From: "SOMPOワランティ（延長保証運営会社）" <info@cs.sompo-swt.com>
+    件名: SOMPOワランティ延長保証システム(フォーアクシデント)　保証書確認用メール
+    ---
+    From: "SOMPOワランティ（延長保証運営会社）" <info@cs.sompo-swt.com>
+    件名: SOMPOワランティ延長保証システム　保証書確認用メール
+    ---
+    From: "SOMPOワランティ（延長保証運営会社）" <info@cs.sompo-swt.com>
+    件名: SOMPOワランティ延長保証システム(フォーアクシデント)　保証書確認用メール
+    ---
+  [1件] SS再送
+    From: "SS再送" <from@megalos.co.jp>
+    件名: 【再送】9月からのプールエリア営業について
+    ---
+  [1件] STOREE SAISON（ストーリー セゾン）
+    From: "STOREE SAISON（ストーリー セゾン）" <storee@mail.saisoncard.co.jp>
+    件名: 【STOREE SAISON】ポイント交換完了のお知らせ
+    ---
+  [1件] Sakai
+    From: 秀一郎片岡 <exgatta@gmail.com>
+    件名: 各店実績 日計表 管理帳票データの件
+    ---
+  [1件] Starwood Prefered Guest
+    From: Starwood Prefered Guest <starwood@spgpromos.com>
+    件名: ご登録完了： 「SPG Take Three」ボーナスポイント キャンペーンへのご登録を承りました。
+    ---
+  [2件] Starwood Preferred Guest
+    From: Starwood Preferred Guest <GCCUSTSERVICE@confirm.starwoodhote
+    件名: アカウントがリンクされました
+    ---
+    From: Starwood Preferred Guest <GCCUSTSERVICE@confirm.starwoodhote
+    件名: お客様のSPGアカウントが更新されました。
+    ---
+  [1件] T.koyasu
+    From: "T.koyasu" <anryu.jackhound@gmail.com>
+    件名: つきましたよー
+    ---
+  [2件] TSUTAYA通販メール
+    From: "TSUTAYA通販メール" <shop@mail2.tsutaya.co.jp>
+    件名: 【TSUTAYAオンラインショッピング】サイトリニューアルについて
+    ---
+    From: "TSUTAYA通販メール" <shop@mail2.tsutaya.co.jp>
+    件名: 【重要】TSUTAYAオンラインショッピング_自宅配送 クレジットカード決済再開のお知らせ
+    ---
+  [1件] TableCheck
+    From: TableCheck <no-reply@tablecheck.com>
+    件名: アカウントの登録方法
+    ---
+  [1件] Tommy
+    From: 片岡秀一郎 <impulse-blue@auone.jp>
+    件名: WiMAX/WiFi Link 5350(Lenovo純正品) 購入希望
+    ---
+  [2件] Toys“R”Us Japan
+    From: "Toys“R”Us Japan" <online@toysrus.co.jp>
+    件名: 【トイザらス・ベビーザらス】パスワード更新の確認
+    ---
+    From: "Toys“R”Us Japan" <online@toysrus.co.jp>
+    件名: 【トイザらス・ベビーザらス】パスワード再設定
+    ---
+  [1件] Tumi e-Receipts
+    From: Tumi e-Receipts <tumi@rcpts.tumi.com>
+    件名: Your Tumi eReceipt
+    ---
+  [1件] UNiCASE
+    From: UNiCASE <noreply@unicase.jp>
+    件名: 【 UNiCASE 】新規会員登録完了のお知らせ
+    ---
+  [1件] VendomeAoyama|ヴァンドーム青山 オンラインショップ
+    From: "Vendome Aoyama|ヴァンドーム青山　オンラインショップ" <online-shop@vendome.co.
+    件名: 【Vendome Aoyama|ヴァンドーム青山　オンラインショップ】 会員登録のご完了
+    ---
+  [1件] Webメール利用登録
+    From: "Webメール利用登録" <information@mail.ezweb.ne.jp>
+    件名: Webメール利用登録
+    ---
+  [4件] Xandrie Japan
+    From: Xandrie Japan <hello@hello.qobuz.com>
+    件名: e-onkyo musicからQobuzへのサービス移行について
+    ---
+    From: Xandrie Japan <hello@hello.qobuz.com>
+    件名: Qobuzサービス開始の延期について
+    ---
+    From: Xandrie Japan <hello@hello.qobuz.com>
+    件名: 「Qobuz（コバズ）」が12月、ついに日本でスタートいたします
+    ---
+  [2件] Yupiteruダイレクト本店
+    From: "Yupiteruダイレクト本店" <ypdirect@my.yupiteru.co.jp>
+    件名: 【Yupiteruダイレクト本店】ポイント失効予告のお知らせ
+    ---
+    From: "Yupiteruダイレクト本店" <ypdirect@my.yupiteru.co.jp>
+    件名: 【Yupiteruダイレクト本店】ポイント失効予告のお知らせ
+    ---
+  [4件] Zealy
+    From: Zealy <hello@zealy.io>
+    件名: Your temporary Zealy login code is TSQzzZ
+    ---
+    From: Zealy <hello@zealy.io>
+    件名: Your temporary Zealy login code is 3pEOZM
+    ---
+    From: Zealy <hello@zealy.io>
+    件名: Your temporary Zealy login code is prbuzv
+    ---
+  [2件] Zoom
+    From: Zoom <no-reply@zoom.us>
+    件名: ミーティング-第二回協働実習PJ MTGを削除
+    ---
+    From: Zoom <no-reply@zoom.us>
+    件名: Please activate your Zoom account
+    ---
+  [29件] [じゃらん×ホットペッパー]
+    From: [じゃらん×ホットペッパー] <member@point.recruit.co.jp>
+    件名: じゃらん×ホットペッパー会員の皆様に重要なお知らせ
+    ---
+    From: [じゃらん×ホットペッパー] <emag@point.recruit.co.jp>
+    件名: 【2/27まで有効】1000円特別★割引クーポンプレゼント【ポイントお得メール】
+    ---
+    From: [じゃらん×ホットペッパー] <emag@point.recruit.co.jp>
+    件名: ＜急げ！あと１日＞ごちまる1,000円グルメクーポン有効期限[ポイントお得メール]
+    ---
+  [1件] aeon
+    From: member@aeon.com
+    件名: 【iAEON】iAEONご登録情報変更完了のお知らせ
+    ---
+  [1件] airrsv
+    From: reservation@airrsv.net
+    件名: 【山岸クリニック相模大野】 予約内容のご確認
+    ---
+  [2件] airwait
+    From: notification@airwait.jp
+    件名: 順番待ち受付完了のご連絡
+    ---
+    From: notification@airwait.jp
+    件名: 仮受付完了の確認
+    ---
+  [1件] ama
+    From: <customer@ama.tv>
+    件名: 󾔴 登録のご案内
+    ---
+  [1件] ankontabetai@gmail.com
+    From: "ankontabetai@gmail.com" <ankontabetai@gmail.com>
+    件名: お疲れ様です。
+    ---
+  [1件] anshinmy
+    From: support@anshinmy.com
+    件名: 【損保ジャパン日本興亜】安心Ｍｙ．ｃｏｍ自動車保険満期のご案内
+    ---
+  [1件] anshinmy.com
+    From: "anshinmy.com" <support@anshinmy.com>
+    件名: 【損保ジャパン日本興亜】安心My.com利用登録完了のお知らせ
+    ---
+  [17件] apap
+    From: kensin-PCD@apap.jp
+    件名: 健康診断受診日のお知らせ
+    ---
+    From: kensin-PCD@apap.jp
+    件名: 健康診断受診日のお知らせ
+    ---
+    From: tcf-kensin@apap.jp
+    件名: [健診(変更)] PE202601140003221
+    ---
+  [1件] au-hpcustomerservice@au-cs-mail.kddi.com
+    From: "au-hpcustomerservice@au-cs-mail.kddi.com" <au-hpcustomerser
+    件名: MNPのご予約手続き、メールアドレス登録について
+    ---
+  [1件] aucfan
+    From: info@aucfan.com
+    件名: [オークファン] 認証コードのお知らせ
+    ---
+  [2件] auone-mail
+    From: info@auone-mail.com
+    件名: 【重要なお知らせ】「au oneメール」の提供終了について
+    ---
+    From: info@auone-mail.com
+    件名: 【重要なお知らせ】「au oneメール」の提供終了について
+    ---
+  [2件] auto@connect.auone.jp
+    From: "auto@connect.auone.jp" <auto@connect.auone.jp>
+    件名: 【au ID】au ID連携完了のご連絡
+    ---
+    From: "auto@connect.auone.jp" <auto@connect.auone.jp>
+    件名: 【au ID】Pontaカード連携完了のご連絡
+    ---
+  [2件] bizocean事務局
+    From: "bizocean事務局" <mailmag@bizocean.co>
+    件名: 【アンケート】抽選でAmazonギフト券プレゼントキャンペーン【bizocean】
+    ---
+    From: "bizocean事務局" <bizocean_sys@mjs.co.jp>
+    件名: bizocean-会員登録が完了しました
+    ---
+  [2件] bookend サービス
+    From: "bookend サービス" <no_reply@keyring.net>
+    件名: [NoReply] メールアドレスの登録
+    ---
+    From: "bookend サービス" <no_reply@keyring.net>
+    件名: [NoReply] メールアドレス登録完了
+    ---
+  [1件] broadcom
+    From: CustomerSupport@broadcom.com
+    件名: Broadcom Registration Notice - Verification Code
+    ---
+  [1件] bugs@trinitigame.com
+    From: "bugs@trinitigame.com" <bugs@trinitigame.com>
+    件名: Register MiniWarriors Account Successlly!
+    ---
+  [4件] bybit
+    From: notification@bybit.com
+    件名: [Bybit]TONの購入に失敗しました
+    ---
+    From: notification@bybit.com
+    件名: [Bybit]Bybit本人確認（KYC）レベル1承認のお知らせ
+    ---
+    From: notification@bybit.com
+    件名: [Bybit]ログイン通知
+    ---
+  [3件] chacaz
+    From: mag@chacaz.com
+    件名: 󾔴 [����S]�G������!!����������
+    ---
+    From: mynews@chacaz.com
+    件名: 󾔴 [�����r����/10Pt]スケート・土井、目標だっ…
+    ---
+    From: mynews@chacaz.com
+    件名: 󾔴 [�����r����/10Pt]スケート・五輪代表、多彩…
+    ---
+  [1件] clubdam
+    From: clubdam_membership@clubdam.com
+    件名: [DAM★とも]ID作成完了のお知らせ
+    ---
+  [30件] co
+    From: noreply@takara-standard.co.jp
+    件名: 修理／問合せ受付のお知らせ
+    ---
+    From: noreply@takara-standard.co.jp
+    件名: お客様情報登録のお知らせ
+    ---
+    From: noreply@takara-standard.co.jp
+    件名: お客様仮登録のお知らせ
+    ---
+  [2件] codoc Support
+    From: codoc Support <admin@codoc.jp>
+    件名: Zオイルの馬力が驚愕！オイル対決第二弾の結果詳細はこの記事！(記事単体)を購入しました
+    ---
+    From: codoc Support <admin@codoc.jp>
+    件名: メールアドレスのご確認
+    ---
+  [4件] com
+    From: support@acronis.com.sg
+    件名: Acronis True Image OEM Activation activation
+    ---
+    From: support@acronis.com.sg
+    件名: Acronis True Image OEM Activation activation
+    ---
+    From: support@acronis.com.sg
+    件名: アクロニス  プロダクト インストール キーのお知らせ
+    ---
+  [1件] custhelp
+    From: delonghisupport@mailjp.custhelp.com
+    件名: お客様登録が完了しました。
+    ---
+  [1件] dga
+    From: info@sjnk-form.dga.jp
+    件名: 【お手続を受付けました】損保ジャパン日本興亜
+    ---
+  [16件] enom
+    From: bounceback@enom.com
+    件名: Final Notice: impulse-blue.com has expired on Feb 08, 2024
+    ---
+    From: no-reply@enom.com
+    件名: impulse-blue.com will expire on Feb 08, 2024 - THIRD NOTICE
+    ---
+    From: no-reply@enom.com
+    件名: impulse-blue.com will expire on Feb 08, 2024
+    ---
+  [2件] epson
+    From: noreply@cp.epson.com
+    件名: Epson Global ID 登録完了のお知らせ
+    ---
+    From: noreply@cp.epson.com
+    件名: Epson Global ID 登録確認のお知らせ
+    ---
+  [1件] epsonconnect
+    From: noreply@print.epsonconnect.com
+    件名: Epson Connect プリンターメールアドレスのお知らせ（プリンター登録完了）
+    ---
+  [2件] ess-info
+    From: ess-info <ess-info@canon-its.co.jp>
+    件名: ESET製品 体験版プログラムをダウンロードされた方へ
+    ---
+    From: ess-info <ess-info@canon-its.co.jp>
+    件名: ESET製品 体験版プログラムをダウンロードされた方へ
+    ---
+  [1件] etix
+    From: ticket.e-tix.jp@etix.com
+    件名: チケットご購入確認メール
+    ---
+  [1件] everyHOUSE ハウス食品公式オンラインショップ
+    From: "everyHOUSE　ハウス食品公式オンラインショップ" <member@every-house.jp>
+    件名: 【everyHOUSE】会員登録が完了しました
+    ---
+  [1件] eznavi
+    From: info@mail.eznavi.jp
+    件名: 󾔴 鉄道運行情報メール
+    ---
+  [10件] fulltimesystem
+    From: fts-center@fulltimesystem.jp
+    件名: 荷物滞留お知らせメール
+    ---
+    From: fts-center@fulltimesystem.jp
+    件名: 荷物滞留お知らせメール
+    ---
+    From: fts-center@fulltimesystem.jp
+    件名: 荷物滞留お知らせメール
+    ---
+  [30件] g-himagotanjyou@ezweb.ne.jp
+    From: "g-himagotanjyou@ezweb.ne.jp" <g-himagotanjyou@ezweb.ne.jp>
+    件名: 
+    ---
+    From: "g-himagotanjyou@ezweb.ne.jp" <g-himagotanjyou@ezweb.ne.jp>
+    件名: 
+    ---
+    From: "g-himagotanjyou@ezweb.ne.jp" <g-himagotanjyou@ezweb.ne.jp>
+    件名: 
+    ---
+  [1件] genda-apis
+    From: no-reply@id.ap1.genda-apis.com
+    件名: 【GENDA ID】認証コード
+    ---
+  [2件] geo-reply
+    From: geo-online-store_support@geo-reply.com
+    件名: 【ゲオオンラインストア】商品配送のお知らせ
+    ---
+    From: geo-online-store_support@geo-reply.com
+    件名: 【ゲオオンラインストア】ご注文いただきまして誠にありがとうございます。
+    ---
+  [6件] geonet
+    From: <info@geonet.jp>
+    件名: 【ゲオアプリ】プレイステーション5本体抽選販売申し込み受付完了のご案内
+    ---
+    From: <info@geonet.jp>
+    件名: 【ゲオアプリ】プレイステーション5本体抽選販売申し込み受付完了のご案内
+    ---
+    From: info@geonet.jp
+    件名: GEO IDメールアドレス認証
+    ---
+  [1件] gleam_le_el@ezweb.ne.jp
+    From: "gleam_le_el@ezweb.ne.jp" <gleam_le_el@ezweb.ne.jp>
+    件名: おはよー久しぶりだね♪
+    ---
+  [3件] gmail
+    From: "さ" <ks01053110@gmail.com>
+    件名: U-NEXTにようこそ!無料で使えるファミリーアカウントへの招待が届きました。
+    ---
+    From: stopsandglass@gmail.com
+    件名: 
+    ---
+    From: stopsandglass@gmail.com
+    件名: 
+    ---
+  [4件] go
+    From: no_reply@reserve.naltec.go.jp
+    件名: 【自動車検査インターネット予約システム】アカウント登録完了
+    ---
+    From: no_reply@reserve.naltec.go.jp
+    件名: 【自動車検査インターネット予約システム】アカウント仮登録
+    ---
+    From: online@e-survey.go.jp
+    件名: ＜オンライン調査システム＞　[受付済]　調査票回答を正しく受け付けました
+    ---
+  [1件] gooya@nidokuretai.jp
+    From: "gooya@nidokuretai.jp" <gooya@nidokuretai.jp>
+    件名: Re: www.ashitaira.xyzからのお問い合わせ
+    ---
+  [4件] goo事務局
+    From: "goo事務局" <info@goo.ne.jp>
+    件名: 【重要】プライバシーポリシー等の変更についてのお知らせ
+    ---
+    From: "goo事務局" <info@goo.ne.jp>
+    件名: gooID 登録情報変更完了
+    ---
+    From: "goo事務局" <info@goo.ne.jp>
+    件名: gooID 登録完了
+    ---
+  [2件] honyaclub
+    From: member@honyaclub.com
+    件名: 【Honya Club.com】会員登録が完了しました
+    ---
+    From: member@honyaclub.com
+    件名: 会員登録案内メール
+    ---
+  [2件] i-skylark
+    From: <nightingale@i-skylark.com>
+    件名: 【すかいらーくグループの宅配サービス】会員登録確認
+    ---
+    From: condor@i-skylark.com
+    件名: 【すかいらーくグループの宅配サービス】ご注文を受け付けました
+    ---
+  [1件] iMobie
+    From: iMobie <cs@imobie.com>
+    件名: iMobie Member Account Verification
+    ---
+  [2件] ibss
+    From: sdikenpo@ibss.jp
+    件名: 【健康保険組合よりお知らせ】被扶養者資格調査について
+    ---
+    From: sdikenpo@ibss.jp
+    件名: 【iBssWEBシステム】　メールアドレス登録用認証番号のお知らせ
+    ---
+  [6件] idea 南守谷店
+    From: "idea　南守谷店" <message@salon-ms.jp>
+    件名: idea南守谷店です
+    ---
+    From: "idea　南守谷店" <message@salon-ms.jp>
+    件名: idea南守谷店です
+    ---
+    From: "idea　南守谷店" <message@salon-ms.jp>
+    件名: idea南守谷店です
+    ---
+  [30件] impulse-blue@auone.jp
+    From: mixi <news@mixi.jp>
+    件名: [mixi] パソコンがないと生きていけない / ノートパソコン売ってください… (コミュニティの最新書き込み)
+    ---
+    From: アメブロ <info@ameba.jp>
+    件名: 中尾明慶・仲里依紗夫妻に男の子誕生【アメマガ】
+    ---
+    From: mixi <news@mixi.jp>
+    件名: [mixi] パソコンがないと生きていけない / ノートパソコン売ってください… (コミュニティの最新書き込み)
+    ---
+  [1件] info-lrxpfdsfsznmq@bornrich.org
+    From: "info-lrxpfdsfsznmq@bornrich.org" <info-pcgrlfxhlxdxd@mixi.j
+    件名: 󾔴 【Subad Style】20分できまる即決サイト
+    ---
+  [6件] info@aumypage.jp
+    From: "info@aumypage.jp" <info@aumypage.jp>
+    件名: 󾔴 『大切なご案内』au one My Page退会に関する事前のご連絡
+    ---
+    From: "info@aumypage.jp" <info@aumypage.jp>
+    件名: 󾔴 『大切なご案内』au one My Page退会に関する事前のご連絡
+    ---
+    From: "info@aumypage.jp" <info@aumypage.jp>
+    件名: 󾔴 『大切なご案内』au one My Page退会に関する事前のご連絡
+    ---
+  [2件] info@keisei.co.jp
+    From: "info@keisei.co.jp" <info@keisei.co.jp>
+    件名: スカイライナーインターネット予約サービス本登録完了通知
+    ---
+    From: "info@keisei.co.jp" <info@keisei.co.jp>
+    件名: スカイライナーインターネット予約サービス仮登録完了通知
+    ---
+  [5件] info@wallet.auone.jp
+    From: "info@wallet.auone.jp" <info@wallet.auone.jp>
+    件名: 【au PAY プリペイドカード】有効期限満了のご案内
+    ---
+    From: "info@wallet.auone.jp" <info@wallet.auone.jp>
+    件名: 【au WALLET プリペイドカード】有効期限満了のご案内
+    ---
+    From: "info@wallet.auone.jp" <info@wallet.auone.jp>
+    件名: au PAY登録完了のお知らせ
+    ---
+  [3件] ipet-ins
+    From: info@ipet-ins.com
+    件名: 継続契約についてのご案内
+    ---
+    From: info@ipet-ins.com
+    件名: 継続契約に関する書類の発送先確認のお願い
+    ---
+    From: info@ipet-ins.com
+    件名: 継続証閲覧についてのご案内
+    ---
+  [1件] isao
+    From: pso2admin@isao.net
+    件名: 【PSO2】サービス利用登録完了のお知らせ
+    ---
+  [3件] ishida
+    From: ishida <2.3.0.ishida@gmail.com>
+    件名: 再々送
+    ---
+    From: ishida <2.3.0.ishida@gmail.com>
+    件名: 再送　スズメカレンダー
+    ---
+    From: ishida <2.3.0.ishida@gmail.com>
+    件名: Re: カレンダー注文(FC2 フォームレンタル)
+    ---
+  [1件] ishiharaju
+    From: ishiharaju <ishiharaju@gmail.com>
+    件名: Evernote のノートブックに招待されています: 富里共有
+    ---
+  [1件] itou281111@outlook.jp
+    From: "itou281111@outlook.jp" <itou281111@outlook.jp>
+    件名: NINJA1000を落札させていただきました伊藤です。
+    ---
+  [1件] itunes
+    From: "\"iTunes Store\"" <do_not_reply@itunes.com>
+    件名: ご登録いただいているお支払方法による処理ができません。
+    ---
+  [16件] jam-id
+    From: info@jam-id.jp
+    件名: システムメンテナンスのお知らせ(12/4 午前1時30分～午前4時30分 )
+    ---
+    From: info@jam-id.jp
+    件名: システムメンテナンスのお知らせ
+    ---
+    From: info@jam-id.jp
+    件名: システムメンテナンスのお知らせ
+    ---
+  [4件] japanpost
+    From: e-tenkyo@ml.post.japanpost.jp
+    件名: 「e転居」転居届 受付完了のお知らせ
+    ---
+    From: e-tenkyo@ml.post.japanpost.jp
+    件名: 「e転居」メールアドレス確認完了のお知らせ
+    ---
+    From: e-tenkyo@ml.post.japanpost.jp
+    件名: 「e転居」転居届 受付完了のお知らせ
+    ---
+  [2件] kaiyaku@tapnow.jp
+    From: 片岡　秀一郎 <exgatta@gmail.com>
+    件名: 解約申請書_au
+    ---
+    From: 片岡　秀一郎 <exgatta@gmail.com>
+    件名: 解約申請_docomo
+    ---
+  [1件] kakaku
+    From: user_support_hikkoshi@kakaku.com
+    件名: 【価格.com引越し】お見積もり依頼を承りました
+    ---
+  [1件] kanzaki.t@i.softbank.jp
+    From: "kanzaki.t@i.softbank.jp" <kanzaki.t@i.softbank.jp>
+    件名: 今日のインフォ転送します
+    ---
+  [2件] kawasaki-plaza
+    From: <sagamihara@kawasaki-plaza.net>
+    件名: ユーザ情報登録
+    ---
+    From: <sagamihara@kawasaki-plaza.net>
+    件名: サービス申込完了(自動送信メール)
+    ---
+  [2件] kaya-law
+    From: contact@kaya-law.jp
+    件名: Re:萱沼です。費用額の訂正について
+    ---
+    From: contact@kaya-law.jp
+    件名: Re: カヤヌマ国際法律事務所債務整理サイトからのお問い合わせ
+    ---
+  [1件] kessai
+    From: wellnet <wellnet@kessai.info>
+    件名: お支払方法のご案内URL
+    ---
+  [1件] kikuya-oita
+    From: shop-keeper@kikuya-oita.net
+    件名: 【お菓子の菊家オンラインショップ】会員登録 認証コード
+    ---
+  [1件] ktg-dontreply
+    From: ktg-dontreply <ktg-dontreply@kitamura.co.jp>
+    件名: キタムラネット会員登録のご確認
+    ---
+  [1件] kult koruku
+    From: kult koruku <kult0120@gmail.com>
+    件名: CL予算
+    ---
+  [2件] logoform
+    From: no-reply@logoform.jp
+    件名: 送信完了 - R8入会申請フォーム [受付番号:GS00058437]
+    ---
+    From: no-reply@logoform.jp
+    件名: [LoGoフォーム]アカウント登録完了のお知らせ
+    ---
+  [1件] main
+    From: <support2@motojp.main.jp>
+    件名: RE: [SUZUKI GSX-S1000 (F)] お問い合せフォームから
+    ---
+  [3件] mapfan
+    From: web-auto@mapfan.com
+    件名: 【MapFan 会員】 仮登録確認メール
+    ---
+    From: web-auto@mapfan.com
+    件名: 【MapFan 会員】 登録完了メール
+    ---
+    From: web-auto@mapfan.com
+    件名: 【MapFan 会員】 仮登録確認メール
+    ---
+  [30件] mbga
+    From: mobage_magazine@mbga.jp
+    件名: 週刊モバゲー通信 Vol.19
+    ---
+    From: info@mbga.jp
+    件名: [ﾓﾊﾞｹﾞｰ]ｺﾐｭﾆﾃｨ更新情報
+    ---
+    From: info@mbga.jp
+    件名: [ﾓﾊﾞｹﾞｰ]ｺﾐｭﾆﾃｨ更新情報
+    ---
+  [1件] mdj
+    From: info@w.mdj.jp
+    件名: 󾔴 秋の新ｻｲﾄﾞﾒﾆｭｰ､今日8/30(金)から!
+    ---
+  [2件] menu
+    From: menu <noreply@menu.inc>
+    件名: [menu]ログインのお願い
+    ---
+    From: menu <noreply@menu.inc>
+    件名: [menu]メールアドレス認証のお願い
+    ---
+  [1件] message_r
+    From: message_r <message_r@wdy.docomo.ne.jp>
+    件名: dポイントクラブアンケートのお知らせ
+    ---
+  [2件] mitsui-shopping-park
+    From: noreply@member.mitsui-shopping-park.com
+    件名: 【三井ショッピングパークポイント　メンバーズページ】登録完了のお知らせ
+    ---
+    From: noreply@member.mitsui-shopping-park.com
+    件名: 【三井ショッピングパークポイント　メンバーズページ】登録お手続きのご案内
+    ---
+  [1件] moala
+    From: no-reply@moala.fun
+    件名: 【三栄チケットサービス】チケットを発券しました
+    ---
+  [11件] mobileregi@paysec.cacs.jp
+    From: "mobileregi@paysec.cacs.jp" <mobileregi@paysec.cacs.jp>
+    件名: お支払手続き完了のご案内
+    ---
+    From: "mobileregi@paysec.cacs.jp" <mobileregi@paysec.cacs.jp>
+    件名: お支払手続き完了のご案内
+    ---
+    From: "mobileregi@paysec.cacs.jp" <mobileregi@paysec.cacs.jp>
+    件名: お支払手続き完了のご案内
+    ---
+  [1件] mom2
+    From: <minami-mom@mom2.jp>
+    件名: まあむキッズ相模大野南口　転写シール画像の件
+    ---
+  [1件] motostorm
+    From: info@motostorm.it
+    件名: Registration to Motostorm.it
+    ---
+  [5件] mrso
+    From: covid19-vaccine@mrso.jp
+    件名: 予約確認のお知らせです【相模原市】
+    ---
+    From: covid19-vaccine@mrso.jp
+    件名: 予約内容確認メール【相模原市】
+    ---
+    From: covid19-vaccine@mrso.jp
+    件名: 予約確認のお知らせです【相模原市】
+    ---
+  [8件] mymegalos
+    From: no-reply@mymegalos.com
+    件名: 【まいMEGAネット】変更登録受付
+    ---
+    From: no-reply@mymegalos.com
+    件名: 【まいMEGAネット】レッスン欠席登録
+    ---
+    From: no-reply@mymegalos.com
+    件名: 【まいMEGAネット】レッスン欠席登録
+    ---
+  [1件] mypg
+    From: no-reply@mypg.jp
+    件名: 【自治体マイページ】確認コード発行のお知らせ
+    ---
+  [30件] ne
+    From: sagamiono3@ymail.ne.jp
+    件名: ロボット教室体験会のお知らせ
+    ---
+    From: docomo@payment1.spmode.ne.jp
+    件名: 【d払い】登録完了のお知らせ(自動配信)
+    ---
+    From: info@wdy.docomo.ne.jp
+    件名: [dアカウント]ログイン通知
+    ---
+  [1件] netgear
+    From: donotreply@message.netgear.com
+    件名: パスワードをリセットしましょう
+    ---
+  [5件] nitori
+    From: <NETSHOP-SEND-ONLY@nitori.jp>
+    件名: [ニトリネット］お荷物問合せ番号のお知らせ
+    ---
+    From: <NETSHOP-SEND-ONLY@nitori.jp>
+    件名: [ニトリネット］お荷物問合せ番号のお知らせ
+    ---
+    From: <NETSHOP-SEND-ONLY@nitori.jp>
+    件名: [ニトリネット]配送日・お支払いのお知らせ
+    ---
+  [1件] no-reply
+    From: no-reply <no-reply@qrioinc.com>
+    件名: 【Qrio Lock】アカウント登録が完了しました
+    ---
+  [1件] ocnk
+    From: shop8888@panasonic-pcshop.ocnk.net
+    件名: メールを受け付けました 
+    ---
+  [1件] or
+    From: bouka-system@n-bouka.or.jp
+    件名: 【日本防火・防災協会】講習会受講申込のご連絡
+    ---
+  [2件] ototoy
+    From: info@ototoy.jp
+    件名: [OTOTOY] ようこそ
+    ---
+    From: info@ototoy.jp
+    件名: ototoy 事務局さんからOTOTOYへのご招待です
+    ---
+  [1件] ozzio
+    From: ozzio <red_pokonin_cry@ozzio.jp>
+    件名: Re: てるいさんらぶり
+    ---
+  [1件] partsfan
+    From: no-reply@partsfan.com
+    件名: partsfan ユーザ登録確認依頼
+    ---
+  [1件] paytouch
+    From: noreply@paytouch.jp
+    件名: 会員のご登録ありがとうございます。
+    ---
+  [2件] peach-sparrow21@ezweb.ne.jp
+    From: "peach-sparrow21@ezweb.ne.jp" <peach-sparrow21@ezweb.ne.jp>
+    件名: ♪( ´θ｀)ノ
+    ---
+    From: "peach-sparrow21@ezweb.ne.jp" <peach-sparrow21@ezweb.ne.jp>
+    件名: ？？？
+    ---
+  [6件] pixiv事務局
+    From: "pixiv事務局" <no-reply@pixiv.net>
+    件名: 【重要】プライバシーポリシー・個別規約改定のお知らせ
+    ---
+    From: "pixiv事務局" <no-reply@pixiv.net>
+    件名: jenniferi35eさんよりマイピク追加リクエストがあります
+    ---
+    From: "pixiv事務局" <no-reply@pixiv.net>
+    件名: Keilaniさんよりマイピク追加リクエストがあります
+    ---
+  [5件] playstation
+    From: DoNotReply@ac.playstation.net
+    件名: [PlayStation(R)Network] 購入明細
+    ---
+    From: scej_orrs@jp.playstation.co
+    件名: 【“PSNチケット”プレゼントについて】SCEJ オンライン修理受付サービスからのお知らせ
+    ---
+    From: DoNotReply@ac.playstation.net
+    件名: [PlayStation(R)Network] ウォレットへのチャージ完了のお知らせ
+    ---
+  [1件] plimus
+    From: sales@plimus.com
+    件名: Purchase reminder: Revo Uninstaller Pro - Full version (Ref#
+    ---
+  [2件] pokemoncenter-online
+    From: info@pokemoncenter-online.com
+    件名: 抽選結果のご案内「ポケモンセンターオンライン」
+    ---
+    From: info@pokemoncenter-online.com
+    件名: [ポケモンセンターオンライン]応募完了のお知らせ
+    ---
+  [1件] presidentresort
+    From: <snowpark@presidentresort.jp>
+    件名: お忘れ物のお問合せに関して 【軽井沢スノーパーク】
+    ---
+  [1件] qjican@gmail.com
+    From: Kataoka hideaki <qjican@gmail.com>
+    件名: 駐車場
+    ---
+  [1件] qrioinc
+    From: no-reply@qrioinc.com
+    件名: 【Qrio Lock】アカウント登録：メールアドレスを認証してください
+    ---
+  [1件] revouninstaller
+    From: sales@revouninstaller.com
+    件名: Revo Uninstaller Pro -  - Full version Order Information
+    ---
+  [1件] sendonly@docockin.net
+    From: "sendonly@docockin.net" <sendonly@docockin.net>
+    件名: 󾔴  ２０１０年は金杯で勝ってスタートを
+    ---
+  [1件] shikuminet
+    From: no-reply@shikuminet.jp
+    件名: 【写真整理協会メルマガ】5月号★宣言文/キタムラ/おもいでばこ/セミナー講師ほか★
+    ---
+  [1件] shop8888
+    From: shop8888@panasonic-pcshop.ocnk.net
+    件名: メールを受け付けました 
+    ---
+  [4件] shujii
+    From: clinic-nonno9588@shujii.com
+    件名: のんのキッズクリニックよりご案内
+    ---
+    From: clinic-funa3111@shujii.com
+    件名: ふなやま内科クリニックより明日の予約のご案内
+    ---
+    From: clinic-funa3111@shujii.com
+    件名: ふなやま内科クリニックより予約のご案内
+    ---
+  [5件] steach
+    From: snow.booking@steach.jp
+    件名: STeach for SNOW｜レッスン予約完了のご案内
+    ---
+    From: snow.cancel@steach.jp
+    件名: STeach for SNOW｜予約キャンセル完了のご案内
+    ---
+    From: snow.booking@steach.jp
+    件名: STeach for SNOW｜レッスン予約完了のご案内
+    ---
+  [1件] stopsandglass@i.softbank.jp
+    From: "stopsandglass@i.softbank.jp" <stopsandglass@i.softbank.jp>
+    件名: 󾔴 
+    ---
+  [1件] support-info@portalmail.kddi.com
+    From: "support-info@portalmail.kddi.com" <support-info@portalmail.
+    件名: [My au]SIMロック解除登録2段階認証のお知らせ
+    ---
+  [2件] t-mobile
+    From: hotspot@t-mobile.net
+    件名: HotSpotの領収書
+    ---
+    From: hotspot@t-mobile.net
+    件名: HotSpotの領収書
+    ---
+  [1件] takayo kataoka
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: 洗濯機と冷蔵庫の型番
+    ---
+  [2件] takemeki
+    From: takemeki <takemeki@box-katou.co.jp>
+    件名: ご注文の商品が発送されました
+    ---
+    From: takemeki <takemeki@box-katou.co.jp>
+    件名: ご注文ありがとうございます
+    ---
+  [1件] the0123
+    From: <orc-chushikokukyusyu@art.the0123.com>
+    件名: アート引越センターからのお知らせ
+    ---
+  [1件] timy.info1@mc-ene.com
+    From: "timy.info1@mc-ene.com" <timy.info1@mc-ene.com>
+    件名: 【timy】ログインパスワード変更に関するお願い
+    ---
+  [4件] timyサポートセンター
+    From: "timyサポートセンター" <support@timy.jp>
+    件名: 【timy】店舗サービスはいかがでしたか？感想をお聞かせください
+    ---
+    From: "timyサポートセンター" <support@timy.jp>
+    件名: 【timy】ご予約が確定いたしました
+    ---
+    From: "timyサポートセンター" <support@timy.jp>
+    件名: 【timy】アカウント登録を完了しました
+    ---
+  [1件] timyサポート窓口
+    From: "timyサポート窓口" <support@timy.jp>
+    件名: 【timy会員様】カーメンテナンス予約サービス「timy」業務移管のお知らせ
+    ---
+  [4件] tpgaw
+    From: info@tpgaw.jp
+    件名: [ヤマダ]出荷のお知らせ
+    ---
+    From: info@tpgaw.jp
+    件名: [ヤマダ]ご注文を受け付けました
+    ---
+    From: info@tpgaw.jp
+    件名: [ヤマダ]出荷のお知らせ
+    ---
+  [1件] tr-ipy
+    From: <info@tr-ipy.com>
+    件名: RE: HPからお問い合わせが届きました。【トータルリペアIPY】
+    ---
+  [2件] trip
+    From: jp_hotel@trip.com
+    件名: 払い戻し完了のお知らせ
+    ---
+    From: jp_hotel@trip.com
+    件名: バウチャー購入完了のお知らせ
+    ---
+  [2件] tumi
+    From: ec-info@tumi.com
+    件名: 【トゥミ】 トレイサープログラムへのご登録を承りました
+    ---
+    From: ec-info@tumi.com
+    件名: 【トゥミ】 トレイサープログラムへのご登録を承りました
+    ---
+  [1件] verificationemail
+    From: no-reply@verificationemail.com
+    件名: 家電リモコンの本人確認用コード
+    ---
+  [17件] whitecloud
+    From: <GFN_NO_REPLY@whitecloud.jp>
+    件名: GeForce NOW Powered by SoftBank　サービス提供終了のご案内
+    ---
+    From: <GFN_NO_REPLY@whitecloud.jp>
+    件名: GeForce NOW Powered by SoftBank　サービス提供終了のご案内
+    ---
+    From: <GFN_NO_REPLY@whitecloud.jp>
+    件名: 【重要】GeForce NOW Powered by SoftBank プレミアムプラン月額料金値下げのお知らせ
+    ---
+  [3件] wrtn
+    From: wrtn <japancorp@wrtn.io>
+    件名: 【リートン】大幅アップデートによるシステムメンテナンスのお知らせ
+    ---
+    From: wrtn <japancorp@wrtn.io>
+    件名: 【近日公開】今注目のあ.の.最新AIモデルを無料・無制限で公開などの新機能アップデート！
+    ---
+    From: wrtn <japancorp@wrtn.io>
+    件名: 【リートン】 GPT-4 Turbo 1次先行公開のお知らせ
+    ---
+  [1件] www.ashitaira.xyz
+    From: "www.ashitaira.xyz" <gooya@nidokuretai.jp>
+    件名: [新規注文] ご注文ありがとうございます。 No: [www.ashitaira.xyz]New-Orders-1909
+    ---
+  [30件] x
+    From: X <notify@x.com>
+    件名: アカウントについてのお知らせ
+    ---
+    From: X <verify@x.com>
+    件名: Xへの新規ログインがありました（iPhoneのSafariMobileIosより）
+    ---
+    From: X <verify@x.com>
+    件名: Xへの新規ログインがありました（iPhoneのSafariより）
+    ---
+  [1件] x250yen_for_7nights_and_8days@i.softbank.jp
+    From: "x250yen_for_7nights_and_8days@i.softbank.jp" <x250yen_for_7
+    件名: 舞台のご案内
+    ---
+  [1件] xID
+    From: xID <noreply@x-id.app>
+    件名: 【xID】メールアドレス確認のお知らせ
+    ---
+  [3件] yoyakuru
+    From: info@yoyakuru.net
+    件名: 登録完了のお知らせ : 相模大野皮膚科クリニック
+    ---
+    From: info@yoyakuru.net
+    件名: 登録完了のお知らせ : 相模大野皮膚科クリニック
+    ---
+    From: info@yoyakuru.net
+    件名: 登録完了のお知らせ : 相模大野皮膚科クリニック
+    ---
+  [3件] yubin-info
+    From: yubin-info <yubin-info@ml.post.japanpost.jp>
+    件名: 【ゆうびんID】ゆうびんIDのご利用で、お届け予定荷物情報が届きます！
+    ---
+    From: yubin-info <yubin-info@ml.post.japanpost.jp>
+    件名: 【ゆうびんID】本登録完了のお知らせ（【Yubin ID】 Registration Completion Notifi
+    ---
+    From: yubin-info <yubin-info@ml.post.japanpost.jp>
+    件名: 【ゆうびんID】仮登録完了のお知らせ（【Yubin ID】 Temporary Registration Notific
+    ---
+  [29件] 【Oisix × Pontaポイント】
+    From: "【Oisix × Pontaポイント】" <info@gochimaru.com>
+    件名: 【60%OFF】5分で手軽に手作りごはん
+    ---
+    From: "【Oisix × Pontaポイント】" <info@gochimaru.com>
+    件名: 【ご案内】最大3,000円OFF！Oisix20周年特別キャンペーン実施中！
+    ---
+    From: "【Oisix × Pontaポイント】" <info@gochimaru.com>
+    件名: 【祝！Oisix20周年！】厳選食材を特別価格で家までお届け！
+    ---
+  [30件] 【Oisix】
+    From: "【Oisix】" <info@oisix.com>
+    件名: 【新春！60%OFF】Oisixのお得な献立セットで今年の食卓はじめませんか？
+    ---
+    From: "【Oisix】" <info@oisix.com>
+    件名: 【新春！60%OFF】ポイントもたまる！Oisixのお得な献立セット
+    ---
+    From: "【Oisix】" <info@oisix.com>
+    件名: 【ポイントたまる！60%OFF】年末年始の献立おたすけセット
+    ---
+  [1件] 【カーメイト】保証登録
+    From: "【カーメイト】保証登録" <c-club@carmate.co.jp>
+    件名: ご登録ありがとうございました
+    ---
+  [3件] 【カーメイトくらぶ】
+    From: "【カーメイトくらぶ】" <c-club@carmate.co.jp>
+    件名: SNS・ブログ・口コミなどの活用調査にご協力お願いします
+    ---
+    From: "【カーメイトくらぶ】" <c-club@carmate.co.jp>
+    件名: ブランド認知度・イメージについてのアンケートにご協力お願いします
+    ---
+    From: "【カーメイトくらぶ】" <c-club@carmate.co.jp>
+    件名:  家庭用アロマ・Bluetoothスピーカーに関するアンケートのお願い
+    ---
+  [3件] 【ソファ専門店 NOYES】 お問い合わせ窓口
+    From: 
+    件名: 
+    ---
+    From: 
+    件名: 
+    ---
+    From: 
+    件名: 
+    ---
+  [9件] 【ダンボールワン】
+    From: "【ダンボールワン】" <mail@notosiki.co.jp>
+    件名: 〈重要〉【ダンボールワン】サイトでのエラー発生に関するお詫びと復旧のご報告
+    ---
+    From: "【ダンボールワン】" <mail@notosiki.co.jp>
+    件名: 合併に伴う新会社へ移行のご案内
+    ---
+    From: "【ダンボールワン】" <mail@notosiki.co.jp>
+    件名: 【重要】一部商品の販売価格の改定について
+    ---
+  [5件] 【日産レンタカー】
+    From: "【日産レンタカー】" <no-reply@nissan-rentacar.com>
+    件名: ご利用ありがとうございました
+    ---
+    From: "【日産レンタカー】" <no-reply@nissan-rentacar.com>
+    件名: 自動車貸渡証
+    ---
+    From: "【日産レンタカー】" <no-reply@nissan-rentacar.com>
+    件名: 【セルフチェックイン完了】手続きが完了しました
+    ---
+  [1件] お宝創庫オンラインショップお問合せ
+    From: "お宝創庫オンラインショップお問合せ" <contact@ec.otakarasouko.com>
+    件名: 会員登録いただき、誠にありがとうございます
+    ---
+  [1件] お知らせ
+    From: "お知らせ" <mjxt337@docomo.ne.jp>
+    件名: 公式アカウント
+    ---
+  [2件] お菓子の菊家オンラインショップ
+    From: "お菓子の菊家オンラインショップ" <shop-keeper@kikuya-oita.net>
+    件名: 会員登録完了【お菓子の菊家　オンラインショップ】
+    ---
+    From: "お菓子の菊家オンラインショップ" <shop-keeper@kikuya-oita.net>
+    件名: 会員アカウントログインのお知らせ【お菓子の菊家オンラインショップ】
+    ---
+  [1件] かっぱ寿司
+    From: "かっぱ寿司" <no-reply@kappasushi.jp>
+    件名: 【かっぱ寿司】会員登録認証
+    ---
+  [1件] かねたやルームデコ
+    From: "かねたやルームデコ" <event_messe@roomdeco.co.jp>
+    件名: 入場事前登録受付のお知らせ
+    ---
+  [5件] かんたんアプリ
+    From: "かんたんアプリ" <kantan-app@graphic.jp>
+    件名: 発送しました［かんたん年賀状］
+    ---
+    From: "かんたんアプリ" <kantan-app@graphic.jp>
+    件名: クレジットカード決済完了［かんたん年賀状］
+    ---
+    From: "かんたんアプリ" <kantan-app@graphic.jp>
+    件名: ご注文の受付［かんたん年賀状］
+    ---
+  [2件] くら寿司名古屋栄店
+    From: "くら寿司名古屋栄店" <no-reply2.kura341@mbtn.jp>
+    件名: [くら寿司]ご不在によるキャンセルのお知らせ
+    ---
+    From: "くら寿司名古屋栄店" <no-reply2.kura341@mbtn.jp>
+    件名: [くら寿司]ご不在のお知らせ
+    ---
+  [1件] さいか (Twitter)
+    From: "さいか (Twitter)" <notify@twitter.com>
+    件名: さいか (@tewisai)さんからフォローされました
+    ---
+  [4件] じゃらん×ホットペッパー新着ニュース
+    From: じゃらん×ホットペッパー新着ニュース <pickup_news@point.recruit.co.jp>
+    件名: 最大８０％オフ！ファミリーセールサイトMARQREL（マルクレル）【新着ニュース】
+    ---
+    From: じゃらん×ホットペッパー新着ニュース <pickup_news@point.recruit.co.jp>
+    件名: 最大８０％オフ！有名ブランドの商品がファミリーセール価格【新着ニュース】
+    ---
+    From: じゃらん×ホットペッパー新着ニュース <pickup_news@point.recruit.co.jp>
+    件名: マルクレルグランドオープン！あのブランドが素敵な価格で！【新着ニュース】
+    ---
+  [2件] じゃらん×ホットペッパー＆ファッション通販ERUCA
+    From: じゃらん×ホットペッパー＆ファッション通販ERUCA <eruca_news@eruca.jp>
+    件名: 女子スタッフから人気≪オトコ前BODYを作るCW-X≫を最大3,000円分クーポンでお得にGET【ポイントお得メール】
+    ---
+    From: じゃらん×ホットペッパー＆ファッション通販ERUCA <eruca_news@eruca.jp>
+    件名: 今だけのチャンス！メンズアイテム最大3,000円OFF！【ポイントお得メール】
+    ---
+  [1件] はぜのき
+    From: はぜのき <nakayosisansimai@gmail.com>
+    件名: Fwd: こーか
+    ---
+  [1件] ぷりちぃなぁご
+    From: "ぷりちぃなぁご" <commenting@dropboxmail.com>
+    件名: DSC_0220.JPG のコメント
+    ---
+  [30件] やっちゃばマルシェ
+    From: "やっちゃばマルシェ" <store_cs@y-marche.com>
+    件名: 【やっちゃばマルシェ】 メールマガジン停止を承りました
+    ---
+    From: "やっちゃばマルシェ" <store_cs@y-marche.com>
+    件名:  クーポンご利用期限のお知らせ
+    ---
+    From: "やっちゃばマルシェ" <store_cs@y-marche.com>
+    件名: 【割引クーポン】名店の味がランクイン◆今月の人気ランキング発表◆
+    ---
+  [30件] アトラスダイレクトショップ
+    From: "アトラスダイレクトショップ" <yahoo-shop@atlas-kk.co.jp>
+    件名: ＼本日5のつく日！ポイント最大4％付与 ！／エントリー必須★ 【バイクパーツ　アトラス】
+    ---
+    From: "アトラスダイレクトショップ" <yahoo-shop@atlas-kk.co.jp>
+    件名: ＼本日5のつく日！ポイント最大4％付与 ！／エントリー必須★ 【バイクパーツ　アトラス】
+    ---
+    From: "アトラスダイレクトショップ" <yahoo-shop@atlas-kk.co.jp>
+    件名: 【バイクパーツ　アトラス】新着商品のご案内
+    ---
+  [5件] インフォトップ
+    From: "インフォトップ" <mail3@infotop.jp>
+    件名: 4回目のクレジット決済が完了いたしました。
+    ---
+    From: "インフォトップ" <mail3@infotop.jp>
+    件名: 3回目のクレジット決済が完了いたしました。
+    ---
+    From: "インフォトップ" <mail3@infotop.jp>
+    件名: 2回目のクレジット決済が完了いたしました。
+    ---
+  [1件] ウインストン 小澄 太祐
+    From: "ウインストン　小澄　太祐" <dkosumi@win-stone.jp>
+    件名: 火災保険お見積書です。
+    ---
+  [5件] ウインストン小澄
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: iPad破損とキーボード汚損の件
+    ---
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: バイクの保険の件
+    ---
+    From: "ウインストン小澄" <dkosumi@win-stone.jp>
+    件名: 個人賠償責任保険の追加と家財の事故について
+    ---
+  [3件] ウインストン小澄G-mail
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: バイク入れ替えの件
+    ---
+    From: "ウインストン小澄G-mail" <dkosumi.wis@gmail.com>
+    件名: お電話にてお話しした内容でのお見積書になります。
+    ---
+    From: "ウインストン小澄G-mail" <dkosumi.wis@gmail.com>
+    件名: 自動車保険更新のお見積書になります。
+    ---
+  [8件] カウル運営事務局
+    From: "カウル運営事務局" <noreply@kawlu.com>
+    件名: 【カウル】未読の新着メッセージが届いています！
+    ---
+    From: "カウル運営事務局" <noreply@kawlu.com>
+    件名: 【カウル通信】かしこく購入するための便利機能 - 人工知能による推定相場&マンション毎の売出事例活用ガイド
+    ---
+    From: "カウル運営事務局" <noreply@kawlu.com>
+    件名: 【カウル通信】かしこく購入するための便利機能 - 住宅ローンシミュレーター&諸経費シミュレーション活用ガイド
+    ---
+  [1件] カウンセラー伊藤
+    From: "カウンセラー伊藤" <counselor.ito@akalab.jp>
+    件名: カウンセラーの伊藤です。
+    ---
+  [1件] カタログギフトのハーモニック[公式サイト]
+    From: "カタログギフトのハーモニック[公式サイト]" <weborder@harmonick.co.jp>
+    件名: お買い忘れはございませんか？【カタログギフトのハーモニック[公式サイト]】
+    ---
+  [1件] カラメル
+    From: "カラメル" <support@calamel.jp>
+    件名: 【カラメル】『仮ポイント発行』及び『マイカラメル登録完了』のお知らせ
+    ---
+  [1件] カワサキプラザ相模原
+    From: "カワサキプラザ相模原" <sagamihara@kawasaki-plaza.net>
+    件名: 整備ご予約に関して
+    ---
+  [4件] カーメイトくらぶ
+    From: "カーメイトくらぶ" <c-club@carmate.co.jp>
+    件名: 新春お年玉企画！新型360°ドライブレコーダーのモニターを大募集（36名様）
+    ---
+    From: "カーメイトくらぶ" <c-club@carmate.co.jp>
+    件名: ドライブレコーダーとCM認知度調査にご協力お願いします
+    ---
+    From: "カーメイトくらぶ" <c-club@carmate.co.jp>
+    件名: 【モニター募集】花粉・ウイルスをシャットアウト！多機能エアコンフィルター
+    ---
+  [30件] クレファン
+    From: "クレファン" <info@crefan.jp>
+    件名: クレファンからのお知らせ
+    ---
+    From: "クレファン" <info@crefan.jp>
+    件名: クレファンからのお知らせ
+    ---
+    From: "クレファン" <info@crefan.jp>
+    件名: クレファンからのお知らせ
+    ---
+  [9件] クーカンネットショップ
+    From: "クーカンネットショップ" <info@cucannetshop.jp>
+    件名: 1/19スタート！今週のクーポンのお知らせ【クーカンネットショップ】
+    ---
+    From: "クーカンネットショップ" <info@cucannetshop.jp>
+    件名: 【cucan】ご利用規約の改定に伴うご案内
+    ---
+    From: "クーカンネットショップ" <info@cucannetshop.jp>
+    件名: 【クーカンネットショップ】新生活応援♪20%OFFクーポンは29日09:59迄！
+    ---
+  [5件] クーカンネットショップ 本店
+    From: "クーカンネットショップ 本店" <info@cucannetshop.jp>
+    件名: 【クーカンネットショップ 本店】商品を発送いたしました（ご注文番号100026914608）
+    ---
+    From: "クーカンネットショップ 本店" <info@cucannetshop.jp>
+    件名: 【クーカンネットショップ 本店】発送準備いたしました（ご注文番号100026914608）
+    ---
+    From: "クーカンネットショップ　本店" <info@cucannetshop.jp>
+    件名: 【クーカン】ご注文確認いたしました
+    ---
+  [2件] グリンコンシューマー ヤフーショッピング店
+    From: "グリンコンシューマー　ヤフーショッピング店" <heartful@ivy.ocn.ne.jp>
+    件名: 片岡秀一郎様　発送完了のお知らせ
+    ---
+    From: "グリンコンシューマー　ヤフーショッピング店" <heartful@ivy.ocn.ne.jp>
+    件名: 片岡秀一郎様　ご注文ありがとうございます。
+    ---
+  [2件] コニカミノルタプラネタリウム“満天”
+    From: "コニカミノルタプラネタリウム“満天”" <manten-info@konicaminolta.jp>
+    件名: 【入場用QRコード発行のお知らせ】
+    ---
+    From: "コニカミノルタプラネタリウム“満天”" <manten-info@konicaminolta.jp>
+    件名: 【チケット予約受付完了のお知らせ】
+    ---
+  [6件] コーチ アウトレット
+    From: "コーチ アウトレット" <coachjapan@mail.coachoutlet.com>
+    件名: 【Just Reduced！8/21(日)まで】オンライン限定対象商品がスペシャルプライスに✨
+    ---
+    From: "コーチ アウトレット" <coachjapan@mail.coachoutlet.com>
+    件名: セットorリンクコーデを楽しもう！ヴァーシティ コレクション
+    ---
+    From: "コーチ アウトレット" <coachjapan@mail.coachoutlet.com>
+    件名: 大人気♡コーチのお財布特集👛
+    ---
+  [5件] サンキュ！オンラインレッスン事務局
+    From: "サンキュ！オンラインレッスン事務局" <noreply@mail.39fit.benesse.ne.jp>
+    件名: 「男の子3人ママのイライラ激減!? 間食に頼るのをやめられた１日10分でできる『〇〇』とは？」<ベネッセからのお知らせ>
+    ---
+    From: "サンキュ！オンラインレッスン事務局" <noreply@mail.39fit.benesse.ne.jp>
+    件名: 【イライラしやすい人】必見！寝る前30分で心と体が軽くなる！イライラ解消レッスン実施中。女性のためのオンラインヨガ＆スト
+    ---
+    From: "サンキュ！オンラインレッスン事務局" <noreply@mail.39fit.benesse.ne.jp>
+    件名: 【無料体験会に招待！】zoom開催！朝までぐっすり眠りたい方、睡眠に悩む方は必見！女性のためのオンラインヨガ＆ストレッチ
+    ---
+  [1件] サンク総合法律事務所
+    From: "サンク総合法律事務所" <uketsuke@thank-lawoffices.com>
+    件名: 【サンク総合法律事務所】ご相談を受け付けました。
+    ---
+  [1件] シェード カスタマーサポート
+    From: "シェード カスタマーサポート" <digimoku@shade-inc.co.jp>
+    件名: お問い合わせを受け付けました。
+    ---
+  [1件] ショッピングニュース
+    From: ショッピングニュース <shoppingnews@merumo.ne.jp>
+    件名: 󾔴 [ﾒﾙﾓSHOP]ｲﾀｲと思うｱﾗｻｰ女/ｼｬﾈﾙ
+    ---
+  [1件] ジーフットアプリ
+    From: "ジーフットアプリ" <noreply@app-mail.g-foot.jp>
+    件名: 【ジーフットアプリ】アカウント登録確認のお願い。
+    ---
+  [1件] スナップスナップ
+    From: "スナップスナップ" <support@photocreate.co.jp>
+    件名: 【スナップスナップ】仮会員登録を受付けました
+    ---
+  [1件] ソファ専門店 NOYES
+    From: "ソファ専門店　NOYES" <info@ny-k.co.jp>
+    件名: NOYESより　お問い合わせ確認メール
+    ---
+  [3件] タシロ
+    From: タシロ <linkinparkdaisuki@i.softbank.jp>
+    件名: 󾔴  Re: Re:
+    ---
+    From: タシロ <linkinparkdaisuki@i.softbank.jp>
+    件名: 󾔴 
+    ---
+    From: タシロ <linkinparkdaisuki@i.softbank.jp>
+    件名: 󾔴 
+    ---
+  [11件] タブルーム編集部
+    From: "タブルーム編集部" <mail@tabroom.jp>
+    件名: TABROOM STORE限定ポイントプレゼント【TABROOM LETTER号外】
+    ---
+    From: "タブルーム編集部" <mail@tabroom.jp>
+    件名: 名作収納の事例、50件をまとめました【TABROOM LETTER VOL.16】
+    ---
+    From: "タブルーム編集部" <mail@tabroom.jp>
+    件名: 限定アウトレットセールにご招待／人気記事TOP10【TABROOM LETTER VOL.15】
+    ---
+  [1件] ダイニチ工業 技術サポートセンター
+    From: "ダイニチ工業　技術サポートセンター" <DontReply_D@dainichi-net.co.jp>
+    件名:  片岡 秀一郎様 　<カタカタ音　 修理依頼 　2188901 HD-242>への返信　ダイニチ工業
+    ---
+  [3件] ディファレンス海老名ビナウォーク店
+    From: "ディファレンス海老名ビナウォーク店" <ebina-vinawalk@difference.tokyo>
+    件名: 【片岡様】DIFFERENCEよりお知らせ
+    ---
+    From: "ディファレンス海老名ビナウォーク店" <ebina-vinawalk@difference.tokyo>
+    件名: 【DIFFERENCE 海老名ビナウォーク店】小林より
+    ---
+    From: "ディファレンス海老名ビナウォーク店" <ebina-vinawalk@difference.tokyo>
+    件名: 【DIFFERENCE海老名ビナウォーク店】ご注文ありがとうございます！
+    ---
+  [1件] デジモク
+    From: "デジモク" <digimoku@shade-inc.co.jp>
+    件名: デジモクカスタマーサポートからのご連絡
+    ---
+  [1件] トータルリペア アクティブ
+    From: "トータルリペア アクティブ" <tr-active@kvp.biglobe.ne.jp>
+    件名: ダッシュボード修理の件
+    ---
+  [1件] トータルリペア イーサン
+    From: "トータルリペア　イーサン" <info@tr-esan.com>
+    件名: Re: お問い合わせフォームからお問い合わせがありました
+    ---
+  [1件] トータルリペアIPY
+    From: "トータルリペアIPY" <info@tr-ipy.com>
+    件名: お問い合わせありがとうございました。【トータルリペアIPY】
+    ---
+  [1件] ドラ割事務局(NEXCO東日本)
+    From: "ドラ割事務局（NEXCO東日本)" <etc_dorawari@driveplaza.com>
+    件名: ドラ割「ウィンターパス 2020 蔵王プラン（首都圏発着）」申込完了メール
+    ---
+  [2件] ハグノート hugnote
+    From: "ハグノート hugnote" <support@hugmo.net>
+    件名: まあむキッズ相模大野南口よりhugnote(ハグノート)招待
+    ---
+    From: "ハグノート hugnote" <support@hugmo.net>
+    件名: 【hugnote／GakkenID】メールアドレス確認
+    ---
+  [1件] ヒューマンアカデミー Lynx事務局
+    From: "ヒューマンアカデミー Lynx 事務局" <no_reply_ha@athuman.com>
+    件名: 【ヒューマンアカデミージュニア】体験会申込完了のご案内
+    ---
+  [1件] ビッグモーター 成田営業
+    From: "ビッグモーター 成田営業" <info-naritaeigyo@bigmotor.jp>
+    件名: [7923182]BIGMOTOR成田店より
+    ---
+  [1件] ピクチャン「コンビニ証明写真」運営事務局
+    From: "ピクチャン「コンビニ証明写真」運営事務局" <info@pic-chan.net>
+    件名: 【ピクチャン】プリント番号とQRコードのお知らせ
+    ---
+  [1件] ファッション
+    From: BEAMS <mail@club.beams.co.jp>
+    件名: “ゴアテックス”に魅せられた3人の証言者｜GORE-TEX LOVERS
+    ---
+  [30件] ファミリー販売
+    From: Lenovo <Lenovo@ecomms.lenovo.com>
+    件名: 《お詫び》Lenovoアルゼンチンのメールマガジンが配信された件について
+    ---
+    From: Lenovo <Lenovo@ecomms.lenovo.com>
+    件名: 【会員様限定価格】最新のThinkPad X/Tシリーズ2019年モデル！
+    ---
+    From: "ファミリー販売 ☆特別優待のお客様☆" <eb70793@lenovo-news.com>
+    件名: 【Core i7モデルがお得！】モバイル・タブレットセール★今ならケースが100円で！
+    ---
+  [1件] フルタイムシステム
+    From: "フルタイムシステム" <f2@fulltimesystem.jp>
+    件名: フルタイムカスタマーサイト 利用解除完了のお知らせ
+    ---
+  [30件] プラスポイントアンケート
+    From: "プラスポイントアンケート" <info@enjoy.point.auone.jp>
+    件名: 【au】アンケートに答えるとPontaポイントがたまります
+    ---
+    From: "プラスポイントアンケート" <info@enjoy.point.auone.jp>
+    件名: 【au】アンケートに答えるとPontaポイントがたまります
+    ---
+    From: "プラスポイントアンケート" <info@enjoy.point.auone.jp>
+    件名: 【au】ポイント山分けキャンペーン中！
+    ---
+  [30件] ホットインフォ
+    From: "ホットインフォ" <hotinfo@himail.ezweb.ne.jp>
+    件名: 30代の平均年収840万円
+    ---
+    From: "ホットインフォ" <hotinfo@himail.ezweb.ne.jp>
+    件名: バイク王で無料おためし査定！
+    ---
+    From: "ホットインフォ" <hotinfo@himail.ezweb.ne.jp>
+    件名: アメックスはあなたを守る最強防具
+    ---
+  [6件] マルシェル by goo
+    From: "マルシェル by goo" <info@mail.marchel.goo.ne.jp>
+    件名: 使わにゃ損々♪1,000円クーポン利用とdポイント10%還元キャンペーン＼ダブルでおトク／【マルシェル】
+    ---
+    From: "マルシェル by goo" <info@mail.marchel.goo.ne.jp>
+    件名: 【1,000円分クーポン】6月30日まで使えるクーポンで旬の野菜くだものやハンドメイド作品をお買い物【マルシェル】
+    ---
+    From: "マルシェル by goo" <info@mail.marchel.goo.ne.jp>
+    件名: ５月３１日まで★１，０００円クーポン★をプレゼント中【マルシェル by goo】
+    ---
+  [2件] ミキハウスオフィシャルサイト
+    From: "ミキハウスオフィシャルサイト" <dmkd@mikihouse.co.jp>
+    件名: 【ミキハウスオフィシャルサイト】配送伝票番号のお知らせです。
+    ---
+    From: "ミキハウスオフィシャルサイト" <dmkd@mikihouse.co.jp>
+    件名: ミキハウス オフィシャルサイトご注文受付完了のお知らせ【S20241113-00179754】
+    ---
+  [4件] モバイルガジェットショップ がうがう！
+    From: "モバイルガジェットショップ がうがう！" <info@gaugau.jp>
+    件名: RE: 【モバイルガジェットショップ がうがう！】≪ショップ≫お問い合わせ
+    ---
+    From: "モバイルガジェットショップ がうがう！" <info@gaugau.jp>
+    件名: 【がうがう！】 お問合せありがとうございます (自動配信)
+    ---
+    From: "モバイルガジェットショップ がうがう！" <info@gaugau.jp>
+    件名: 【がうがう！】 ご注文ありがとうございます
+    ---
+  [25件] ユピテルity.クラブ
+    From: "ユピテルity.クラブ" <ity@yupiteru.co.jp>
+    件名: GPSデータ更新のお知らせ
+    ---
+    From: "ユピテルity.クラブ" <ity@yupiteru.co.jp>
+    件名: 【ユピテルity.クラブ】年会費プラン更新のご案内（再送）
+    ---
+    From: "ユピテルity.クラブ" <ity@yupiteru.co.jp>
+    件名: 【ユピテルity.クラブ】年会費プラン更新のご案内
+    ---
+  [4件] ラクラ
+    From: "ラクラ" <info@sankou-tkh.co.jp>
+    件名: パレソレイユ相模大野について
+    ---
+    From: "ラクラ" <info@sankou-tkh.co.jp>
+    件名: グリーンコート相模大野の価格交渉について
+    ---
+    From: "ラクラ" <info@sankou-tkh.co.jp>
+    件名: グリーンコート相模大野の室内詳細について
+    ---
+  [2件] リンテックコマース株式会社
+    From: "リンテックコマース株式会社" <reply+g1MlNw3HS2y5Rn1JNNEt@form.run>
+    件名: 爪とぎ防止 壁紙の保護シート（弱粘着タイプ）について【リンテックコマース】
+    ---
+    From: "リンテックコマース株式会社" <formmail@lintec-c.com>
+    件名: 【リンテックコマース 株式会社】お問い合わせありがとうございます。
+    ---
+  [1件] ワコードープロ
+    From: "ワコードープロ" <info@wako-dou.com>
+    件名: 片岡秀一郎様　　1000円クーポンプレゼント＜ワコードープロ＞
+    ---
+  [2件] ヴァンドームジュエリーオンラインストア
+    From: "ヴァンドームジュエリーオンラインストア" <online-store@vendome.co.jp>
+    件名: バースデークーポン使用期限のお知らせ《 VENDOME JEWELRY ONLINE STORE 》
+    ---
+    From: "ヴァンドームジュエリーオンラインストア" <online-store@vendome.co.jp>
+    件名: バースデークーポンのご案内《 VENDOME JEWELRY ONLINE STORE 》
+    ---
+  [3件] ヴァンドーム青山オンラインショップ
+    From: "ヴァンドーム青山オンラインショップ" <online-shop@vendome.co.jp>
+    件名: バースデークーポン使用期限のお知らせ《Vendome Aoyama Online Shop》
+    ---
+    From: "ヴァンドーム青山オンラインショップ" <online-shop@vendome.co.jp>
+    件名: バースデークーポンのご案内《Vendome Aoyama Online Shop》
+    ---
+    From: "ヴァンドーム青山オンラインショップ" <online-shop@vendome.co.jp>
+    件名: <重要>緊急事態宣言に伴う店舗、オンラインショップ、本社業務臨時休業のお知らせ《Vendome Aoyama Onlin
+    ---
+  [1件] 三浦 淳史
+    From: "三浦 淳史" <atsu.irie-for-life@i.softbank.jp>
+    件名: コンティ三浦です。
+    ---
+  [2件] 三菱電機 CLUB MITSUBISHI ELECTRIC事務局
+    From: "三菱電機 CLUB MITSUBISHI ELECTRIC事務局" <club-me@rk.mitsubishiele
+    件名: 三菱電機 CLUB MITSUBISHI ELECTRIC / 会員登録完了のお知らせ
+    ---
+    From: "三菱電機 CLUB MITSUBISHI ELECTRIC事務局" <club-me@rk.mitsubishiele
+    件名: 三菱電機 CLUB MITSUBISHI ELECTRIC / 仮登録の受付【本登録を完了してください】
+    ---
+  [2件] 中川 雅之
+    From: "中川　雅之" <nm060441@kentaku.co.jp>
+    件名: いい部屋ネットの大東建託守谷店です。
+    ---
+    From: "中川　雅之" <nm060441@kentaku.co.jp>
+    件名: いい部屋ネットの大東建託守谷店です。 [パスワードのご連絡]　{information for password fro
+    ---
+  [1件] 価格.com 自動車保険一括見積もり
+    From: "価格.com 自動車保険一括見積もり" <hoken_support@kakaku.com>
+    件名: 【価格. com　自動車保険】一括見積もり依頼予約サービス 見積もり依頼予約完了のご連絡
+    ---
+  [4件] 写真整理協会
+    From: "写真整理協会" <info@photokeep.org>
+    件名: 【本日の誤操作によるメール配信のお詫び】（写真整理協会）
+    ---
+    From: "写真整理協会" <info@photokeep.org>
+    件名: 【写真整理協会様データ】
+    ---
+    From: "写真整理協会" <info@photokeep.org>
+    件名: 事務局休業期間のお知らせ
+    ---
+  [1件] 出野 宏喜
+    From: "出野　宏喜" <h-ideno@takara-standard.co.jp>
+    件名: W2604075776
+    ---
+  [1件] 向原奈穂
+    From: "向原奈穂" <n-mukouhara@athuman.com>
+    件名: 【片岡さま】ロボット教室　秋の入会キャンペーンのお知らせ（9/30まで）
+    ---
+  [4件] 商品等についての問い合わせ
+    From: "商品等についての問い合わせ" <inquiry@amulech.com>
+    件名: ご注文された商品を発送致しました
+    ---
+    From: "商品等についての問い合わせ" <inquiry@amulech.com>
+    件名: ご入金を確認致しました
+    ---
+    From: "商品等についての問い合わせ" <inquiry@amulech.com>
+    件名: ご注文ありがとうございました。
+    ---
+  [1件] 営業岸田
+    From: "営業岸田" <kishida@sumainohiroba.com>
+    件名: ★お問い合わせ物件★
+    ---
+  [1件] 坂井作
+    From: 秀一郎片岡 <exgatta@gmail.com>
+    件名: 各店実績 日計表 管理帳票データの件
+    ---
+  [5件] 奥田晃太朗
+    From: "奥田晃太朗" <okuda@toho-machida.co.jp>
+    件名: 片岡様■相模大野駅周辺の物件のご提案です！【東宝ハウス/奥田】
+    ---
+    From: "奥田晃太朗" <okuda@toho-machida.co.jp>
+    件名: 片岡様■駐車場の件になります【東宝ハウス/奥田】
+    ---
+    From: "奥田晃太朗" <okuda@toho-machida.co.jp>
+    件名: 片岡様■物件資料をお届けさせて頂きました【東宝ハウス/奥田】
+    ---
+  [2件] 宅配ロッカー フルタイムシステム
+    From: "宅配ロッカー フルタイムシステム" <mailservice@fts.co.jp>
+    件名: 【フルタイム情報：509号】【☆販売開始！幻の白いトウモロコシ☆】
+    ---
+    From: "宅配ロッカー フルタイムシステム" <mailservice@fts.co.jp>
+    件名: いつもフルタイムロッカーのご利用ありがとうございます
+    ---
+  [1件] 守谷支店代表
+    From: "守谷支店代表" <760@token.co.jp>
+    件名: お問い合わせありがとうございます。
+    ---
+  [2件] 安心ケータイサポートセンター
+    From: "安心ケータイサポートセンター" <support@au-anshin.com>
+    件名: 【発送状況のお知らせ】交換用携帯電話機お届けサービス
+    ---
+    From: "安心ケータイサポートセンター" <support@au-anshin.com>
+    件名: 【受付しました】交換用携帯電話機お届けサービス
+    ---
+  [1件] 小関 絵里香
+    From: "小関 絵里香" <kosekie@pcdepot.co.jp>
+    件名: 源泉徴収票の送付
+    ---
+  [1件] 尾崎北斗
+    From: "尾崎北斗" <ozaki@suncrew.co.jp>
+    件名: ライオンズマンション相模大野の質問事項
+    ---
+  [4件] 山崎 未貴
+    From: "山崎 未貴" <yamazakimi@pcdepot.co.jp>
+    件名: 例のアレ
+    ---
+    From: "山崎 未貴" <yamazakimi@pcdepot.co.jp>
+    件名: 例のヤツ
+    ---
+    From: "山崎 未貴" <yamazakimi@pcdepot.co.jp>
+    件名: 例のヤツです
+    ---
+  [3件] 山田 祐揮
+    From: "山田 祐揮" <yuki_yamada@en-japan.com>
+    件名: 【片岡秀一郎様】 トヨタホーム北関東株式会社 戸建住宅の営業職の求人情報のご案内です（エン エージェント 山田 祐揮）
+    ---
+    From: "山田 祐揮" <yuki_yamada@en-japan.com>
+    件名: 【片岡秀一郎様】 株式会社早稲田学習研究会 経理の求人情報のご案内です（エン エージェント 山田 祐揮）
+    ---
+    From: "山田 祐揮" <yuki_yamada@en-japan.com>
+    件名: 【片岡秀一郎様】 トヨタホーム北関東株式会社 戸建住宅の営業職の求人情報のご案内です（エン エージェント 山田 祐揮）
+    ---
+  [1件] 岸 尚平
+    From: "岸 尚平" <x250yen_for_7nights_and_8days@i.softbank.jp>
+    件名: 󾔴  Office2007
+    ---
+  [2件] 廣部裕次郎
+    From: "廣部裕次郎" <hirobe@toho-machida.co.jp>
+    件名: 最新価格情報と未公開情報！
+    ---
+    From: "廣部裕次郎" <hirobe@toho-machida.co.jp>
+    件名: 【お住まい探しの件になります】
+    ---
+  [1件] 恵那警察署
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: 落とし物の件
+    ---
+  [2件] 有限会社 リフレわかやま
+    From: 有限会社　リフレわかやま <info@rifnet.or.jp>
+    件名: 商品送付のお知らせ
+    ---
+    From: 有限会社　リフレわかやま <info@rifnet.or.jp>
+    件名: ご注文を頂き有難うございます。
+    ---
+  [5件] 杉田 淳一
+    From: "杉田 淳一" <stopsandglass@gmail.com>
+    件名: 入社異動職務変更退職0428
+    ---
+    From: "杉田 淳一" <stopsandglass@gmail.com>
+    件名: 
+    ---
+    From: "杉田 淳一" <stopsandglass@gmail.com>
+    件名: 
+    ---
+  [9件] 杉田淳一
+    From: "杉田淳一" <tomisato.pcd@i.softbank.jp>
+    件名: Fwd: 人事異動事前課題
+    ---
+    From: "杉田淳一" <tomisato.pcd@i.softbank.jp>
+    件名: Fwd: 01094 SL青山店　持田　人事異動事前課題提出
+    ---
+    From: "杉田淳一" <tomisato.pcd@i.softbank.jp>
+    件名: Fwd: 人事異動事前課題提出
+    ---
+  [4件] 村野瑞葉
+    From: 村野瑞葉 <y330620m@i.softbank.jp>
+    件名: 󾔴 Re: お疲れ様です
+    ---
+    From: impulse-blue@ezweb.ne.jp
+    件名: 󾔳 Re: お疲れ様です
+    ---
+    From: impulse-blue@ezweb.ne.jp
+    件名: 󾔳 Re:お疲れ様です
+    ---
+  [1件] 松原 実
+    From: "松原 実" <matsubaram@pcdepot.co.jp>
+    件名: 写真整理アドバイザーのテストとアンケートのURL（9月8日）
+    ---
+  [1件] 松尾 裕子
+    From: "石田 さやか" <ishidasa@pcdepot.co.jp>
+    件名: 自社株売買相談
+    ---
+  [30件] 松本浩典
+    From: "松本浩典" <matsukoi@ark7.jp>
+    件名: 【松恋】残り2時間！必読願います。
+    ---
+    From: "松本浩典" <matsukoi@ark7.jp>
+    件名: 【松恋】告白が大成功！
+    ---
+    From: "松本浩典" <matsukoi@ark7.jp>
+    件名: 【松恋】本日がラストです。
+    ---
+  [1件] 柳澤 一範
+    From: "柳澤　一範" <yanagisawa-ka@sumirin-hs.co.jp>
+    件名: 片岡　秀一郎様：住友林業ホームサービス町田店　店長の柳澤一範です。
+    ---
+  [1件] 株式会社FOX
+    From: 
+    件名: 
+    ---
+  [1件] 株式会社インフォトップ
+    From: "株式会社インフォトップ" <info@infotop.jp>
+    件名: 【infotop】購入者アカウント・パスワード再設定のご案内
+    ---
+  [1件] 株式会社エス・ケイ・ティ
+    From: "株式会社エス・ケイ・ティ" <skt@castle.ocn.ne.jp>
+    件名: 転送： 見積書
+    ---
+  [2件] 株式会社カカクコム
+    From: "株式会社カカクコム " <id_r@kakaku.com>
+    件名: 【価格.com】価格.comID ご登録ありがとうございます
+    ---
+    From: "株式会社カカクコム" <id_r@kakaku.com>
+    件名: 【価格.comID】パスワード再設定(変更)のご案内
+    ---
+  [2件] 株式会社ジャングル
+    From: 株式会社ジャングル <campaign@junglejapan.com>
+    件名: 重要なお知らせ - 株式会社ジャングル
+    ---
+    From: 株式会社ジャングル <campaign2@junglejapan.com>
+    件名: 【お知らせ】『筆ぐるめ』で年賀状作成！まだまだ間に合うダウンロード版 - Jungle Info.
+    ---
+  [4件] 株式会社ヒロチー商事 PayPay店
+    From: "株式会社ヒロチー商事 PayPay店" <toiawase_jp@hirochi.co.jp>
+    件名: 株式会社ヒロチー商事 Yahooヒロチー商事1号店  発送完了のご連絡: hirochi-10532440
+    ---
+    From: "株式会社ヒロチー商事 PayPay店" <toiawase_jp@hirochi.co.jp>
+    件名: 株式会社ヒロチー商事  ご注文状況のご連絡: hirochi-10532440
+    ---
+    From: "株式会社ヒロチー商事 PayPay店" <toiawase_jp@hirochi.co.jp>
+    件名: 株式会社ヒロチー商事 PayPayヒロチー商事店  発送完了のご連絡: hirochi-10499789
+    ---
+  [1件] 株式会社ワイヤ・アンド・ワイヤレス
+    From: "株式会社ワイヤ・アンド・ワイヤレス" <cs-info@wi2.co.jp>
+    件名: [Be.Okinawa_Free_Wi-Fi] 本登録のご案内
+    ---
+  [4件] 根本 恭輔
+    From: "根本　恭輔" <K-NEMOTO@token.co.jp>
+    件名: レヴィールガーデン機械式駐車場の件
+    ---
+    From: "根本　恭輔" <K-NEMOTO@token.co.jp>
+    件名: つくばみらい市：レヴィールガーデンの件
+    ---
+    From: "根本　恭輔" <K-NEMOTO@token.co.jp>
+    件名: つくばみらい市：レヴィールガーデンの件
+    ---
+  [1件] 横井翔太
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: 事故の画像の件
+    ---
+  [2件] 沖縄たびんふぉ
+    From: 沖縄たびんふぉ <infomail@car489.info>
+    件名: 【沖縄たびんふぉレンタカー】のご予約ありがとうございます。
+    ---
+    From: 沖縄たびんふぉ <infomail@car489.info>
+    件名: 【沖縄たびんふぉ】予約受付完了通知書(予約番号NS-1407240160)
+    ---
+  [30件] 渋谷 携帯
+    From: "渋谷 携帯" <g-himagotanjyou@ezweb.ne.jp>
+    件名: 
+    ---
+    From: "渋谷 携帯" <g-himagotanjyou@ezweb.ne.jp>
+    件名: 
+    ---
+    From: "渋谷 携帯" <g-himagotanjyou@ezweb.ne.jp>
+    件名: 
+    ---
+  [1件] 渡辺 典男
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: 就労証明書作成依頼
+    ---
+  [27件] 片岡 秀一郎
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: test
+    ---
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: 
+    ---
+    From: "片岡　秀一郎" <exgatta@gmail.com>
+    件名: test
+    ---
+  [6件] 片岡秀一郎
+    From: <peach-sparrow21@ezweb.ne.jp>
+    件名: 󾔴 Re:
+    ---
+    From: mixi <news@mixi.jp>
+    件名: [mixi] 浪速の祭男爵さん / 大和路線滅多に乗らんのに当た… (最新のつぶやき)
+    ---
+    From: 片岡秀一郎 <impulse-blue@auone.jp>
+    件名: 無事届きました
+    ---
+  [1件] 白洋舍
+    From: "白洋舍" <shuhai@hakuyosha.co.jp>
+    件名: 【白洋舍】集配サービス申込通知
+    ---
+  [1件] 相模大野問合せ
+    From: "相模大野問合せ" <megalos.sagamiono@nomura-ls.jp>
+    件名: メガロス相模大野アフタースクールです。
+    ---
+  [1件] 石田 さやか
+    From: "石田 さやか" <ishidasa@pcdepot.co.jp>
+    件名: 自社株売買相談
+    ---
+  [1件] 福田 真弓
+    From: "福田 真弓" <fukudam@pcdepot.co.jp>
+    件名: 退去社宅見積もり書
+    ---
+  [2件] 秀一郎片岡
+    From: 秀一郎片岡 <exgatta@gmail.com>
+    件名: 󾔴  test
+    ---
+    From: 秀一郎片岡 <exgatta@gmail.com>
+    件名: test
+    ---
+  [1件] 自動送信用アドレス
+    From: "自動送信用アドレス" <system@tateyama-kurobe-webservice.jp>
+    件名: 【立山黒部アルペンルート WEBきっぷサイト】確認コードの送信について
+    ---
+  [1件] 自社株売買事前相談窓口
+    From: "自社株売買事前相談窓口" <noreply-jisyakabubaibai@pcdepot.co.jp>
+    件名: 自社株売買　事前相談受付のお知らせ
+    ---
+  [2件] 藤本 南
+    From: "藤本　南" <fujimoto-mi@sumirin-hs.co.jp>
+    件名: ■片岡様/パレソレイユ相模大野ステーションフロント査定の件/住友林業ホームサービス㈱の藤本です。■
+    ---
+    From: "藤本　南" <fujimoto-mi@sumirin-hs.co.jp>
+    件名: ■片岡様/パレソレイユ相模大野ステーションフロント不動産査定のご報告/住友林業ホームサービス㈱藤本■
+    ---
+  [30件] 転職
+    From: "ビズリーチスカウト" <scout@bizreach.co.jp>
+    件名: 【面談確約】希望条件にマッチした新着スカウトをお知らせします【5/16】
+    ---
+    From: "ビズリーチスカウト" <scout@bizreach.co.jp>
+    件名: [プラチナスカウト]先日のスカウトメールはご覧いただけましたでしょうか？転職相談は無料でご利用いただけます。
+    ---
+    From: "日経転職版" <career-noreply@nikkeihr.co.jp>
+    件名: メール配信停止受付完了のお知らせ｜日経転職版
+    ---
+  [1件] 送信専用（返信不可）
+    From: 
+    件名: 
+    ---
+  [1件] 通知
+    From: "通知" <tmntb82cba0w1nv0rbnj@docomo.ne.jp>
+    件名: 
+    ---
+  [9件] 重要なお知らせメール
+    From: 重要なお知らせメール<info@au-cs.ezweb.ne.jp>
+    件名: 󾔴 【auからのお知らせ】ロイヤルメンバーステージからのご案内
+    ---
+    From: 重要なお知らせメール<info@au-cs.ezweb.ne.jp>
+    件名: 󾔴 au one My Page終了に伴うデータ移行のご案内
+    ---
+    From: 重要なお知らせメール<info@au-cs.ezweb.ne.jp>
+    件名: 󾔴 【auからの重要なお知らせ】ａｕ携帯電話をご利用中のお客様へのお詫びとお願い
+    ---
+  [25件] 野村證券株式会社
+    From: "野村證券株式会社" <nomura-shomen@jp.nomura.com>
+    件名: 【野村證券】テクニカル展望ご案内メールの配信休止（11/20）について
+    ---
+    From: "野村證券株式会社" <nomura-shomen@jp.nomura.com>
+    件名: （日経平均株価　25,000円台に）株式・為替の動向は？
+    ---
+    From: "野村證券株式会社" <nomura-shomen@jp.nomura.com>
+    件名: システムメンテナンスのお知らせ【野村證券】
+    ---
+  [1件] 金子 友一
+    From: 金子　友一 <yu_kaneko@carchs.com>
+    件名: スカイラン車検証です。
+    ---
+  [11件] 長谷部友子
+    From: "長谷部友子" <o9074006960@icloud.com>
+    件名: Fwd: STeach for SNOW｜レッスン予約完了のご案内
+    ---
+    From: "長谷部友子" <o9074006960@icloud.com>
+    件名: Fwd: [R0081186]予約受付完了
+    ---
+    From: "長谷部友子" <o9074006960@icloud.com>
+    件名: Fwd: ［アソビュー！］チケット購入が完了しました｜アクアワールド茨城県大洗水族館
+    ---
+  [3件] 須藤 亜紀子
+    From: "須藤 亜紀子" <sudoha@pcdepot.co.jp>
+    件名: 
+    ---
+    From: "須藤 亜紀子" <aki.luv.u_u.39@icloud.com>
+    件名: 
+    ---
+    From: "須藤 亜紀子" <aki.luv.u_u.39@i.softbank.jp>
+    件名: 󾔴 
+    ---
+  [1件] 風見鶏
+    From: "風見鶏" <support@flashmemory.jp>
+    件名: ---風見鶏本店 【会員登録完了のご案内】---
+    ---
+  [1件] 高畑有里
+    From: "高畑有里" <y_takahata@ga-tech.co.jp>
+    件名: プラウド相模大野マークスの資料送付【Renosy】株式会社GA technologiesの高畑と申します。
+    ---
+  [2件] ＢＡＳコールセンター
+    From: 
+    件名: 
+    ---
+    From: 
+    件名: 
+    ---
+  [1件] ＦＯＮコミュニティ
+    From: ＦＯＮコミュニティ <noreply@fon.com>
+    件名: 登録を確認し、フォネロになろう！
+    ---
+
+【D】2階層ラベル ドメイン詳細
+------------------------------------------------------------
+  [1件] AI・クラウド/Anthropic
+    domain: mail.anthropic.com
+  [2件] AI・クラウド/Anthropic, PBC
+    domain: mail.anthropic.com
+  [2件] AI・クラウド/Mapbox
+    domain: mapbox.com
+  [1件] AI・クラウド/Stability AI Japan
+    domain: campaign-preferences.com
+  [3件] AI・クラウド/Wrtn
+    domain: wrtn.io
+  [30件] AI・クラウド/リートン
+    domain: wrtn.io
+  [1件] AI・クラウド/天秤AI byGMO
+    domain: oshiete.ai
+  [30件] SNS/Discord
+    domain: discord.com
+  [2件] SNS/Facebook
+    domain: facebookmail.com
+  [2件] SNS/Instagram
+    domain: mail.instagram.com
+  [1件] SNS/LINE
+    domain: naver.jp
+  [4件] SNS/LINE Creators Market
+    domain: line.me
+  [1件] SNS/TikTok
+    domain: email.tiktok.com
+  [30件] SNS/Twitter
+    domain: postmaster.twitter.com
+    domain: twitter.com
+  [30件] SNS/mixi
+    domain: mixi.jp
+  [7件] エネルギー/Tesla
+    domain: tesla.com
+  [1件] エネルギー/cosmo-thecard
+    domain: cosmo-thecard.com
+  [1件] エネルギー/出光興産 My idemitsu ID
+    domain: auth-consumer.idemitsu.com
+  [30件] エネルギー/東京電力
+    domain: kurashi.tepco.co.jp
+    domain: kurashi3.tepco.co.jp
+  [1件] エンタメ配信/DLsite comipo
+    domain: dlsite.com
+  [3件] エンタメ配信/Google Play Music
+    domain: google.com
+  [7件] エンタメ配信/OTOTOY MUSIC STORE
+    domain: ototoy.jp
+  [1件] エンタメ配信/Prime Video
+    domain: primevideo.com
+  [17件] エンタメ配信/YouTube
+    domain: youtube.com
+  [2件] エンタメ配信/YouTube Kids
+    domain: youtube.com
+  [2件] エンタメ配信/YouTube Music
+    domain: youtube.com
+  [2件] エンタメ配信/YouTube Premium
+    domain: youtube.com
+  [3件] エンタメ配信/e-onkyo
+    domain: e-onkyo.com
+  [5件] エンタメ配信/e-onkyo music
+    domain: e-onkyo.com
+  [10件] エンタメ配信/mora qualitas
+    domain: mora-qualitas.com
+  [14件] エンタメ配信/mora qualitas News
+    domain: mora-qualitas.com
+  [30件] エンタメ配信/mora qualitasお知らせ
+    domain: mora-qualitas.com
+  [3件] エンタメ配信/mora[モーラ]
+    domain: mora.jp
+  [4件] エンタメ配信/niconico
+    domain: nicovideo.jp
+  [9件] エンタメ配信/nicovideo
+    domain: nicovideo.jp
+  [3件] エンタメ配信/recochoku
+    domain: recochoku.jp
+  [2件] エンタメ配信/【niconico】
+    domain: nicovideo.jp
+  [7件] エンタメ配信/【niconico】ニコレポメール
+    domain: nicovideo.jp
+  [1件] エンタメ配信/【ニコニコ動画】
+    domain: nicovideo.jp
+  [8件] エンタメ配信/【ニコニコ動画】ニコレポメール
+    domain: nicovideo.jp
+  [3件] エンタメ配信/【レコチョク】
+    domain: mail.recochoku.jp
+  [1件] エンタメ配信/レコチョク Bestおすすめ
+    domain: mail.recochoku.jp
+  [1件] エンタメ配信/レコチョク ランキング
+    domain: mail.recochoku.jp
+  [30件] エンタメ配信/レコチョク 新着情報
+    domain: mail.recochoku.jp
+  [30件] エンタメ配信/レコチョク 日刊レコチョク通信
+    domain: mail.recochoku.jp
+  [2件] エンタメ配信/＜レコチョク＞
+    domain: mail.recochoku.jp
+  [30件] グルメ/demae-can
+    domain: demae-can.com
+  [16件] グルメ/no-reply@demae-can.com
+    domain: demae-can.com
+  [1件] グルメ/noreply@reservation.kurasushi.co.jp
+    domain: reservation.kurasushi.co.jp
+  [5件] グルメ/reserve@yoyaku.buffet.gyukaku.ne.jp
+    domain: yoyaku.buffet.gyukaku.ne.jp
+  [16件] グルメ/support@demae-can.com
+    domain: demae-can.com
+  [4件] グルメ/【スシローお持ち帰りネット注文】
+    domain: akindo-sushiro.co.jp
+  [2件] グルメ/ぐるなびネット予約
+    domain: gnavi.co.jp
+  [6件] グルメ/ドミノ・ピザ ジャパン
+    domain: dominos.jp
+  [1件] グルメ/ホットペッパーグルメ
+    domain: point.recruit.co.jp
+  [5件] グルメ/出前館カスタマーセンター
+    domain: demae-can.com
+  [1件] グルメ/出前館カスタマーセンター(PC)
+    domain: demae-can.com
+  [3件] グルメ/出前館サポート
+    domain: demae-can.com
+  [30件] グルメ/日本マクドナルド
+    domain: nsp.mdj.jp
+  [6件] グルメ/楽天ぐるなび
+    domain: gnavi.co.jp
+  [8件] グルメ/焼肉きんぐ つきみ野店
+    domain: justpass.epark.jp
+    domain: mbtn.jp
+  [3件] グルメ/焼肉きんぐ 三ツ境店
+    domain: justpass.epark.jp
+  [6件] グルメ/焼肉きんぐ 佐久平店
+    domain: justpass.epark.jp
+    domain: mbtn.jp
+  [7件] グルメ/焼肉きんぐ 横浜青葉台店
+    domain: justpass.epark.jp
+  [13件] グルメ/焼肉きんぐ 町田店
+    domain: justpass.epark.jp
+    domain: mbtn.jp
+  [2件] グルメ/牛角アプリ事務局
+    domain: reins-app.com
+  [4件] ゲーム/Ateam Inc.
+    domain: mail.pf.ateamid.com
+  [1件] ゲーム/AteamID
+    domain: mail.pf.ateamid.com
+  [1件] ゲーム/Capcom Online Games
+    domain: mail.capcom-onlinegames.jp
+  [1件] ゲーム/DLsite
+    domain: dlsite.com
+  [1件] ゲーム/DLsite サポート係
+    domain: dlsite.com
+  [1件] ゲーム/DMM.com
+    domain: mail.dmm.com
+  [5件] ゲーム/DMM.com証券カスタマーサポート
+    domain: sec.dmm.com
+  [1件] ゲーム/Dark War Survival
+    domain: florereapps.com
+  [2件] ゲーム/FINAL FANTASY XIV
+    domain: square-enix.com
+  [1件] ゲーム/Gaijin.Net Team
+    domain: gaijin.net
+  [1件] ゲーム/GeForce NOW(SoftBank)
+    domain: g.softbank.co.jp
+  [5件] ゲーム/GeForce NOW(au)
+    domain: connect.auone.jp
+  [1件] ゲーム/Kakao Games
+    domain: kakaogames.com
+  [2件] ゲーム/NCSOFT
+    domain: mail.plaync.com
+  [1件] ゲーム/Paradox Interactive
+    domain: account.paradoxinteractive.com
+  [30件] ゲーム/PlayStation
+    domain: email.playstation.com
+    domain: email.sonyentertainmentnetwork.com
+    domain: psn.jp.playstation.com
+    domain: txn-email.playstation.com
+    domain: txn-email03.playstation.com
+  [2件] ゲーム/PlayStation Network
+    domain: ac.playstation.net
+  [2件] ゲーム/Pokémon GO
+    domain: email.nianticlabs.com
+  [1件] ゲーム/Roblox
+    domain: roblox.com
+  [2件] ゲーム/Roblox no-reply
+    domain: roblox.com
+  [1件] ゲーム/SCE インフォメーションセンター
+    domain: scei.co.jp
+  [1件] ゲーム/SCEJ オンライン受付サービス
+    domain: scei.co.jp
+  [1件] ゲーム/SEGA ID
+    domain: gw.sega.jp
+  [2件] ゲーム/SEGA IDサポート
+    domain: isao.net
+  [1件] ゲーム/SIEJA 延長保証受付サービス
+    domain: scei.co.jp
+  [30件] ゲーム/SQUARE ENIX BRIDGE
+    domain: square-enix.com
+  [2件] ゲーム/Sony Entertainment Network
+    domain: account.sonyentertainmentnetwork.com
+  [21件] ゲーム/Square Enix Account
+    domain: account.square-enix.com
+  [1件] ゲーム/Steam Store
+    domain: steampowered.com
+  [30件] ゲーム/Steam Support
+    domain: steampowered.com
+  [2件] ゲーム/Steam Team
+    domain: steampowered.com
+  [15件] ゲーム/Steam サポート
+    domain: steampowered.com
+  [2件] ゲーム/Team GO Rocket Grunt
+    domain: news.nianticlabs.com
+  [1件] ゲーム/Ubisoft
+    domain: updates.ubisoft.com
+  [9件] ゲーム/XFLAG ID
+    domain: accounts.xflag.com
+  [5件] ゲーム/dmm
+    domain: mail.dmm.com
+  [2件] ゲーム/dragonquest
+    domain: slsp.dragonquest.jp
+  [5件] ゲーム/hoyoverse
+    domain: email.hoyoverse.com
+  [1件] ゲーム/kingdom-conquest
+    domain: kingdom-conquest.com
+  [1件] ゲーム/mihoyo
+    domain: email.mihoyo.com
+  [30件] ゲーム/nintendo
+    domain: accounts.nintendo.com
+    domain: ccg.nintendo.com
+    domain: support.nintendo.com
+  [1件] ゲーム/pso2admin@isao.net
+    domain: isao.net
+  [1件] ゲーム/rockstargames
+    domain: rockstargames.com
+  [2件] ゲーム/square-enix
+    domain: square-enix.com
+  [6件] ゲーム/『CARAVANSTORIES』運営チーム
+    domain: caravan-stories.com
+  [17件] ゲーム/『リネージュ2 レボリューション』運営チーム
+    domain: netmarble.jp
+  [1件] ゲーム/【三国大戦スマッシュ！】運営チーム
+    domain: mail.pf.ateamid.com
+  [30件] ゲーム/カプコンオンラインゲームズ
+    domain: mail.capcom-onlinegames.jp
+  [3件] ゲーム/ソニー・コンピュータエンタテインメント
+    domain: scei.co.jp
+  [7件] ゲーム/株式会社エイチーム
+    domain: mail.pf.ateamid.com
+  [4件] ゲーム/株式会社エイチームエンターテインメント
+    domain: mail.pf.ateamid.com
+  [1件] ゲーム/蒼焔の艦隊
+    domain: soenkantai.com
+  [1件] ショッピング/ANAショッピングA-style
+    domain: astyle.jp
+  [30件] ショッピング/Amazon
+    domain: amazon.co.jp
+    domain: amazon.com
+  [1件] ショッピング/Amazon.jp
+    domain: amazon.jp
+  [3件] ショッピング/Android Market
+    domain: google.com
+  [1件] ショッピング/MonotaRO.com
+    domain: monotaro.com
+  [4件] ショッピング/MonotaROサポートセンター
+    domain: cs.monotaro.com
+  [13件] ショッピング/Shipito
+    domain: cs.shipito.com
+  [2件] ショッピング/fastretailing
+    domain: mail.fastretailing.com
+  [1件] ショッピング/nano-u
+    domain: nano-u.com
+  [10件] ショッピング/nano・universe
+    domain: nano-u.com
+  [1件] ショッピング/support@cc.biccamera.com
+    domain: cc.biccamera.com
+  [4件] ショッピング/zozo
+    domain: contact.zozo.jp
+  [2件] ショッピング/アルペングループ オンラインストア
+    domain: sports-alpen.com
+  [6件] ショッピング/ノジマ：お得情報配信局
+    domain: m.nojima.co.jp
+  [1件] ショッピング/岩手県花巻市ふるさと納税
+    domain: shop.rakuten.co.jp
+  [30件] ショッピング/株式会社MonotaRO
+    domain: monotaro.com
+  [2件] ショッピング/楽天でんわ
+    domain: fusioncom.co.jp
+  [1件] ショッピング/楽天ペイ
+    domain: 
+  [1件] ショッピング/楽天市場
+    domain: rakuten.co.jp
+  [1件] ショッピング/楽天市場からのお知らせ
+    domain: 
+  [17件] ショッピング/＜ユニクロ オンラインストア＞
+    domain: ml.store.uniqlo.com
+  [1件] ショッピング/＜ユニクロ・ジーユー＞
+    domain: ma.store.uniqlo.com
+  [3件] ショッピング/＜ユニクロ＞
+    domain: ma.store.uniqlo.com
+    domain: ml.store.uniqlo.com
+  [1件] セキュリティ/AdGuard VPN
+    domain: adguard-vpn.com
+  [1件] セキュリティ/Adguard (via Paddle.com)
+    domain: paddle.com
+  [1件] セキュリティ/Doctor Web
+    domain: drweb.com
+  [1件] セキュリティ/Lookout Mobile Security
+    domain: lookout.com
+  [3件] セキュリティ/MasterUnlockCode
+    domain: masterunlockcode.com
+  [1件] セキュリティ/Nord Account
+    domain: nordaccount.com
+  [1件] セキュリティ/kasperskystore
+    domain: kasperskystore.jp
+  [1件] セキュリティ/norton
+    domain: norton.com
+  [2件] セキュリティ/カスペルスキーストア
+    domain: kasperskystore.jp
+  [2件] セキュリティ/カスペルスキー月額サービス
+    domain: kasperskystore.jp
+  [2件] テック・アプリ/'Adobe'
+    domain: adobe.com
+  [15件] テック・アプリ/Adobe Creative Cloud
+    domain: adobe.com
+    domain: email.adobe.com
+  [2件] テック・アプリ/Adobe Document Cloud
+    domain: adobe.com
+  [1件] テック・アプリ/Adobe Support Community Mailer
+    domain: mail.community.adobe.com
+  [3件] テック・アプリ/Ameba（アメーバ）
+    domain: ameba.jp
+  [1件] テック・アプリ/Bard
+    domain: google.com
+  [1件] テック・アプリ/Bard - Google による試験運用中の AI サービス
+    domain: google.com
+  [1件] テック・アプリ/CapCut
+    domain: mail.capcut.com
+  [2件] テック・アプリ/DJI JAPAN (DJI Support)
+    domain: dji.com
+  [5件] テック・アプリ/DJI Support
+    domain: dji.com
+  [18件] テック・アプリ/FC2 Information
+    domain: fc2.cc
+    domain: fc2.la
+  [2件] テック・アプリ/FC2,inc
+    domain: id.fc2.com
+  [5件] テック・アプリ/Find My iPhone
+    domain: icloud.com
+    domain: insideicloud.icloud.com
+  [13件] テック・アプリ/GMOとくとくショッピング
+    domain: point.gmo.jp
+  [6件] テック・アプリ/GMOとくとくポイント
+    domain: point.gmo.jp
+  [2件] テック・アプリ/GMOとくとく通信
+    domain: point.gmo.jp
+  [1件] テック・アプリ/Gmail
+    domain: gmail.com
+  [6件] テック・アプリ/Gmail チーム
+    domain: google.com
+  [1件] テック・アプリ/Google Account
+    domain: google.com
+  [1件] テック・アプリ/Google Antigravity
+    domain: google.com
+  [1件] テック・アプリ/Google Calendar
+    domain: google.com
+  [2件] テック・アプリ/Google Chromecast
+    domain: google.com
+  [1件] テック・アプリ/Google Cloud
+    domain: google.com
+  [3件] テック・アプリ/Google Gemini
+    domain: google.com
+  [1件] テック・アプリ/Google Home
+    domain: google.com
+  [12件] テック・アプリ/Google Home Mini
+    domain: google.com
+  [4件] テック・アプリ/Google Location History
+    domain: google.com
+  [1件] テック・アプリ/Google News
+    domain: google.com
+  [8件] テック・アプリ/Google One
+    domain: google.com
+  [15件] テック・アプリ/Google Photos
+    domain: google.com
+  [30件] テック・アプリ/Google Play
+    domain: google.com
+  [1件] テック・アプリ/Google Workspace チーム
+    domain: google.com
+  [1件] テック・アプリ/Google の「デバイスを探す」
+    domain: google.com
+  [28件] テック・アプリ/Google アシスタント
+    domain: google.com
+  [30件] テック・アプリ/Google カレンダー
+    domain: google.com
+  [1件] テック・アプリ/Google フォーム
+    domain: google.com
+  [4件] テック・アプリ/Google+
+    domain: google.com
+    domain: plus.google.com
+  [1件] テック・アプリ/Google+ Team
+    domain: plus.google.com
+  [1件] テック・アプリ/IQブースター
+    domain: iqbooster.org
+  [1件] テック・アプリ/Inbox by Gmail
+    domain: google.com
+  [1件] テック・アプリ/Logi Support
+    domain: logi.com
+  [2件] テック・アプリ/Logitech
+    domain: accounts.logi.com
+    domain: ecom1.logitech.com
+  [1件] テック・アプリ/Microsoft Cashback
+    domain: microsoft.com
+  [5件] テック・アプリ/Microsoft Family Safety
+    domain: microsoft.com
+  [8件] テック・アプリ/Microsoft OneDrive
+    domain: mail.onedrive.com
+  [1件] テック・アプリ/Microsoft Outlook
+    domain: gmail.com
+  [1件] テック・アプリ/Microsoft Rewards
+    domain: email.microsoftrewards.com
+  [1件] テック・アプリ/Microsoft account team
+    domain: account.microsoft.com
+  [30件] テック・アプリ/Microsoft アカウント チーム
+    domain: accountprotection.microsoft.com
+  [3件] テック・アプリ/My Sony
+    domain: mail.sony.jp
+  [3件] テック・アプリ/My Sony Club
+    domain: ml.mysony.sony.co.jp
+  [4件] テック・アプリ/NotebookLM
+    domain: google.com
+  [1件] テック・アプリ/OneDrive
+    domain: onedrive.com
+  [1件] テック・アプリ/Parallels - Cleverbridge Payment Processing
+    domain: cleverbridge.com
+  [1件] テック・アプリ/SOURCENEXT
+    domain: sourcenext.info
+  [2件] テック・アプリ/TeamViewer Info
+    domain: services.teamviewer.com
+  [7件] テック・アプリ/TeamViewer Sign In Confirmation
+    domain: teamviewer.com
+  [1件] テック・アプリ/The Dropbox Team
+    domain: dropboxmail.com
+  [5件] テック・アプリ/The G Suite Team
+    domain: google.com
+  [11件] テック・アプリ/The Google Account Team
+    domain: accounts.google.com
+    domain: google.com
+  [7件] テック・アプリ/The Google Cloud Team
+    domain: google.com
+  [1件] テック・アプリ/The Google Play Team
+    domain: google.com
+  [30件] テック・アプリ/The Google Workspace Team
+    domain: google.com
+  [1件] テック・アプリ/The Google team
+    domain: google.com
+  [1件] テック・アプリ/WW IQテスト
+    domain: wwiqtest.com
+  [2件] テック・アプリ/acrobat
+    domain: acrobat.com
+  [4件] テック・アプリ/adobe
+    domain: adobe.com
+  [1件] テック・アプリ/fc2
+    domain: video.fc2.com
+  [1件] テック・アプリ/gmo-pg
+    domain: tepco.gmo-pg.com
+  [4件] テック・アプリ/gmo-ps
+    domain: gmo-ps.com
+  [1件] テック・アプリ/google
+    domain: accounts.google.com
+  [1件] テック・アプリ/iCloud
+    domain: me.com
+  [30件] テック・アプリ/iTunes Store
+    domain: itunes.com
+  [1件] テック・アプリ/microsoft
+    domain: microsoft.com
+  [2件] テック・アプリ/outlook
+    domain: outlook.jp
+  [2件] テック・アプリ/sony
+    domain: acm.account.sony.com
+    domain: jp.sony.com
+  [1件] テック・アプリ/sonycreativesoftware
+    domain: sonycreativesoftware.com
+  [3件] テック・アプリ/teamviewer
+    domain: teamviewer.com
+  [1件] テック・アプリ/はせとも さん(Google フォト経由)
+    domain: google.com
+  [30件] テック・アプリ/アメブロ
+    domain: ameba.jp
+  [4件] テック・アプリ/アメマガ
+    domain: spmm.ameba.jp
+  [1件] テック・アプリ/アメーバ
+    domain: amebame.com
+  [1件] テック・アプリ/アメーバ事業本部
+    domain: ameba.jp
+  [1件] テック・アプリ/アメーバ最新ニュース
+    domain: ameba.jp
+  [4件] テック・アプリ/サポート自動化マクロ
+    domain: gmail.com
+  [1件] テック・アプリ/ソニーストア
+    domain: jp.sony.com
+  [1件] テック・アプリ/ソースネクスト・インフォメーションセンター
+    domain: sourcenext.info
+  [1件] テック・アプリ/デバイスを探す
+    domain: google.com
+  [1件] テック・アプリ/ファミリー リンク
+    domain: google.com
+  [1件] ニュース・メディア/BizHint 運営事務局
+    domain: bizhint.jp
+  [1件] ニュース・メディア/NewsPicks サポート窓口
+    domain: privaterelay.appleid.com
+  [1件] ニュース・メディア/note 事務局
+    domain: note.mu
+  [15件] ニュース・メディア/note運営事務局
+    domain: note.com
+    domain: note.mu
+  [1件] ニュース・メディア/アイティメディアID事務局
+    domain: noreply.itmedia.jp
+  [2件] ニュース・メディア/クーリエ・ジャポン
+    domain: courrier.jp
+  [3件] ニュース・メディア/日経IDからのお知らせ
+    domain: mx.nikkei.com
+  [2件] ニュース・メディア/日経ID事務局
+    domain: id.nikkei.com
+  [8件] ニュース・メディア/日経からのお知らせ
+    domain: mx.nikkei.co.jp
+    domain: mx.nikkei.com
+  [1件] ニュース・メディア/日経電子版からのご案内
+    domain: mx.nikkei.com
+  [1件] ニュース・メディア/／~＼Fujisan.co.jp
+    domain: fujisan.co.jp
+  [3件] ヘルス・美容/CLINICS運営事務局
+    domain: clinics-app.com
+  [2件] ヘルス・美容/FANCL
+    domain: fancl.co.jp
+  [1件] ヘルス・美容/MTG
+    domain: mtg.gr.jp
+  [4件] ヘルス・美容/euglena
+    domain: shop.euglena.jp
+  [15件] ヘルス・美容/ファンケルオンライン
+    domain: fancl.co.jp
+  [1件] ヘルス・美容/ユーグレナ ヘルスケア・ラボ
+    domain: euglena.jp
+  [13件] ヘルス・美容/ユーグレナ・オンライン
+    domain: shop.euglena.jp
+  [15件] ヘルス・美容/ユーグレナ・オンラインショップ
+    domain: shop.euglena.jp
+  [2件] マネー・金融/Google Pay
+    domain: google.com
+  [7件] マネー・金融/Google Payments
+    domain: google.com
+  [1件] マネー・金融/Google Wallet
+    domain: google.com
+  [21件] マネー・金融/Ponta Web（旧リクルートポイントサイト）
+    domain: point.recruit.co.jp
+  [25件] マネー・金融/PontaWeb（旧リクルートポイントサイト）
+    domain: point.recruit.co.jp
+  [8件] マネー・金融/Pontaからのお知らせ
+    domain: point.recruit.co.jp
+    domain: ponta.jp
+  [1件] マネー・金融/nomura
+    domain: nomura.com
+  [1件] マネー・金融/ponta
+    domain: ponta.jp
+  [3件] マネー・金融/【PontaWeb】
+    domain: point.recruit.co.jp
+  [6件] マネー・金融/【みんなのPontaナビ】
+    domain: ponta.jp
+  [30件] マネー・金融/オリックス銀行
+    domain: bank.orix.jp
+  [1件] マネー・金融/オリックス銀行 キャンペーンデスク
+    domain: bank.orix.jp
+  [1件] マネー・金融/ペイディカスタマーサポート
+    domain: paidy.com
+  [1件] マネー・金融/三井住友カード
+    domain: yd5.so-net.ne.jp
+  [5件] マネー・金融/株式会社 横浜銀行
+    domain: boy.co.jp
+  [30件] マネー・金融/楽天証券
+    domain: 
+    domain: rakuten-sec.co.jp
+  [30件] マネー・金融/横浜銀行コンタクトセンター
+    domain: boy.co.jp
+  [11件] マネー・金融/横浜銀行セミナー事務局
+    domain: boy.co.jp
+  [2件] マネー・金融/野村メール交付
+    domain: jp.nomura.com
+    domain: nomura.com
+  [30件] マネー・金融/野村証券
+    domain: email.nomura.co.jp
+    domain: mail.hometrade.nomura.co.jp
+  [30件] マネー・金融/野村證券
+    domain: nomura.com
+  [9件] マネー・金融/野村證券確定拠出年金部
+    domain: jp.nomura.com
+    domain: nomura.com
+  [1件] レジャー・チケット/コニカミノルタプラネタリウム 満天
+    domain: konicaminolta.jp
+  [3件] レジャー・チケット/コニカミノルタプラネタリウム 満天 (池袋サンシャインシティ)
+    domain: konicaminolta.jp
+  [10件] 交通・移動/Google Maps Timeline
+    domain: google.com
+  [5件] 住まい/住設プロ
+    domain: shop.rakuten.co.jp
+  [1件] 住まい/野村不動産(プラウドつくば)
+    domain: nomura-re.co.jp
+  [1件] 住まい/野村不動産(プラウド中野島)
+    domain: nomura-re.co.jp
+  [1件] 住まい/野村不動産(プラウド水戸三の丸)
+    domain: nomura-re.co.jp
+  [1件] 住まい/野村不動産(プラウド水戸桜川)
+    domain: nomura-re.co.jp
+  [1件] 住まい/野村不動産(周年記念)
+    domain: nomura-re.co.jp
+  [1件] 保険/AIほけん
+    domain: mail2.apl01.spmode.ne.jp
+  [16件] 保険/SBI損保
+    domain: mx.sbisonpo.co.jp
+    domain: sbisonpo.co.jp
+  [2件] 保険/aig
+    domain: aig.com
+  [4件] 保険/no-reply-aiuinsurance@aig.com
+    domain: aig.com
+  [1件] 保険/sompo-swt
+    domain: cs.sompo-swt.com
+  [1件] 保険/お申込み手続きが完了｜アイペット損保
+    domain: ipet-ins.com
+  [1件] 保険/アイエフクリエイト生命保険 連絡窓口
+    domain: ifcreate.com
+  [4件] 保険/アイペット損保│うちの子フォトコンテスト2022事務局
+    domain: ipet-ins.com
+  [12件] 保険/アイペット損害保険
+    domain: ipet-ins.com
+  [16件] 保険/アイペット損害保険株式会社
+    domain: ipet-ins.com
+  [1件] 保険/スマホでピタッと充実保険
+    domain: sompo-japan.co.jp
+  [1件] 保険/セゾン自動車火災保険株式会社
+    domain: ins-saison.co.jp
+  [1件] 保険/チューリッヒ生命保険株式会社
+    domain: zurich.co.jp
+  [7件] 保険/フコク生命
+    domain: fm.fukoku-life.co.jp
+  [1件] 保険/フコク生命／資料受付係
+    domain: fi.fukoku-life.co.jp
+  [6件] 保険/フコク生命／資料請求受付担当
+    domain: fi.fukoku-life.co.jp
+    domain: fm.fukoku-life.co.jp
+  [2件] 保険/ワンにゃんかるた事務局｜アイペット損保
+    domain: ipet-ins.com
+  [22件] 保険/三井住友海上あいおい生命
+    domain: msa-life.co.jp
+  [1件] 保険/全国共済 (no-reply@zenkokukyosai.or.jp)
+    domain: questant.jp
+  [7件] 保険/全国共済神奈川県生活協同組合
+    domain: webservice-ext.kyosai-cc.or.jp
+  [11件] 保険/弁護士費用保険
+    domain: japan-insurance.co.jp
+    domain: japan-insurance.jp
+  [2件] 保険/弁護士費用保険担当
+    domain: japan-insurance.jp
+  [5件] 保険/損保ジャパン日本興亜
+    domain: my.sjnk.co.jp
+  [1件] 保険/損保ジャパン日本興亜カスタマーセンター
+    domain: sjnk.co.jp
+  [1件] 保険/損害保険ジャパン株式会社 損保ジャパン 共通ID（送信専用）
+    domain: sompo-japan.co.jp
+  [1件] 保険/明治安田生命
+    domain: meijiyasuda.co.jp
+  [1件] 保険/株式会社アイ・エフ・クリエイト
+    domain: ifcreate.com
+  [2件] 医療/WEB問診システム
+    domain: layered.inc
+  [1件] 医療/dent-ys
+    domain: dent-ys.com
+  [1件] 医療/h-p-m-monshin
+    domain: h-p-m-monshin.org
+  [7件] 医療/（一社）専門医ヘルスケアネットワーク
+    domain: hc-docnet.or.jp
+    domain: select-type.com
+  [1件] 医療/ＭＳＡケアＷｅｂサービス
+    domain: msa-life.co.jp
+  [3件] 子育て/GakkenID事務局
+    domain: gakken.co.jp
+  [30件] 子育て/WEL-KIDS PHOTOお知らせ
+    domain: wel-kids.jp
+  [30件] 子育て/まあむキッズ相模大野南口
+    domain: gmail.com
+  [4件] 子育て/コドモン運営事務局
+    domain: codmon.com
+  [3件] 子育て/フレーベル館オンラインショップ つばめのおうち
+    domain: froebel-kan.co.jp
+  [30件] 子育て/ベネッセ
+    domain: benesse.co.jp
+    domain: mail.benesse.co.jp
+  [1件] 子育て/リベルタ
+    domain: liberta.net
+  [4件] 子育て/学校用品.net
+    domain: gakkouyouhin.net
+  [20件] 子育て/木下の保育園相模大野
+    domain: codmon.com
+    domain: kinoshita-group.co.jp
+  [3件] 子育て/谷口台児童クラブ
+    domain: codmon.com
+  [1件] 宅配・物流/DHL EXPRESS
+    domain: dhl.com
+  [1件] 宅配・物流/FedEx Delivery Manager
+    domain: fedex.com
+  [2件] 宅配・物流/FedEx Tracking
+    domain: fedex.com
+  [1件] 宅配・物流/FedEx.com Online Services
+    domain: fedex.com
+  [6件] 宅配・物流/TrackingUpdates@fedex.com
+    domain: fedex.com
+  [1件] 宅配・物流/ヤマト運輸株式会社
+    domain: ka2.so-net.ne.jp
+  [30件] 宅配・物流/佐川急便
+    domain: ds.sagawa-exp.co.jp
+    domain: sagawa-exp.co.jp
+  [10件] 宅配・物流/佐川急便スマートクラブ
+    domain: sagawa-exp.co.jp
+  [14件] 宅配・物流/佐川急便（株）メルマガ事務局
+    domain: sagawa-exp.co.jp
+  [9件] 宅配・物流/日本郵便
+    domain: delivery.post.japanpost.jp
+  [1件] 旅行/'skyticket [スカイチケット]'
+    domain: m.skyticket.com
+  [5件] 旅行/ALL - Accor Live Limitless
+    domain: confirmation.all.com
+  [4件] 旅行/ALL Accor
+    domain: confirmation.all.com
+  [1件] 旅行/ANAインターコンチネンタルホテル東京
+    domain: anaintercontinental-tokyo.jp
+  [1件] 旅行/ANAマイレージモール運営事務局
+    domain: ana-mileagemall.jp
+  [1件] 旅行/Agoda
+    domain: agoda-email.com
+  [3件] 旅行/Agoda Customer Care
+    domain: agoda.com
+  [3件] 旅行/DFS
+    domain: dfs.com
+  [1件] 旅行/Expedia.co.jp
+    domain: eg.expedia.com
+  [1件] 旅行/Grand Mercure Lake Hamana Resort & Spa
+    domain: hudini.io
+  [2件] 旅行/Grand Mercure Okinawa Cape Zanpa Resort
+    domain: hudini.io
+  [1件] 旅行/Grand Mercure Yatsugatake Resort & Spa
+    domain: hudini.io
+  [1件] 旅行/Hilton Grand Vacations
+    domain: hgv.com
+  [1件] 旅行/HoteLux
+    domain: hoteluxapp.com
+  [1件] 旅行/HoteLuxJP
+    domain: hotelux.sg
+  [4件] 旅行/Hotels.com Rewards
+    domain: mail.hotels.com
+  [2件] 旅行/Hotels.com ジャパン
+    domain: mail.hotels.com
+  [5件] 旅行/LOYAL T by DFS
+    domain: email.dfs.com
+  [1件] 旅行/Priority Pass
+    domain: email.prioritypass.com
+  [14件] 旅行/SEIBU PRINCE CLUB
+    domain: club.seibugroup.jp
+  [5件] 旅行/SKYTICKET
+    domain: skyticket.com
+  [5件] 旅行/STAYNAVI
+    domain: m.staynavi.direct
+    domain: staynavi.direct
+  [1件] 旅行/Travy
+    domain: travy.jp
+  [1件] 旅行/Trip.com Rewards
+    domain: newsletter.trip.com
+  [1件] 旅行/World of Hyatt
+    domain: t1.hpe-esp.hyatt.com
+  [1件] 旅行/courtyard
+    domain: courtyard.com
+  [11件] 旅行/hoshinoresort
+    domain: hoshinoresort.com
+  [1件] 旅行/jp_hotel@trip.com
+    domain: trip.com
+  [8件] 旅行/toyoko-inn
+    domain: toyoko-inn.com
+    domain: wm.toyoko-inn.com
+  [15件] 旅行/じゃらんnet
+    domain: point.recruit.co.jp
+  [2件] 旅行/アパホテル〈大垣駅前〉
+    domain: apahotel.com
+  [2件] 旅行/アパホテル〈富山駅前〉
+    domain: apa.co.jp
+  [1件] 旅行/アパホテル〈富山駅前南〉
+    domain: apahotel.com
+  [1件] 旅行/アパホテル〈金沢片町〉EXCELLENT
+    domain: apahotel.com
+  [2件] 旅行/アパホテル株式会社
+    domain: apahotel.com
+  [2件] 旅行/アパヴィラホテル〈富山駅前〉
+    domain: apa.co.jp
+  [1件] 旅行/インターネット予約センター／ホテルニューアワジグループ
+    domain: newawaji.com
+  [4件] 旅行/オリックスレンタカー
+    domain: auto.orix.co.jp
+    domain: orix.jp
+  [1件] 旅行/スカイチケットレンタカー
+    domain: skyticket.com
+  [4件] 旅行/ドラ割事務局（NEXCO東日本）
+    domain: driveplaza.com
+  [1件] 旅行/ホテル ウェルシーズン浜名湖
+    domain: e-magazine.recruit.co.jp
+  [2件] 旅行/ホテルズドットコム ジャパン
+    domain: mail.hotels.com
+  [1件] 旅行/メールマガジン・アパホテル
+    domain: apahotel.net
+  [2件] 旅行/リゾートホテル蓼科
+    domain: hoteltateshina.co.jp
+    domain: tabi-chat.jp
+  [3件] 旅行/ロイヤルT by DFS
+    domain: loyalt.dfs.com
+  [13件] 旅行/一休.com
+    domain: ikyu.com
+  [2件] 旅行/一休.comレストラン
+    domain: ikyu.com
+  [2件] 旅行/携程旅行网酒店预订部（海外）
+    domain: trip.com
+  [2件] 旅行/日本旅行
+    domain: nta.co.jp
+  [1件] 旅行/杉乃井ホテル
+    domain: suginoi-hotel.com
+  [2件] 旅行/東横INN
+    domain: toyoko-inn.com
+  [2件] 旅行/東横INN予約システム
+    domain: rml.toyoko-inn.com
+  [3件] 旅行/近畿日本ツーリスト
+    domain: or.knt.co.jp
+  [3件] 旅行/速旅システム
+    domain: c-nexco.co.jp
+  [3件] 旅行/速旅ーNEXCO中日本
+    domain: hayatabi.jp
+  [4件] 旅行/ＡＮＡインターネットツアーデスク
+    domain: atour.co.jp
+  [4件] 自動車・バイク/NISSAN ONLINE SHOP
+    domain: axisinc.co.jp
+  [2件] 自動車・バイク/[日産] N-Link OWNERS
+    domain: magazine.nissan.co.jp
+  [1件] 自動車・バイク/nissan
+    domain: nissan.io
+  [1件] 自動車・バイク/postoffice@nissan.co.jp
+    domain: nissan.co.jp
+  [1件] 自動車・バイク/【いつも笑顔の日産レンタカー】
+    domain: nissan-rentacar.com
+  [1件] 自動車・バイク/日産カード リボ宣言Web受付
+    domain: nissan-fs.co.jp
+  [1件] 自動車・バイク/日産サティオ千葉 成田店
+    domain: nissan-satio-chiba.co.jp
+  [1件] 自動車・バイク/日産プリンス神奈川 木島 亜悠
+    domain: nissan-prince-kanagawa.co.jp
+  [1件] 自動車・バイク/日産プリンス福島 関根 祥太
+    domain: prince-fukushima.co.jp
+  [1件] 自動車・バイク/日産レンタカー 沖縄（予約システム）
+    domain: car-rental.jp
+  [1件] 自動車・バイク/日産自動車
+    domain: mail.nissan.co.jp
+  [2件] 自動車・バイク/日産：車検／点検ご案内事務局
+    domain: magazine.nissan.co.jp
+  [1件] 行政/CTCグループ健康保険組合
+    domain: ctcg-kenpo.jp
+  [9件] 行政/F-REGI 公金支払い
+    domain: koukin.f-regi.com
+    domain: suido.f-regi.com
+  [5件] 行政/[no-reply]自治体マイページ事務局送信者
+    domain: e-taxrenkei-m.jp
+  [6件] 行政/e-Tax（国税電子申告・納税システム）
+    domain: e-tax.nta.go.jp
+  [7件] 行政/eLTAX 地方税お支払サイト
+    domain: payment.eltax.lta.go.jp
+  [7件] 行政/kanagawa-pref
+    domain: kanagawa-pref.jp
+  [21件] 行政/マイナポータル
+    domain: myna.go.jp
+  [9件] 行政/個人番号カード交付申請書受付センター
+    domain: mail.net.kojinbango-card.go.jp
+    domain: net.kojinbango-card.go.jp
+  [16件] 行政/日本年金機構
+    domain: idpass-net.nenkin.go.jp
+  [30件] 行政/相模原市
+    domain: info.cous.jp
+    domain: nekonet.co.jp
+  [1件] 行政/相模原市マイナンバーカード交付予約システム
+    domain: sagamihara-myno.seagull-lc.com
+  [30件] 行政/首都圏デジタル産業健康保険組合
+    domain: sdi-kenpoconnect.jp
+  [2件] 転職/PCD人事・採用担当
+    domain: pcdepot.co.jp
+  [23件] 転職/R-AGENT求人紹介窓口
+    domain: r-agent.com
+  [13件] 転職/RECRUIT AGENT_2
+    domain: r-agent.com
+  [10件] 転職/air-agent
+    domain: entry.air-agent.jp
+  [1件] 転職/help@support-rls.recruit.jp
+    domain: support-rls.recruit.jp
+  [7件] 転職/【リクルートID】
+    domain: point.recruit.co.jp
+  [1件] 転職/エン転職
+    domain: employment.en-japan.com
+  [1件] 転職/リクルートエージェント求人紹介
+    domain: r-agent.com
+  [1件] 転職/株式会社リクルート
+    domain: point.recruit.co.jp
+  [3件] 通信キャリア/(株)NTTドコモ
+    domain: wdy.docomo.ne.jp
+  [30件] 通信キャリア/IIJmio
+    domain: iijmio.jp
+  [6件] 通信キャリア/NTT Communications
+    domain: 050plus.com
+  [4件] 通信キャリア/NTTぷらら
+    domain: plala.or.jp
+  [4件] 通信キャリア/NTTコミュニケーションズ株式会社
+    domain: ntt.com
+  [1件] 通信キャリア/au STAR
+    domain: star.auone.jp
+  [2件] 通信キャリア/au WALLET ポイントプログラム 貯める
+    domain: enjoy.point.auone.jp
+  [2件] 通信キャリア/au WALLETポイント貯める
+    domain: enjoy.point.auone.jp
+  [1件] 通信キャリア/au one メールからのお知らせ
+    domain: auone-mail.com
+  [30件] 通信キャリア/auone
+    domain: act.auone.jp
+    domain: connect.auone.jp
+    domain: ju.connect.auone.jp
+    domain: wallet.auone.jp
+  [3件] 通信キャリア/auからの重要なお知らせ
+    domain: au-cs.ezweb.ne.jp
+  [1件] 通信キャリア/auでんき申し込み受付
+    domain: denki.auone.jp
+  [30件] 通信キャリア/auサポート情報
+    domain: cs.kddi.com
+  [30件] 通信キャリア/auマイプレミアショップ
+    domain: pmmail.ezweb.ne.jp
+  [30件] 通信キャリア/auメルマガ
+    domain: au.kddi.com
+  [3件] 通信キャリア/dPOINT CLUB
+    domain: mail2.apl01.spmode.ne.jp
+  [2件] 通信キャリア/docomo-de
+    domain: docomo-de.net
+  [4件] 通信キャリア/dpoint
+    domain: dpoint.jp
+  [7件] 通信キャリア/dポイントクラブアンケート
+    domain: wdy.docomo.ne.jp
+  [14件] 通信キャリア/d払い
+    domain: mail2.apl01.spmode.ne.jp
+  [28件] 通信キャリア/kddi
+    domain: au-cs-mail.kddi.com
+    domain: csmail.kddi.com
+    domain: denki.kddi.com
+    domain: kddi.com
+    domain: portalmail.kddi.com
+  [2件] 通信キャリア/kddi-fs
+    domain: system.kddi-fs.com
+  [26件] 通信キャリア/mydocomo
+    domain: mydocomo.com
+  [30件] 通信キャリア/povo
+    domain: povo.jp
+  [13件] 通信キャリア/povo2.0からの重要なお知らせ
+    domain: emails.povo.jp
+  [1件] 通信キャリア/povo2.0からの重要なご案内
+    domain: emails.povo.jp
+  [5件] 通信キャリア/softbank
+    domain: i.softbank.jp
+  [1件] 通信キャリア/【povo2.0運営事務局】
+    domain: bonus.povo.jp
+  [1件] 通信キャリア/ソフトバンクオンラインショップ
+    domain: mail.mb.softbank.jp
+  [1件] 通信キャリア/ソフトバンク／ワイモバイル
+    domain: ent.mb.softbank.jp
+  [30件] 通信キャリア/マイプレミアショップ
+    domain: pmmail.ezweb.ne.jp
+  [1件] 通信キャリア/ＮＴＴ東日本
+    domain: mm.dmail.ntt-east.co.jp

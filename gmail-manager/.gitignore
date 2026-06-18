@@ -1,0 +1,24 @@
+# 秘密情報・認証（誤コミット防止。実際の認証情報は GCP Secret Manager 側にあり本来ここには無い）
+*credential*.json
+*token*.json
+*.key
+*.pem
+.env
+.env.*
+client_secret*.json
+oauth*.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# 旧Cloud Functions時代の遺物（Gmailアプリパスワードを直書きしているためリポジトリから除外）
+# ※ローカルのMac上には残す。Web版引き継ぎ確認後に手動削除する想定。
+/deploy.sh
+cloud_function/
