@@ -653,11 +653,14 @@ def try_unsubscribe(msg_obj, password, unsubscribed_set, unsubscribe_targets):
     header = msg_obj.get("List-Unsubscribe", "")
     if not header:
         return
-    m = re.search(r'[\w.+-]+@[\w.-]+', msg_obj.get("From", ""))
-    sender_key = m.group(0).lower() if m else msg_obj.get("From", "").lower()
-    if sender_key in unsubscribed_set:
+    # 重複排除は「送信者アドレス」ではなく「配信解除先そのもの(List-Unsubscribeの中身)」で行う。
+    # 例: 楽天証券は mktg_nws@rakuten-sec.co.jp の1アドレスから トウシル/NISA/勉強会… と複数のメルマガを
+    #     配信し、解除リンク/トークンはメルマガごとに別。送信者単位でdedupすると1誌しか解除を試みず、
+    #     残りは未解除のまま毎日届き続ける。解除先単位にすれば各メルマガを個別に解除できる。
+    unsub_key = re.sub(r"\s+", "", header).lower()
+    if unsub_key in unsubscribed_set:
         return
-    unsubscribed_set.add(sender_key)
+    unsubscribed_set.add(unsub_key)
 
     post_header = msg_obj.get("List-Unsubscribe-Post", "")
     urls    = re.findall(r'<(https?://[^>]+)>', header)
