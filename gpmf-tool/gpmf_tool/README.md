@@ -162,13 +162,12 @@ PyInstaller はクロスコンパイル不可なので、手元に Mac と Windo
 無い場合は CI で各 OS のランナー上でビルドする。
 `.github/workflows/build-app.yml` を同梱済み:
 
-- **手動実行**: GitHub の Actions タブ → "Build gpmf app" → Run workflow。
-  完了後、Artifacts から `gpmf-windows.exe` / `gpmf-macos-arm64` /
-  `gpmf-macos-x64` をダウンロードできる
-- **タグで自動リリース**: `git tag v1.0.0 && git push --tags` すると 3 種を
-  ビルドし、GitHub Release に自動添付する
+- GitHub の **Actions タブ → "Build gpmf app" → Run workflow** で実行
+- 完了後、実行結果ページ下部の **Artifacts** から
+  `gpmf-windows.exe`（Windows）と `gpmf-macos-arm64`（Mac / Apple Silicon）
+  をダウンロードできる
 
-Windows (.exe)、macOS (Apple Silicon / Intel) の 3 バイナリが並列で作られる。
+Windows と macOS (Apple Silicon) の 2 バイナリが並列で作られる。
 
 ### pip でインストールする場合
 

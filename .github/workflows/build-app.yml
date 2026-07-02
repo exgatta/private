@@ -1,19 +1,16 @@
 name: Build gpmf app (Windows / macOS)
 
-# Mac 用と Windows 用のバイナリを、それぞれの実機ランナー上で別々にビルドする。
-# (PyInstaller はクロスコンパイル不可のため、OS ごとにネイティブビルドが必要)
+# Mac 用 (Apple Silicon) と Windows 用のバイナリを、それぞれの実機ランナー上で
+# 別々にビルドする。(PyInstaller はクロスコンパイル不可のため OS ごとに必要)
 #
-# 手動実行:      Actions タブ → "Build gpmf app" → Run workflow
-# タグ push 時:  v* タグを push すると自動ビルド + Release への添付
+# 実行: Actions タブ → "Build gpmf app" → Run workflow
+# 完了後、実行結果ページ下部の Artifacts からバイナリをダウンロードする。
 
 on:
-  workflow_dispatch:        # 手動実行
-  push:
-    tags:
-      - "v*"                 # v1.0.0 などのタグで自動ビルド
+  workflow_dispatch:        # 手動実行のみ (配布しないため自動リリースはしない)
 
 permissions:
-  contents: write           # Release へのアップロード用
+  contents: read
 
 jobs:
   build:
@@ -29,10 +26,6 @@ jobs:
             artifact: gpmf-macos-arm64
             binary: dist/gpmf
             asset: gpmf-macos-arm64
-          - os: macos-13              # Intel (x86_64)
-            artifact: gpmf-macos-x64
-            binary: dist/gpmf
-            asset: gpmf-macos-x64
 
     runs-on: ${{ matrix.os }}
     name: build (${{ matrix.artifact }})
@@ -72,9 +65,3 @@ jobs:
           name: ${{ matrix.artifact }}
           path: out/${{ matrix.asset }}
           if-no-files-found: error
-
-      - name: Attach to Release (tag builds only)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: out/${{ matrix.asset }}
