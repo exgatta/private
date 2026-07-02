@@ -3,8 +3,8 @@ REM Windows 用ビルドスクリプト (dist\gpmf.exe を生成)。
 REM PyInstaller はクロスコンパイル不可なので、Windows の .exe は Windows 上でビルドすること。
 cd /d "%~dp0"
 
-echo ==> PyInstaller を確認/インストール
-python -m pip install --quiet --upgrade pyinstaller
+echo ==> PyInstaller とドラッグ&ドロップ用ライブラリを確認/インストール
+python -m pip install --quiet --upgrade pyinstaller tkinterdnd2
 if errorlevel 1 goto :error
 
 echo ==> 旧ビルドを掃除

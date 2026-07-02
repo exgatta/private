@@ -12,7 +12,8 @@ license = { text = "MIT" }
 dependencies = []
 
 [project.optional-dependencies]
-build = ["pyinstaller>=6.0"]
+build = ["pyinstaller>=6.0", "tkinterdnd2>=0.4"]
+gui = ["tkinterdnd2>=0.4"]  # ウィンドウへのドラッグ&ドロップ (任意)
 
 [project.scripts]
 gpmf = "gpmf_tool.__main__:main"

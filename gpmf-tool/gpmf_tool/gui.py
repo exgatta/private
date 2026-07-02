@@ -26,10 +26,17 @@ def run() -> int:
         print(f"Tkinter が利用できません: {e}")
         return 1
 
-    app = tk.Tk()
+    # ドラッグ&ドロップ (tkinterdnd2 があれば有効。無ければボタン操作で代替)
+    dnd_files = None
+    try:
+        from tkinterdnd2 import TkinterDnD, DND_FILES
+        app = TkinterDnD.Tk()
+        dnd_files = DND_FILES
+    except Exception:
+        app = tk.Tk()
     app.title("GPMF GoPro化ツール")
-    app.geometry("640x560")
-    app.minsize(560, 480)
+    app.geometry("660x620")
+    app.minsize(560, 520)
 
     log_q: "queue.Queue[str]" = queue.Queue()
 
@@ -94,7 +101,7 @@ def run() -> int:
     ttk.Label(frm, text="他社カメラの動画を GoPro のメタデータ付きに変換します",
               font=("", 11, "bold")).pack(anchor="w", pady=(0, 6))
 
-    _row(frm, "入力 MP4", in_path, pick_in)
+    in_entry = _row(frm, "入力 MP4", in_path, pick_in)
     _row(frm, "出力 MP4", out_path, pick_out)
     _row(frm, "GPX (任意)", gpx_path, pick_gpx)
 
@@ -126,10 +133,20 @@ def run() -> int:
     btns.pack(fill="x", **pad)
     run_btn = ttk.Button(btns, text="GoPro化を実行")
     run_btn.pack(side="left")
-    batch_btn = ttk.Button(btns, text="複数ファイルを一括処理")
+    batch_btn = ttk.Button(btns, text="複数ファイルを一括")
     batch_btn.pack(side="left", padx=6)
+    folder_btn = ttk.Button(btns, text="フォルダを一括")
+    folder_btn.pack(side="left", padx=6)
     info_btn = ttk.Button(btns, text="入力の情報を表示")
     info_btn.pack(side="left", padx=6)
+
+    # ドラッグ&ドロップ案内
+    drop_hint = ("↓ ここに動画やフォルダをドラッグ&ドロップでも一括処理できます"
+                 if dnd_files else
+                 "（ドラッグ&ドロップは未対応の環境です。上のボタンをお使いください）")
+    drop_lbl = ttk.Label(frm, text=drop_hint, anchor="center",
+                         relief="groove", padding=6)
+    drop_lbl.pack(fill="x", **pad)
 
     # ログ表示
     ttk.Label(frm, text="ログ").pack(anchor="w", **pad)
@@ -201,14 +218,23 @@ def run() -> int:
     # ------------------------------------------------------------------
     # 一括処理
     # ------------------------------------------------------------------
-    def do_batch():
-        paths = filedialog.askopenfilenames(
-            title="一括処理する動画を複数選択 (Shift/⌘ で複数選択)",
-            filetypes=[("動画", "*.mp4 *.mov *.m4v *.MP4 *.MOV *.360"),
-                       ("すべて", "*.*")])
+    def run_batch_paths(paths):
+        """ファイル/フォルダの列を一括処理する (ボタン・D&D 共通)。"""
         if not paths:
             return
-        out_dir = filedialog.askdirectory(title="出力先フォルダを選択")
+        try:
+            files = collect_videos(list(paths), recursive=True)
+        except Exception as e:
+            messagebox.showerror("エラー", humanize_error(e))
+            return
+        if not files:
+            messagebox.showinfo(
+                "対象なし",
+                "処理できる動画が見つかりませんでした。\n"
+                "(.mp4 / .mov / .m4v / .360 が対象)")
+            return
+        out_dir = filedialog.askdirectory(
+            title=f"{len(files)} 本の出力先フォルダを選択")
         if not out_dir:
             return
         set_running(True)
@@ -219,12 +245,6 @@ def run() -> int:
             except ValueError:
                 hz = 10.0
             gpx = gpx_path.get().strip() or None
-            try:
-                files = collect_videos(list(paths))
-            except Exception as e:
-                log("エラー: " + humanize_error(e))
-                app.after(0, lambda: set_running(False))
-                return
             log(f"=== 一括処理: {len(files)} 本 ===")
             cache = {}
             ok = skip = fail = 0
@@ -255,6 +275,26 @@ def run() -> int:
 
         threading.Thread(target=work, daemon=True).start()
 
+    def do_batch():
+        paths = filedialog.askopenfilenames(
+            title="一括処理する動画を複数選択 (Shift/⌘ で複数選択)",
+            filetypes=[("動画", "*.mp4 *.mov *.m4v *.MP4 *.MOV *.360"),
+                       ("すべて", "*.*")])
+        run_batch_paths(list(paths))
+
+    def do_folder():
+        d = filedialog.askdirectory(title="一括処理するフォルダを選択")
+        if d:
+            run_batch_paths([d])
+
+    def on_drop(event):
+        # tkinterdnd2 は空白入りパスを {..} で囲むので splitlist で正しく分解
+        try:
+            paths = list(app.tk.splitlist(event.data))
+        except Exception:
+            paths = [event.data]
+        run_batch_paths(paths)
+
     def do_info():
         src = in_path.get().strip()
         if not src or not os.path.isfile(src):
@@ -280,7 +320,36 @@ def run() -> int:
 
     run_btn.configure(command=do_inject)
     batch_btn.configure(command=do_batch)
+    folder_btn.configure(command=do_folder)
     info_btn.configure(command=do_info)
+
+    # ドラッグ&ドロップ登録 (ウィンドウ全体とドロップ枠を対象に)
+    if dnd_files is not None:
+        for target in (drop_lbl, log_box, app):
+            try:
+                target.drop_target_register(dnd_files)
+                target.dnd_bind("<<Drop>>", on_drop)
+            except Exception:
+                pass
+        # 単発の入力欄には「ドロップで入力欄にセット」も許可
+        def on_drop_single(event):
+            try:
+                paths = list(app.tk.splitlist(event.data))
+            except Exception:
+                paths = [event.data]
+            files = [p for p in paths if os.path.isfile(p)]
+            if len(files) == 1:
+                in_path.set(files[0])
+                if not out_path.get():
+                    base, ext = os.path.splitext(files[0])
+                    out_path.set(f"{base}_gopro{ext or '.mp4'}")
+            else:
+                on_drop(event)
+        try:
+            in_entry.drop_target_register(dnd_files)
+            in_entry.dnd_bind("<<Drop>>", on_drop_single)
+        except Exception:
+            pass
 
     flush_log()
     app.mainloop()

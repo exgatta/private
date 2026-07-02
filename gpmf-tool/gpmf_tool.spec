@@ -16,12 +16,25 @@ import sys
 IS_MAC = sys.platform == "darwin"
 APP_NAME = "GPMF-GoPro"
 
+# ドラッグ&ドロップ用 tkinterdnd2 を (インストールされていれば) 同梱する
+_datas = [('gpmf_tool/README.md', 'gpmf_tool')]
+_binaries = []
+_hidden = ['gpmf_tool.gui']
+try:
+    from PyInstaller.utils.hooks import collect_all
+    _d, _b, _h = collect_all('tkinterdnd2')
+    _datas += _d
+    _binaries += _b
+    _hidden += _h
+except Exception:
+    pass  # 無ければ D&D なしでビルド (アプリ側でフォールバック)
+
 a = Analysis(
     ['gpmf_app.py'],
     pathex=[],
-    binaries=[],
-    datas=[('gpmf_tool/README.md', 'gpmf_tool')],
-    hiddenimports=['gpmf_tool.gui'],
+    binaries=_binaries,
+    datas=_datas,
+    hiddenimports=_hidden,
     hookspath=[],
     runtime_hooks=[],
     excludes=[
