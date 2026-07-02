@@ -7,7 +7,15 @@ name: Build gpmf app (Windows / macOS)
 # 完了後、実行結果ページ下部の Artifacts からバイナリをダウンロードする。
 
 on:
-  workflow_dispatch:        # 手動実行のみ (配布しないため自動リリースはしない)
+  workflow_dispatch:        # 手動実行 (Actions タブから)
+  push:
+    branches:
+      - "claude/**"          # 作業ブランチへの push で自動ビルド確認
+    paths:                   # ビルドに関係するファイルが変わった時だけ
+      - "gpmf_tool/**"
+      - "gpmf_app.py"
+      - "gpmf_tool.spec"
+      - ".github/workflows/build-app.yml"
 
 permissions:
   contents: read
