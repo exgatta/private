@@ -409,6 +409,26 @@ def cmd_info(args: argparse.Namespace) -> None:
                 if c.type == b"FIRM":
                     print(f"  FIRM: {c.payload.decode('ascii', 'replace')}")
 
+        # --- 位置情報・テレメトリの検出 (GoPro 以外も含む) ---
+        f.seek(0)
+        tele = mp4.detect_telemetry(f)
+        print("\n位置情報・テレメトリ:")
+        if tele["formats"]:
+            for fmt in tele["formats"]:
+                print(f"  ● {fmt}")
+        else:
+            print("  検出されず (位置情報は埋め込まれていません)")
+        loc = tele["location_iso6709"]
+        if loc:
+            lat, lon, ele = loc
+            ele_s = f", 高度 {ele:.1f}m" if ele is not None else ""
+            print(f"  撮影地点: 緯度 {lat:.6f}, 経度 {lon:.6f}{ele_s}")
+            print(f"    地図: https://maps.google.com/?q={lat:.6f},{lon:.6f}")
+        if gpmd:
+            print("  → GoPro 形式。`extract --gpx out.gpx` で軌跡を書き出せます")
+        elif not tele["formats"]:
+            print("  → `inject --gpx <GPXファイル>` で GPS を後付けできます")
+
 
 # ---------------------------------------------------------------------------
 

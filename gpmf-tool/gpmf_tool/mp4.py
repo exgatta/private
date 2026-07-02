@@ -210,6 +210,95 @@ def parse_stco(payload: bytes, is_co64: bool) -> List[int]:
     return _u32s(payload, 8, count)
 
 
+# ---------------------------------------------------------------------------
+# 位置情報・テレメトリ形式の検出 (GoPro 以外も含む)
+# ---------------------------------------------------------------------------
+
+def _parse_iso6709(text: str) -> Optional[Tuple[float, float, Optional[float]]]:
+    """ISO 6709 文字列 "+35.6586+139.7454+12.3/" を (緯度,経度,高度) に。"""
+    import re
+    nums = re.findall(r"[+-]\d+(?:\.\d+)?", text)
+    if len(nums) < 2:
+        return None
+    lat, lon = float(nums[0]), float(nums[1])
+    ele = float(nums[2]) if len(nums) >= 3 else None
+    return lat, lon, ele
+
+
+def detect_telemetry(f: BinaryIO) -> dict:
+    """MP4 に含まれる位置情報/テレメトリ形式を検出する。
+
+    Returns 例:
+        {"gpmd": True, "location_iso6709": (35.6, 139.7, 12.0),
+         "quicktime_location": True, "camm": False, "tracks": [...],
+         "formats": ["GoPro GPMF (gpmd)", "スマホ位置情報 (©xyz)"]}
+    """
+    tops = scan_top_level(f)
+    moov_top = next(b for b in tops if b.type == b"moov")
+    moov_bytes = read_box_bytes(f, moov_top)
+    moov = parse_box_tree(moov_bytes, b"moov")
+
+    result = {
+        "gpmd": find_gpmd_trak(moov) is not None,
+        "camm": False,
+        "location_iso6709": None,
+        "quicktime_location": False,
+        "gopro_udta": [],
+        "formats": [],
+    }
+
+    # camm (Camera Motion Metadata: Google/Street View 系, 一部360カメラ)
+    for trak in moov.find_all(b"trak"):
+        stsd = trak.find(b"mdia", b"minf", b"stbl", b"stsd")
+        if stsd and b"camm" in stsd.payload:
+            result["camm"] = True
+
+    # udta/©xyz (スマホ等の撮影地点。ISO6709 1 点)
+    udta = moov.find(b"udta")
+    if udta:
+        for c in udta.children:
+            if c.type == b"\xa9xyz":
+                # 2byte size + 2byte lang + 文字列
+                try:
+                    slen = struct.unpack(">H", c.payload[:2])[0]
+                    text = c.payload[4:4 + slen].decode("ascii", "replace")
+                except Exception:
+                    text = c.payload[4:].decode("ascii", "replace")
+                result["location_iso6709"] = _parse_iso6709(text)
+        result["gopro_udta"] = [c.type.decode("latin-1") for c in udta.children
+                                if c.type in (b"FIRM", b"LENS", b"CAME",
+                                              b"MUID", b"GPMF", b"HMMT", b"SETT")]
+
+    # QuickTime メタデータキー (iPhone: com.apple.quicktime.location.ISO6709)
+    if b"com.apple.quicktime.location" in moov_bytes:
+        result["quicktime_location"] = True
+        if result["location_iso6709"] is None:
+            # ilst 内の ISO6709 文字列を拾う
+            import re
+            m = re.search(rb"([+-]\d+\.\d+[+-]\d+\.\d+[+\-\d./]*)", moov_bytes)
+            if m:
+                result["location_iso6709"] = _parse_iso6709(
+                    m.group(1).decode("ascii", "replace"))
+
+    # DJI / Insta360 等のヒント (トラック名やブランド)
+    if b"DJI" in moov_bytes:
+        result["formats"].append("DJI 系メタデータの可能性 (SRT字幕も確認)")
+    if b"Insta360" in moov_bytes or b"insta360" in moov_bytes:
+        result["formats"].append("Insta360 系メタデータの可能性")
+
+    # 形式ラベルを組み立て
+    if result["gpmd"]:
+        result["formats"].insert(0, "GoPro GPMF (gpmd トラック)")
+    if result["camm"]:
+        result["formats"].append("Camera Motion Metadata (camm)")
+    if result["location_iso6709"]:
+        result["formats"].append("撮影地点の GPS 座標 (ISO6709)")
+    elif result["quicktime_location"]:
+        result["formats"].append("QuickTime 位置情報")
+
+    return result
+
+
 def sample_offsets(stsz: List[int], stsc: List[Tuple[int, int, int]],
                    chunk_offsets: List[int]) -> List[Tuple[int, int]]:
     """各サンプルの (ファイルオフセット, サイズ) を計算する。"""

@@ -88,12 +88,23 @@ python3 -m gpmf_tool extract GH010001.MP4 -o raw.bin --json full.json --gpx trac
 `--gpx` は GPS5/GPS9 ストリームを SCAL でスケール解除し GPSU の UTC 時刻付きで
 GPX 1.1 に書き出す（Google Earth や Strava 等で開ける）。
 
-### 4. 確認
+### 4. 確認 / 動画に入っている位置情報を調べる
 
 ```bash
-python3 -m gpmf_tool info output.mp4
-# トラック一覧 / gpmd トラック有無 / FIRM などの GoPro ボックスを表示
+python3 -m gpmf_tool info video.mp4
 ```
+
+トラック一覧・gpmd トラック有無・FIRM などに加え、**位置情報/テレメトリを
+自動判定**する（GoPro 以外の形式も検出）:
+
+- **GoPro GPMF**（gpmd トラック）
+- **スマホの撮影地点**（`©xyz` / QuickTime の ISO6709。緯度経度を地図リンク付きで表示）
+- **Camera Motion Metadata (camm)**（Street View 系・一部 360 カメラ）
+- **DJI / Insta360** 系メタデータのヒント
+
+手持ちの動画に何が入っているか分からないときは、まず `info` で覗くとよい。
+GoPro 形式なら `extract --gpx` で軌跡を取り出せ、何も無ければ
+`inject --gpx` で後付けできる。
 
 ## GPMF 対応範囲
 
