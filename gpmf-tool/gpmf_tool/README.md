@@ -156,6 +156,20 @@ build_app.bat
 GUI では、入力 MP4・出力先・GPX を選び、機種を選んで「GoPro化を実行」を
 押すだけ（Tkinter 製・追加依存なし）。
 
+### Mac用・Windows用を別々に自動ビルドする (GitHub Actions)
+
+PyInstaller はクロスコンパイル不可なので、手元に Mac と Windows の両方が
+無い場合は CI で各 OS のランナー上でビルドする。
+`.github/workflows/build-app.yml` を同梱済み:
+
+- **手動実行**: GitHub の Actions タブ → "Build gpmf app" → Run workflow。
+  完了後、Artifacts から `gpmf-windows.exe` / `gpmf-macos-arm64` /
+  `gpmf-macos-x64` をダウンロードできる
+- **タグで自動リリース**: `git tag v1.0.0 && git push --tags` すると 3 種を
+  ビルドし、GitHub Release に自動添付する
+
+Windows (.exe)、macOS (Apple Silicon / Intel) の 3 バイナリが並列で作られる。
+
 ### pip でインストールする場合
 
 ```bash
