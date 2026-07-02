@@ -1,0 +1,577 @@
+"""MP4 (ISO BMFF) コンテナの読み書き。
+
+GPMF ツールに必要な範囲の実装:
+
+- トップレベルボックスの列挙 (ftyp / moov / mdat / free ...)
+- moov ツリーの解析・再構築 (サイズ再計算つき)
+- `gpmd` タイムドメタデータトラックのサンプル抽出 (stsd/stsz/stsc/stco/stts)
+- `gpmd` トラックの新規作成と注入 (GoPro HERO シリーズと同じ構造)
+- チャンクオフセット (stco/co64) の自動補正
+
+フラグメント化 MP4 (moof) は非対応。
+"""
+
+from __future__ import annotations
+
+import io
+import struct
+from dataclasses import dataclass, field
+from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
+
+from .klv import GPMFError
+
+
+# moov 内で再帰的に解析するコンテナボックス
+_CONTAINER_BOXES = {
+    b"moov", b"trak", b"mdia", b"minf", b"stbl", b"edts", b"udta",
+    b"gmhd", b"dinf", b"mvex",
+}
+
+
+class MP4Error(ValueError):
+    """MP4 の解析・生成エラー。"""
+
+
+# ---------------------------------------------------------------------------
+# ボックスツリー
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Box:
+    """メモリ上のボックス。コンテナなら children、リーフなら payload を持つ。"""
+
+    type: bytes
+    payload: bytes = b""
+    children: List["Box"] = field(default_factory=list)
+    is_container: bool = False
+
+    def find(self, *path: bytes) -> Optional["Box"]:
+        """パス指定で子孫ボックスを 1 つ探す。"""
+        node = self
+        for name in path:
+            node = next((c for c in node.children if c.type == name), None)
+            if node is None:
+                return None
+        return node
+
+    def find_all(self, name: bytes) -> Iterator["Box"]:
+        for c in self.children:
+            if c.type == name:
+                yield c
+
+    def serialize(self) -> bytes:
+        body = (b"".join(c.serialize() for c in self.children)
+                if self.is_container else self.payload)
+        size = 8 + len(body)
+        if size <= 0xFFFFFFFF:
+            return struct.pack(">I", size) + self.type + body
+        return struct.pack(">I", 1) + self.type + struct.pack(">Q", size + 8) + body
+
+
+def parse_box_tree(data: bytes, box_type: bytes) -> Box:
+    """バイト列 (ヘッダ含む) からボックスツリーを構築する。"""
+    boxes = _parse_children(data, 0, len(data))
+    if len(boxes) != 1 or boxes[0].type != box_type:
+        raise MP4Error(f"{box_type!r} ボックスの解析に失敗")
+    return boxes[0]
+
+
+def _parse_children(data: bytes, start: int, end: int) -> List[Box]:
+    out: List[Box] = []
+    pos = start
+    while pos + 8 <= end:
+        size = struct.unpack(">I", data[pos:pos + 4])[0]
+        btype = data[pos + 4:pos + 8]
+        header = 8
+        if size == 1:
+            size = struct.unpack(">Q", data[pos + 8:pos + 16])[0]
+            header = 16
+        elif size == 0:
+            size = end - pos
+        if size < header or pos + size > end:
+            raise MP4Error(f"不正なボックスサイズ {size} @ {pos} ({btype!r})")
+        body = data[pos + header:pos + size]
+        if btype in _CONTAINER_BOXES:
+            box = Box(type=btype, is_container=True,
+                      children=_parse_children(data, pos + header, pos + size))
+        else:
+            box = Box(type=btype, payload=body)
+        out.append(box)
+        pos += size
+    return out
+
+
+# ---------------------------------------------------------------------------
+# トップレベル走査
+# ---------------------------------------------------------------------------
+
+@dataclass
+class TopLevelBox:
+    type: bytes
+    offset: int      # ファイル内オフセット (ヘッダ先頭)
+    size: int        # ヘッダ込みの全長
+
+
+def scan_top_level(f: BinaryIO) -> List[TopLevelBox]:
+    """ファイルのトップレベルボックスを列挙する。"""
+    f.seek(0, io.SEEK_END)
+    file_size = f.tell()
+    f.seek(0)
+    out: List[TopLevelBox] = []
+    pos = 0
+    while pos + 8 <= file_size:
+        f.seek(pos)
+        head = f.read(16)
+        size = struct.unpack(">I", head[:4])[0]
+        btype = head[4:8]
+        if size == 1:
+            size = struct.unpack(">Q", head[8:16])[0]
+        elif size == 0:
+            size = file_size - pos
+        if size < 8 or pos + size > file_size:
+            raise MP4Error(f"不正なトップレベルボックス @ {pos}: {btype!r} size={size}")
+        out.append(TopLevelBox(type=btype, offset=pos, size=size))
+        pos += size
+    if not any(b.type == b"moov" for b in out):
+        raise MP4Error("moov ボックスが見つかりません (MP4 ではない?)")
+    if any(b.type == b"moof" for b in out):
+        raise MP4Error("フラグメント化 MP4 (moof) は非対応です")
+    return out
+
+
+def read_box_bytes(f: BinaryIO, box: TopLevelBox) -> bytes:
+    f.seek(box.offset)
+    return f.read(box.size)
+
+
+# ---------------------------------------------------------------------------
+# フルボックス/サンプルテーブルの読み取りヘルパ
+# ---------------------------------------------------------------------------
+
+def _u32s(data: bytes, offset: int, count: int) -> List[int]:
+    return list(struct.unpack(f">{count}I", data[offset:offset + 4 * count]))
+
+
+def parse_mvhd(payload: bytes) -> dict:
+    version = payload[0]
+    if version == 1:
+        timescale, duration = struct.unpack(">IQ", payload[20:32])
+    else:
+        timescale, duration = struct.unpack(">II", payload[12:20])
+    next_track_id = struct.unpack(">I", payload[-4:])[0]
+    return {"version": version, "timescale": timescale,
+            "duration": duration, "next_track_id": next_track_id}
+
+
+def bump_next_track_id(mvhd: Box, new_id: int) -> None:
+    mvhd.payload = mvhd.payload[:-4] + struct.pack(">I", new_id)
+
+
+def parse_mdhd(payload: bytes) -> dict:
+    version = payload[0]
+    if version == 1:
+        timescale, duration = struct.unpack(">IQ", payload[20:32])
+    else:
+        timescale, duration = struct.unpack(">II", payload[12:20])
+    return {"timescale": timescale, "duration": duration}
+
+
+def parse_hdlr(payload: bytes) -> dict:
+    handler = payload[8:12]
+    name = payload[24:].split(b"\x00")[0].decode("utf-8", "replace")
+    return {"handler": handler, "name": name}
+
+
+def parse_stts(payload: bytes) -> List[Tuple[int, int]]:
+    """(sample_count, sample_delta) のリスト。"""
+    count = struct.unpack(">I", payload[4:8])[0]
+    vals = _u32s(payload, 8, count * 2)
+    return [(vals[i * 2], vals[i * 2 + 1]) for i in range(count)]
+
+
+def parse_stsz(payload: bytes) -> List[int]:
+    sample_size, count = struct.unpack(">II", payload[4:12])
+    if sample_size != 0:
+        return [sample_size] * count
+    return _u32s(payload, 12, count)
+
+
+def parse_stsc(payload: bytes) -> List[Tuple[int, int, int]]:
+    """(first_chunk, samples_per_chunk, sample_desc_index) のリスト。"""
+    count = struct.unpack(">I", payload[4:8])[0]
+    vals = _u32s(payload, 8, count * 3)
+    return [tuple(vals[i * 3:i * 3 + 3]) for i in range(count)]
+
+
+def parse_stco(payload: bytes, is_co64: bool) -> List[int]:
+    count = struct.unpack(">I", payload[4:8])[0]
+    if is_co64:
+        return list(struct.unpack(f">{count}Q", payload[8:8 + 8 * count]))
+    return _u32s(payload, 8, count)
+
+
+def sample_offsets(stsz: List[int], stsc: List[Tuple[int, int, int]],
+                   chunk_offsets: List[int]) -> List[Tuple[int, int]]:
+    """各サンプルの (ファイルオフセット, サイズ) を計算する。"""
+    out: List[Tuple[int, int]] = []
+    sample_idx = 0
+    n_chunks = len(chunk_offsets)
+    for i, (first_chunk, per_chunk, _) in enumerate(stsc):
+        last_chunk = (stsc[i + 1][0] - 1) if i + 1 < len(stsc) else n_chunks
+        for chunk in range(first_chunk, last_chunk + 1):
+            pos = chunk_offsets[chunk - 1]
+            for _ in range(per_chunk):
+                if sample_idx >= len(stsz):
+                    return out
+                out.append((pos, stsz[sample_idx]))
+                pos += stsz[sample_idx]
+                sample_idx += 1
+    return out
+
+
+# ---------------------------------------------------------------------------
+# gpmd トラック抽出
+# ---------------------------------------------------------------------------
+
+@dataclass
+class GPMFSample:
+    data: bytes
+    time_sec: float       # トラック先頭からの提示時刻 (秒)
+    duration_sec: float
+
+
+def find_gpmd_trak(moov: Box) -> Optional[Box]:
+    """gpmd サンプルエントリを持つトラックを探す。"""
+    for trak in moov.find_all(b"trak"):
+        stsd = trak.find(b"mdia", b"minf", b"stbl", b"stsd")
+        if stsd and b"gpmd" in stsd.payload:
+            return trak
+    return None
+
+
+def extract_gpmf_samples(f: BinaryIO) -> List[GPMFSample]:
+    """MP4 から GPMF ペイロード (gpmd サンプル) を取り出す。"""
+    tops = scan_top_level(f)
+    moov_top = next(b for b in tops if b.type == b"moov")
+    moov = parse_box_tree(read_box_bytes(f, moov_top), b"moov")
+
+    trak = find_gpmd_trak(moov)
+    if trak is None:
+        raise MP4Error("gpmd トラックが見つかりません (GPMF メタデータなし)")
+
+    stbl = trak.find(b"mdia", b"minf", b"stbl")
+    mdhd = parse_mdhd(trak.find(b"mdia", b"mdhd").payload)
+    stsz = parse_stsz(stbl.find(b"stsz").payload)
+    stsc = parse_stsc(stbl.find(b"stsc").payload)
+    stco_box = stbl.find(b"stco")
+    if stco_box is not None:
+        chunk_offsets = parse_stco(stco_box.payload, is_co64=False)
+    else:
+        chunk_offsets = parse_stco(stbl.find(b"co64").payload, is_co64=True)
+    stts = parse_stts(stbl.find(b"stts").payload)
+
+    # サンプル時刻を展開
+    times: List[Tuple[float, float]] = []
+    t = 0
+    for count, delta in stts:
+        for _ in range(count):
+            times.append((t / mdhd["timescale"], delta / mdhd["timescale"]))
+            t += delta
+
+    samples: List[GPMFSample] = []
+    for i, (off, size) in enumerate(sample_offsets(stsz, stsc, chunk_offsets)):
+        f.seek(off)
+        data = f.read(size)
+        if len(data) != size:
+            raise MP4Error(f"サンプル {i} の読み取りに失敗 (offset={off}, size={size})")
+        time_sec, dur = times[i] if i < len(times) else (0.0, 0.0)
+        samples.append(GPMFSample(data=data, time_sec=time_sec, duration_sec=dur))
+    return samples
+
+
+# ---------------------------------------------------------------------------
+# フルボックス生成ヘルパ
+# ---------------------------------------------------------------------------
+
+def _box(btype: bytes, body: bytes) -> bytes:
+    return struct.pack(">I", 8 + len(body)) + btype + body
+
+
+def _full(btype: bytes, version: int, flags: int, body: bytes) -> bytes:
+    return _box(btype, struct.pack(">B", version) + flags.to_bytes(3, "big") + body)
+
+
+_MATRIX_IDENTITY = struct.pack(">9i", 0x10000, 0, 0, 0, 0x10000, 0, 0, 0, 0x40000000)
+
+
+def build_gpmd_trak(track_id: int, movie_timescale: int, movie_duration: int,
+                    sample_sizes: List[int], sample_durations_ms: List[int],
+                    chunk_offset: int, creation_time: int = 0,
+                    handler_name: str = "GoPro MET  ") -> bytes:
+    """GoPro 形式の gpmd メタデータトラック (trak ボックス) を生成する。
+
+    - mdhd タイムスケール 1000 (ミリ秒)
+    - 全サンプルを 1 チャンクに連続配置 (chunk_offset が先頭)
+    """
+    media_timescale = 1000
+    media_duration = sum(sample_durations_ms)
+
+    # --- tkhd (enabled) ---
+    tkhd = _full(b"tkhd", 0, 0x000001,
+                 struct.pack(">IIIII", creation_time, creation_time, track_id,
+                             0, movie_duration)
+                 + b"\x00" * 8            # reserved
+                 + struct.pack(">hhhh", 0, 0, 0, 0)  # layer, alt_group, volume, reserved
+                 + _MATRIX_IDENTITY
+                 + struct.pack(">II", 0, 0))  # width, height
+
+    # --- mdhd ---
+    mdhd = _full(b"mdhd", 0, 0,
+                 struct.pack(">IIII", creation_time, creation_time,
+                             media_timescale, media_duration)
+                 + struct.pack(">Hh", 0x55C4, 0))  # language 'und'
+
+    # --- hdlr ---
+    name_b = handler_name.encode("utf-8") + b"\x00"
+    hdlr = _full(b"hdlr", 0, 0,
+                 b"\x00" * 4 + b"meta" + b"\x00" * 12 + name_b)
+
+    # --- minf: gmhd(gmin) + dinf(dref/url) + stbl ---
+    gmin = _full(b"gmin", 0, 0,
+                 struct.pack(">H", 0)         # graphicsmode
+                 + struct.pack(">HHH", 0, 0, 0)  # opcolor
+                 + struct.pack(">hH", 0, 0))  # balance, reserved
+    gmhd = _box(b"gmhd", gmin)
+
+    url = _full(b"url ", 0, 1, b"")  # self-contained
+    dref = _full(b"dref", 0, 0, struct.pack(">I", 1) + url)
+    dinf = _box(b"dinf", dref)
+
+    # --- stsd: gpmd サンプルエントリ ---
+    gpmd_entry = _box(b"gpmd", b"\x00" * 6 + struct.pack(">H", 1))
+    stsd = _full(b"stsd", 0, 0, struct.pack(">I", 1) + gpmd_entry)
+
+    # --- stts: 連続する同一 duration をラン圧縮 ---
+    runs: List[Tuple[int, int]] = []
+    for d in sample_durations_ms:
+        if runs and runs[-1][1] == d:
+            runs[-1] = (runs[-1][0] + 1, d)
+        else:
+            runs.append((1, d))
+    stts = _full(b"stts", 0, 0,
+                 struct.pack(">I", len(runs))
+                 + b"".join(struct.pack(">II", c, d) for c, d in runs))
+
+    # --- stsc: 1 チャンクに全サンプル ---
+    stsc = _full(b"stsc", 0, 0,
+                 struct.pack(">I", 1) + struct.pack(">III", 1, len(sample_sizes), 1))
+
+    stsz = _full(b"stsz", 0, 0,
+                 struct.pack(">II", 0, len(sample_sizes))
+                 + b"".join(struct.pack(">I", s) for s in sample_sizes))
+
+    if chunk_offset <= 0xFFFFFFFF:
+        stco = _full(b"stco", 0, 0,
+                     struct.pack(">I", 1) + struct.pack(">I", chunk_offset))
+    else:
+        stco = _full(b"co64", 0, 0,
+                     struct.pack(">I", 1) + struct.pack(">Q", chunk_offset))
+
+    stbl = _box(b"stbl", stsd + stts + stsc + stsz + stco)
+    minf = _box(b"minf", gmhd + dinf + stbl)
+    mdia = _box(b"mdia", mdhd + hdlr + minf)
+    return _box(b"trak", tkhd + mdia)
+
+
+# ---------------------------------------------------------------------------
+# チャンクオフセット補正
+# ---------------------------------------------------------------------------
+
+def patch_chunk_offsets(moov: Box, remap: Callable[[int], int]) -> None:
+    """moov 内の全 stco/co64 のオフセットを remap 関数で変換する。"""
+    for trak in moov.find_all(b"trak"):
+        stbl = trak.find(b"mdia", b"minf", b"stbl")
+        if stbl is None:
+            continue
+        for name, fmt, width in ((b"stco", ">I", 4), (b"co64", ">Q", 8)):
+            box = stbl.find(name)
+            if box is None:
+                continue
+            count = struct.unpack(">I", box.payload[4:8])[0]
+            head = box.payload[:8]
+            body = box.payload[8:8 + width * count]
+            new_vals = []
+            for i in range(count):
+                old = struct.unpack(fmt, body[i * width:(i + 1) * width])[0]
+                new = remap(old)
+                if name == b"stco" and new > 0xFFFFFFFF:
+                    raise MP4Error(
+                        "補正後のチャンクオフセットが 32bit を超えます "
+                        "(co64 変換が必要な大容量ファイル)")
+                new_vals.append(struct.pack(fmt, new))
+            box.payload = head + b"".join(new_vals)
+
+
+# ---------------------------------------------------------------------------
+# 注入 (ファイル再構築)
+# ---------------------------------------------------------------------------
+
+def inject_gpmf_track(
+    src: BinaryIO,
+    dst: BinaryIO,
+    payloads: List[bytes],
+    payload_durations_ms: List[int],
+    udta_extra: bytes = b"",
+    new_ftyp: Optional[bytes] = None,
+    handler_renames: Optional[dict] = None,
+) -> dict:
+    """MP4 に gpmd トラックを注入して dst に書き出す。
+
+    出力レイアウト:
+        [moov 以外の元ボックス (元の順序)] + [新 mdat (GPMF)] + [新 moov]
+
+    既存データのオフセットずれは stco/co64 を書き換えて補正する。
+
+    Args:
+        payloads: GPMF ペイロード (通常 1 秒ごと 1 個)
+        payload_durations_ms: 各ペイロードの継続時間 (ms)
+        udta_extra: moov/udta に追記する GoPro 識別ボックス列
+        new_ftyp: 置換する ftyp ボックス全体 (None なら元のまま)
+        handler_renames: {b"vide": "GoPro AVC  ", ...} 既存トラックの hdlr 名変更
+    Returns:
+        統計情報 dict
+    """
+    if len(payloads) != len(payload_durations_ms):
+        raise GPMFError("payloads と durations の数が一致しません")
+    if not payloads:
+        raise GPMFError("注入する GPMF ペイロードがありません")
+
+    tops = scan_top_level(src)
+    moov_top = next(b for b in tops if b.type == b"moov")
+    moov = parse_box_tree(read_box_bytes(src, moov_top), b"moov")
+
+    mvhd_box = moov.find(b"mvhd")
+    if mvhd_box is None:
+        raise MP4Error("mvhd がありません")
+    mvhd = parse_mvhd(mvhd_box.payload)
+
+    if find_gpmd_trak(moov) is not None:
+        raise MP4Error("既に gpmd トラックがあります (二重注入を防止)")
+
+    # --- 既存トラックの hdlr 名変更 (任意) ---
+    renamed = []
+    if handler_renames:
+        for trak in moov.find_all(b"trak"):
+            hdlr = trak.find(b"mdia", b"hdlr")
+            if hdlr is None:
+                continue
+            info = parse_hdlr(hdlr.payload)
+            new_name = handler_renames.get(info["handler"])
+            if new_name:
+                head = hdlr.payload[:24]
+                hdlr.payload = head + new_name.encode("utf-8") + b"\x00"
+                renamed.append((info["handler"].decode(), new_name))
+
+    # --- 出力レイアウト計画: moov 以外を元順で配置 ---
+    plan: List[Tuple[TopLevelBox, int]] = []  # (元ボックス, 新オフセット)
+    cursor = 0
+    for b in tops:
+        if b.type == b"moov":
+            continue
+        new_size = b.size
+        if b.type == b"ftyp" and new_ftyp is not None:
+            new_size = len(new_ftyp)
+        plan.append((b, cursor))
+        cursor += new_size
+
+    # 新 mdat (GPMF ペイロード連結)
+    gpmf_blob = b"".join(payloads)
+    new_mdat_offset = cursor
+    payload_start = new_mdat_offset + 8  # mdat ヘッダの直後
+    cursor += 8 + len(gpmf_blob)
+
+    # --- チャンクオフセット remap ---
+    ranges = []
+    for b, new_off in plan:
+        if b.type == b"ftyp" and new_ftyp is not None:
+            continue  # ftyp にチャンクは無い
+        ranges.append((b.offset, b.offset + b.size, new_off - b.offset))
+
+    def remap(old: int) -> int:
+        for lo, hi, delta in ranges:
+            if lo <= old < hi:
+                return old + delta
+        # mdat 範囲外を指すオフセット (壊れたファイル) はそのまま
+        return old
+
+    patch_chunk_offsets(moov, remap)
+
+    # --- 新 gpmd トラック ---
+    new_track_id = mvhd["next_track_id"]
+    bump_next_track_id(mvhd_box, new_track_id + 1)
+    trak_bytes = build_gpmd_trak(
+        track_id=new_track_id,
+        movie_timescale=mvhd["timescale"],
+        movie_duration=mvhd["duration"],
+        sample_sizes=[len(p) for p in payloads],
+        sample_durations_ms=payload_durations_ms,
+        chunk_offset=payload_start,
+    )
+    moov.children.append(parse_box_tree(trak_bytes, b"trak"))
+
+    # --- udta へ GoPro 識別ボックスを追記 ---
+    if udta_extra:
+        udta = moov.find(b"udta")
+        if udta is None:
+            udta = Box(type=b"udta", is_container=True)
+            moov.children.append(udta)
+        udta.children.extend(_parse_children(udta_extra, 0, len(udta_extra)))
+
+    # --- 書き出し ---
+    for b, new_off in plan:
+        assert dst.tell() == new_off, (dst.tell(), new_off)
+        if b.type == b"ftyp" and new_ftyp is not None:
+            dst.write(new_ftyp)
+        else:
+            _copy_range(src, dst, b.offset, b.size)
+
+    dst.write(struct.pack(">I", 8 + len(gpmf_blob)) + b"mdat" + gpmf_blob)
+    moov_bytes = moov.serialize()
+    dst.write(moov_bytes)
+
+    return {
+        "track_id": new_track_id,
+        "payload_count": len(payloads),
+        "gpmf_bytes": len(gpmf_blob),
+        "renamed_handlers": renamed,
+        "moov_size": len(moov_bytes),
+    }
+
+
+def _copy_range(src: BinaryIO, dst: BinaryIO, offset: int, size: int,
+                chunk: int = 8 * 1024 * 1024) -> None:
+    src.seek(offset)
+    remaining = size
+    while remaining > 0:
+        data = src.read(min(chunk, remaining))
+        if not data:
+            raise MP4Error("コピー中に EOF")
+        dst.write(data)
+        remaining -= len(data)
+
+
+def build_ftyp_gopro() -> bytes:
+    """GoPro カメラと同じ ftyp (major brand mp41)。"""
+    return _box(b"ftyp", b"mp41" + struct.pack(">I", 0x20130101)
+                + b"mp41" + b"mp42" + b"isom")
+
+
+def movie_duration_seconds(f: BinaryIO) -> float:
+    """mvhd から動画の長さ (秒) を取得する。"""
+    tops = scan_top_level(f)
+    moov_top = next(b for b in tops if b.type == b"moov")
+    moov = parse_box_tree(read_box_bytes(f, moov_top), b"moov")
+    mvhd = parse_mvhd(moov.find(b"mvhd").payload)
+    if mvhd["timescale"] == 0:
+        raise MP4Error("mvhd の timescale が 0")
+    return mvhd["duration"] / mvhd["timescale"]
