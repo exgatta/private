@@ -16,6 +16,8 @@ from . import gopro, klv, mp4, telemetry
 
 
 def run() -> int:
+    from .__main__ import ensure_utf8_output
+    ensure_utf8_output()
     try:
         import tkinter as tk
         from tkinter import filedialog, messagebox, ttk

@@ -17,6 +17,22 @@ import sys
 from . import gopro, klv, mp4, telemetry
 
 
+def ensure_utf8_output() -> None:
+    """標準出力/エラーを UTF-8 に切り替える。
+
+    Windows の既定コンソール (cp932/cp1252) だと日本語のヘルプや
+    ダンプ出力で UnicodeEncodeError になるため、表示不能文字は
+    置換しつつ UTF-8 で出す。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
+
+
 def _err(msg: str) -> "sys.NoReturn":
     print(f"エラー: {msg}", file=sys.stderr)
     sys.exit(1)
@@ -187,6 +203,7 @@ def cmd_info(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 def main(argv=None) -> None:
+    ensure_utf8_output()
     ap = argparse.ArgumentParser(
         prog="gpmf_tool",
         description="GPMF (GoPro Metadata Format) パーサ / MP4 注入ツール")

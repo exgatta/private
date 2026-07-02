@@ -22,6 +22,8 @@ def _run_gui() -> int:
 
 
 def main() -> None:
+    from gpmf_tool.__main__ import ensure_utf8_output
+    ensure_utf8_output()
     args = sys.argv[1:]
     # 引数なし、または --gui のときは GUI を開く
     if not args or args == ["--gui"]:
