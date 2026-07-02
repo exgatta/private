@@ -16,7 +16,8 @@ from . import gopro, klv, mp4, telemetry
 
 
 def run() -> int:
-    from .__main__ import ensure_utf8_output, humanize_error
+    from .__main__ import (ensure_utf8_output, humanize_error, inject_file,
+                           collect_videos, _default_output)
     ensure_utf8_output()
     try:
         import tkinter as tk
@@ -118,6 +119,8 @@ def run() -> int:
     btns.pack(fill="x", **pad)
     run_btn = ttk.Button(btns, text="GoPro化を実行")
     run_btn.pack(side="left")
+    batch_btn = ttk.Button(btns, text="複数ファイルを一括処理")
+    batch_btn.pack(side="left", padx=6)
     info_btn = ttk.Button(btns, text="入力の情報を表示")
     info_btn.pack(side="left", padx=6)
 
@@ -144,6 +147,7 @@ def run() -> int:
     def set_running(active: bool):
         state = "disabled" if active else "normal"
         run_btn.configure(state=state)
+        batch_btn.configure(state=state)
         info_btn.configure(state=state)
 
     def do_inject():
@@ -159,40 +163,19 @@ def run() -> int:
 
         def work():
             try:
-                preset = gopro.DEVICE_PRESETS[device.get()]
-                with open(src, "rb") as f:
-                    duration = mp4.movie_duration_seconds(f)
-                log(f"動画の長さ: {duration:.2f} 秒")
-
-                gpx = gpx_path.get().strip()
-                start = None
-                if gpx:
-                    points, start = telemetry.load_gpx(gpx)
-                    log(f"GPX: {len(points)} 点を読み込み")
-                    try:
-                        hz = float(rate.get())
-                    except ValueError:
-                        hz = 10.0
-                    rs = telemetry.resample_track(points, duration, rate_hz=hz,
-                                                  fit_duration=fit.get())
-                    payloads, durations = telemetry.build_payloads(
-                        rs, duration, preset.device_name, start)
-                    log(f"GPS5 を {hz:g} Hz で {len(rs)} サンプル生成")
-                else:
-                    payloads, durations = telemetry.build_device_only_payloads(
-                        duration, preset.device_name)
-                    log("GPX なし: デバイス情報のみ注入")
-
-                udta = gopro.build_udta_boxes(preset,
-                                              serial_seed=os.path.basename(src))
-                renames = gopro.HANDLER_RENAMES if rename.get() else None
-                ftyp = mp4.build_ftyp_gopro() if gopro_ftyp.get() else None
-                with open(src, "rb") as s, open(dst, "wb") as d:
-                    stats = mp4.inject_gpmf_track(
-                        s, d, payloads, durations, udta_extra=udta,
-                        new_ftyp=ftyp, handler_renames=renames)
+                try:
+                    hz = float(rate.get())
+                except ValueError:
+                    hz = 10.0
+                stats = inject_file(
+                    src, dst, device.get(),
+                    gpx=gpx_path.get().strip() or None,
+                    rate=hz, fit=fit.get(),
+                    handler_rename=rename.get(),
+                    keep_ftyp=not gopro_ftyp.get(),
+                    log=log)
                 log(f"完了: {dst}")
-                log(f"  機種={preset.device_name} FW={preset.firmware}")
+                log(f"  機種={stats['device_name']} FW={stats['firmware']}")
                 log(f"  ペイロード {stats['payload_count']} 個 / "
                     f"{stats['gpmf_bytes']} bytes")
                 app.after(0, lambda: messagebox.showinfo(
@@ -204,6 +187,62 @@ def run() -> int:
                 app.after(0, lambda: messagebox.showerror("エラー", jp))
             finally:
                 app.after(0, lambda: set_running(False))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    # ------------------------------------------------------------------
+    # 一括処理
+    # ------------------------------------------------------------------
+    def do_batch():
+        paths = filedialog.askopenfilenames(
+            title="一括処理する動画を複数選択 (Shift/⌘ で複数選択)",
+            filetypes=[("動画", "*.mp4 *.mov *.m4v *.MP4 *.MOV *.360"),
+                       ("すべて", "*.*")])
+        if not paths:
+            return
+        out_dir = filedialog.askdirectory(title="出力先フォルダを選択")
+        if not out_dir:
+            return
+        set_running(True)
+
+        def work():
+            try:
+                hz = float(rate.get())
+            except ValueError:
+                hz = 10.0
+            gpx = gpx_path.get().strip() or None
+            try:
+                files = collect_videos(list(paths))
+            except Exception as e:
+                log("エラー: " + humanize_error(e))
+                app.after(0, lambda: set_running(False))
+                return
+            log(f"=== 一括処理: {len(files)} 本 ===")
+            cache = {}
+            ok = skip = fail = 0
+            for i, path in enumerate(files, 1):
+                name = os.path.basename(path)
+                out_path = _default_output(path, out_dir)
+                if os.path.exists(out_path):
+                    log(f"[{i}/{len(files)}] {name}: スキップ (出力済み)")
+                    skip += 1
+                    continue
+                try:
+                    inject_file(path, out_path, device.get(), gpx=gpx,
+                                rate=hz, fit=fit.get(),
+                                handler_rename=rename.get(),
+                                keep_ftyp=not gopro_ftyp.get(),
+                                log=lambda m: None, gpx_cache=cache)
+                    log(f"[{i}/{len(files)}] {name}: 完了")
+                    ok += 1
+                except Exception as e:
+                    log(f"[{i}/{len(files)}] {name}: 失敗 ({humanize_error(e)})")
+                    fail += 1
+            log(f"=== おわり: 成功 {ok} / スキップ {skip} / 失敗 {fail} ===")
+            app.after(0, lambda: messagebox.showinfo(
+                "一括処理 完了",
+                f"成功 {ok} / スキップ {skip} / 失敗 {fail}\n出力先: {out_dir}"))
+            app.after(0, lambda: set_running(False))
 
         threading.Thread(target=work, daemon=True).start()
 
@@ -231,6 +270,7 @@ def run() -> int:
         threading.Thread(target=work, daemon=True).start()
 
     run_btn.configure(command=do_inject)
+    batch_btn.configure(command=do_batch)
     info_btn.configure(command=do_info)
 
     flush_log()

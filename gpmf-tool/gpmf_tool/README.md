@@ -55,6 +55,22 @@ python3 -m gpmf_tool inject input.mp4 -o output.mp4 --device hero9
 GPX と動画の長さが違う場合、既定では GPX の時間軸を動画長に合わせて伸縮する
 （30 分のライドログを 5 秒のクリップに割り当てる、といった使い方ができる）。
 
+### 1.5 複数ファイルを一括で GoPro 化する
+
+```bash
+# フォルダ内の全動画をまとめて処理 (出力は out/ に <名前>_gopro.mp4)
+python3 -m gpmf_tool batch ./videos -o ./out --device hero11 --gpx ride.gpx
+
+# 複数ファイル/フォルダを混ぜて指定・再帰探索も可
+python3 -m gpmf_tool batch a.mp4 b.mov ./more_videos -o ./out --recursive
+```
+
+- 対象拡張子: `.mp4 .mov .m4v .360`（`*_gopro.*` と非動画は自動除外）
+- `--gpx` を付けると**全ファイルに同じ GPX** を適用（各動画長に自動で伸縮）
+- 出力済みファイルは既定でスキップ（`--overwrite` で上書き）
+- 1 本が失敗しても残りは続行し、最後に「成功 / スキップ / 失敗」を集計
+- GUI では **「複数ファイルを一括処理」** ボタン → 動画を複数選択 → 出力先フォルダを選ぶだけ
+
 ### 2. GoPro 動画の GPMF を解析する
 
 ```bash
