@@ -55,6 +55,37 @@ python3 -m gpmf_tool inject input.mp4 -o output.mp4 --device hero9
 GPX と動画の長さが違う場合、既定では GPX の時間軸を動画長に合わせて伸縮する
 （30 分のライドログを 5 秒のクリップに割り当てる、といった使い方ができる）。
 
+### 1.2 他機種の動画に埋め込まれた GPS を使う (GPX 不要)
+
+DJI / iPhone / Android / Sony / Insta360 の動画が持っているテレメトリを
+そのまま読み取って GoPro 化できる（外部 GPX を用意しなくてよい）。
+
+```bash
+# 動画内蔵の GPS を使って GoPro 化
+python3 -m gpmf_tool inject dji.mp4 -o out.mp4 --from-video --device hero11
+
+# どの機種の動画でも、GPS を GPX に書き出す
+python3 -m gpmf_tool to-gpx dji.mp4 -o track.gpx
+```
+
+対応している埋め込み形式と取り出せる内容:
+
+| 機種 | 形式 | 取り出せるもの |
+|---|---|---|
+| **DJI**（ドローン/Osmo）| SRT 字幕（動画内トラック or 同名 `.srt`）| GPS **軌跡**（緯度経度高度）|
+| **iPhone / Android** | `©xyz` / QuickTime ISO6709 | **撮影地点 1 点**（軌跡ではない）|
+| **Sony** | `©xyz`（機種による）| 撮影地点 1 点 |
+| **Insta360 / その他** | Studio 等で書き出した `.srt` / `.gpx` | あれば軌跡 |
+
+自動判定の優先順: GoPro GPMF → 動画内 SRT 字幕 → 同名 `.srt` → 撮影地点1点。
+DJI の SRT は複数方言（`[latitude: ...]` 形式・`GPS(経度,緯度,...)` 形式）に対応。
+
+> スマホ/Sony の「撮影地点1点」は移動軌跡ではないため、動画全体が同じ座標に
+> なる（撮影場所の記録として使える）。移動を再現したい場合は別途 GPX を使う。
+
+GUI では **「動画に埋め込まれたGPSを使う」** にチェックを入れるだけ。一括処理と
+併用すれば、DJI 動画フォルダを**各ファイル自身の GPS で**まとめて GoPro 化できる。
+
 ### 1.5 複数ファイルを一括で GoPro 化する
 
 ```bash

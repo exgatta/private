@@ -205,10 +205,11 @@ def inject_file(input_path: str, output_path: str, device: str,
                 gpx: str = None, rate: float = 10.0, fit: bool = True,
                 device_name: str = None, firmware: str = None,
                 serial_seed: str = None, handler_rename: bool = True,
-                keep_ftyp: bool = False, log=lambda m: None,
-                gpx_cache: dict = None) -> dict:
+                keep_ftyp: bool = False, from_video: bool = False,
+                log=lambda m: None, gpx_cache: dict = None) -> dict:
     """1 本の MP4 に GPMF を注入する共通関数 (CLI/GUI/一括処理から呼ぶ)。
 
+    テレメトリ源の優先順: gpx (明示) > from_video (動画内蔵) > なし。
     gpx_cache: 同じ GPX を使い回す一括処理用の {path: (points, start)} キャッシュ。
     """
     preset = gopro.DEVICE_PRESETS.get(device)
@@ -221,6 +222,7 @@ def inject_file(input_path: str, output_path: str, device: str,
         duration = mp4.movie_duration_seconds(f)
     log(f"動画の長さ: {duration:.2f} 秒")
 
+    points = None
     start_time = None
     if gpx:
         if gpx_cache is not None and gpx in gpx_cache:
@@ -229,6 +231,16 @@ def inject_file(input_path: str, output_path: str, device: str,
             points, start_time = telemetry.load_gpx(gpx)
             if gpx_cache is not None:
                 gpx_cache[gpx] = (points, start_time)
+    elif from_video:
+        from . import sources
+        got = sources.load_video_telemetry(input_path)
+        if got:
+            points, start_time, label = got
+            log(f"動画内蔵テレメトリを利用: {label} ({len(points)} 点)")
+        else:
+            log("動画内蔵テレメトリは見つかりませんでした")
+
+    if points:
         resampled = telemetry.resample_track(points, duration, rate_hz=rate,
                                              fit_duration=fit)
         payloads, durations = telemetry.build_payloads(
@@ -237,7 +249,7 @@ def inject_file(input_path: str, output_path: str, device: str,
     else:
         payloads, durations = telemetry.build_device_only_payloads(
             duration, dname)
-        log("GPX 指定なし: デバイス情報のみの GPMF を生成")
+        log("GPS なし: デバイス情報のみの GPMF を生成")
 
     udta = gopro.build_udta_boxes(
         preset,
@@ -271,7 +283,7 @@ def cmd_inject(args: argparse.Namespace) -> None:
         args.file, args.output, args.device,
         gpx=args.gpx, rate=args.rate, fit=not args.no_fit,
         device_name=args.device_name, firmware=args.firmware,
-        serial_seed=args.serial_seed,
+        serial_seed=args.serial_seed, from_video=args.from_video,
         handler_rename=not args.no_handler_rename, keep_ftyp=args.keep_ftyp,
         log=print)
     print(f"完了: {args.output}")
@@ -349,6 +361,7 @@ def cmd_batch(args: argparse.Namespace) -> None:
                 path, out_path, args.device,
                 gpx=args.gpx, rate=args.rate, fit=not args.no_fit,
                 device_name=args.device_name, firmware=args.firmware,
+                from_video=args.from_video,
                 handler_rename=not args.no_handler_rename,
                 keep_ftyp=args.keep_ftyp,
                 log=lambda m: None, gpx_cache=gpx_cache)
@@ -370,6 +383,28 @@ def cmd_batch(args: argparse.Namespace) -> None:
         print(f"出力先: {out_dir}")
     if failed:
         sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# to-gpx (どの機種の動画でもテレメトリ → GPX)
+# ---------------------------------------------------------------------------
+
+def cmd_to_gpx(args: argparse.Namespace) -> None:
+    from . import sources
+    got = sources.load_video_telemetry(args.file)
+    if not got:
+        _err("この動画からは GPS/テレメトリを取り出せませんでした "
+             "(位置情報が埋め込まれていないか、未対応の形式です)")
+    points, start, label = got
+    print(f"テレメトリ形式: {label} ({len(points)} 点)")
+
+    import datetime
+    tuples = []
+    for p in points:
+        when = (start + datetime.timedelta(seconds=p.time)) if start else None
+        tuples.append((when, p))
+    telemetry.write_gpx(args.output, tuples, name=f"{label} から抽出")
+    print(f"GPX: {args.output}")
 
 
 # ---------------------------------------------------------------------------
@@ -463,6 +498,8 @@ def main(argv=None) -> None:
     p.add_argument("file", help="入力 MP4 (他社カメラの動画)")
     p.add_argument("-o", "--output", required=True, help="出力 MP4")
     p.add_argument("--gpx", help="GPS テレメトリの元になる GPX ファイル")
+    p.add_argument("--from-video", action="store_true",
+                   help="動画に埋め込まれたGPS(DJI/iPhone/Android/Sony等)を使う")
     p.add_argument("--device", default=gopro.DEFAULT_PRESET,
                    choices=sorted(gopro.DEVICE_PRESETS),
                    help=f"機種プリセット (default: {gopro.DEFAULT_PRESET})")
@@ -487,6 +524,8 @@ def main(argv=None) -> None:
     p.add_argument("-o", "--output-dir",
                    help="出力フォルダ (省略時は各入力と同じ場所に <名前>_gopro.mp4)")
     p.add_argument("--gpx", help="全ファイルに適用する GPX (任意)")
+    p.add_argument("--from-video", action="store_true",
+                   help="各動画に埋め込まれたGPSを個別に使う(DJI/iPhone等)")
     p.add_argument("--device", default=gopro.DEFAULT_PRESET,
                    choices=sorted(gopro.DEVICE_PRESETS),
                    help=f"機種プリセット (default: {gopro.DEFAULT_PRESET})")
@@ -505,6 +544,12 @@ def main(argv=None) -> None:
     p.add_argument("--overwrite", action="store_true",
                    help="既存の出力ファイルを上書きする")
     p.set_defaults(func=cmd_batch)
+
+    p = sub.add_parser("to-gpx",
+                       help="動画のGPS(GoPro/DJI/iPhone/Android/Sony等)をGPXに書き出す")
+    p.add_argument("file", help="入力の動画")
+    p.add_argument("-o", "--output", required=True, help="出力 GPX")
+    p.set_defaults(func=cmd_to_gpx)
 
     p = sub.add_parser("info", help="MP4 の構造と GoPro メタデータ状況を表示")
     p.add_argument("file", help="入力 MP4")

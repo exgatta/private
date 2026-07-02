@@ -47,6 +47,7 @@ def run() -> int:
     fit = tk.BooleanVar(value=True)
     rename = tk.BooleanVar(value=True)
     gopro_ftyp = tk.BooleanVar(value=True)
+    use_embedded = tk.BooleanVar(value=False)
 
     # ------------------------------------------------------------------
     # レイアウト
@@ -114,6 +115,12 @@ def run() -> int:
     ttk.Checkbutton(r2, text="handler名をGoPro化", variable=rename).pack(side="left")
     ttk.Checkbutton(r2, text="ftypをGoPro化", variable=gopro_ftyp).pack(side="left")
 
+    r3 = ttk.Frame(opt)
+    r3.pack(fill="x", pady=2)
+    ttk.Checkbutton(
+        r3, text="動画に埋め込まれたGPSを使う (DJI/iPhone/Android/Sony)",
+        variable=use_embedded).pack(side="left")
+
     # ボタン
     btns = ttk.Frame(frm)
     btns.pack(fill="x", **pad)
@@ -170,6 +177,7 @@ def run() -> int:
                 stats = inject_file(
                     src, dst, device.get(),
                     gpx=gpx_path.get().strip() or None,
+                    from_video=use_embedded.get(),
                     rate=hz, fit=fit.get(),
                     handler_rename=rename.get(),
                     keep_ftyp=not gopro_ftyp.get(),
@@ -229,6 +237,7 @@ def run() -> int:
                     continue
                 try:
                     inject_file(path, out_path, device.get(), gpx=gpx,
+                                from_video=use_embedded.get(),
                                 rate=hz, fit=fit.get(),
                                 handler_rename=rename.get(),
                                 keep_ftyp=not gopro_ftyp.get(),
