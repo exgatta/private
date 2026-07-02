@@ -1,13 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller スペック: 単体実行ファイル (GUI + CLI 兼用) を生成する。
+# PyInstaller スペック (プラットフォームで出力形態を変える)。
+#
+#   macOS  : dist/GPMF-GoPro.app   … Finder でダブルクリック起動できる .app バンドル
+#            (console=False。引数なし起動で GUI が開く)
+#   Windows: dist/gpmf.exe          … 単体 exe (ダブルクリックで GUI、引数付きで CLI)
+#   Linux  : dist/gpmf              … 単体バイナリ
 #
 #   ビルド:  pyinstaller gpmf_tool.spec
-#   出力:    dist/gpmf   (Windows では dist/gpmf.exe / Mac では dist/gpmf.app)
 #
-# 引数なしで起動すると GUI、引数付きで起動すると CLI として動く
-# (gpmf_app.py 参照)。
+# .app 内の実行体は Contents/MacOS/gpmf。CLI で使う場合は
+#   ./dist/GPMF-GoPro.app/Contents/MacOS/gpmf inject in.mp4 -o out.mp4 ...
 
-block_cipher = None
+import sys
+
+IS_MAC = sys.platform == "darwin"
+APP_NAME = "GPMF-GoPro"
 
 a = Analysis(
     ['gpmf_app.py'],
@@ -18,40 +25,76 @@ a = Analysis(
     hookspath=[],
     runtime_hooks=[],
     excludes=[
-        # 動画/GUI に不要な重量モジュールを除外して小さくする
         'numpy', 'pandas', 'scipy', 'matplotlib', 'PIL',
         'pytest', 'setuptools', 'pip',
     ],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='gpmf',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,          # CLI 出力を出すため console=True。
-    disable_windowed_traceback=False,
-    argv_emulation=True,   # macOS で Finder からのドラッグ&ドロップを argv に
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
-
-# 生成物は単一ファイル dist/gpmf (Windows: gpmf.exe)。
-# 引数なしで起動すると GUI、引数付きなら CLI として動作する。
-# macOS で Finder 用 .app が欲しい場合は onedir モードで別途 BUNDLE 化する
-# (onefile と .app は併用不可のため、ここでは単一ファイルに統一)。
+if IS_MAC:
+    # --- macOS: ダブルクリック起動できる .app バンドル (onedir + BUNDLE) ---
+    exe = EXE(
+        pyz,
+        a.scripts,
+        [],
+        exclude_binaries=True,
+        name='gpmf',
+        debug=False,
+        strip=False,
+        upx=False,
+        console=False,          # Terminal を開かず GUI として起動
+        argv_emulation=True,    # Finder からのドラッグ&ドロップを argv に
+        target_arch=None,
+        codesign_identity=None,
+        entitlements_file=None,
+    )
+    coll = COLLECT(
+        exe,
+        a.binaries,
+        a.datas,
+        strip=False,
+        upx=False,
+        name='gpmf',
+    )
+    app = BUNDLE(
+        coll,
+        name=f'{APP_NAME}.app',
+        icon=None,
+        bundle_identifier='com.gpmftool.gopro',
+        info_plist={
+            'CFBundleName': 'GPMF GoPro化',
+            'CFBundleDisplayName': 'GPMF GoPro化',
+            'CFBundleShortVersionString': '1.0.0',
+            'CFBundleVersion': '1.0.0',
+            'NSHighResolutionCapable': True,
+            'LSMinimumSystemVersion': '11.0',
+            # 動画/GPX をアイコンにドロップして開けるようにする
+            'CFBundleDocumentTypes': [{
+                'CFBundleTypeName': 'Movie',
+                'CFBundleTypeRole': 'Viewer',
+                'LSItemContentTypes': ['public.movie', 'public.mpeg-4'],
+            }],
+        },
+    )
+else:
+    # --- Windows / Linux: 単体実行ファイル (onefile) ---
+    exe = EXE(
+        pyz,
+        a.scripts,
+        a.binaries,
+        a.datas,
+        [],
+        name='gpmf',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=False,
+        upx=True,
+        upx_exclude=[],
+        runtime_tmpdir=None,
+        console=True,           # CLI 出力を表示
+        disable_windowed_traceback=False,
+        target_arch=None,
+        codesign_identity=None,
+        entitlements_file=None,
+    )

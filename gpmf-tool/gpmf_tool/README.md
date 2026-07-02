@@ -142,16 +142,28 @@ bash build_app.sh
 build_app.bat
 ```
 
-`dist/gpmf`（Windows は `dist\gpmf.exe`）が生成される。**PyInstaller は
-クロスコンパイル不可**なので、配布したい OS ごとにその OS 上でビルドする
-（Windows の exe は Windows で、Mac のアプリは Mac でビルド）。
+**PyInstaller はクロスコンパイル不可**なので、OS ごとにその OS 上でビルドする。
+出力形態は OS で変わる:
 
-生成されるバイナリは **GUI と CLI の兼用**:
+- **macOS**: `dist/GPMF-GoPro.app` … Finder で**ダブルクリック起動できる .app**
+  （引数なしで GUI が開く。Terminal は開かない）
+- **Windows**: `dist/gpmf.exe` … ダブルクリックで GUI、引数付きで CLI
+- **Linux**: `dist/gpmf` … 単体バイナリ
 
 ```bash
-./dist/gpmf                    # 引数なし → GUI (ファイル選択画面) が開く
-./dist/gpmf inject in.mp4 -o out.mp4 --gpx ride.gpx --device hero11  # 引数あり → CLI
+# macOS: ダブルクリックで起動。CLI は .app 内の実行体を直接呼ぶ
+open dist/GPMF-GoPro.app
+./dist/GPMF-GoPro.app/Contents/MacOS/gpmf inject in.mp4 -o out.mp4 --gpx ride.gpx --device hero11
+
+# Windows / Linux
+./dist/gpmf                    # 引数なし → GUI
+./dist/gpmf inject in.mp4 -o out.mp4 --gpx ride.gpx --device hero11
 ```
+
+> **Mac の初回起動について**: 未署名アプリのため、ダウンロード直後は
+> Gatekeeper が「開発元を確認できません」と警告する。`mac_setup.sh` を使うか
+> `xattr -dr com.apple.quarantine GPMF-GoPro.app` を一度実行すれば、
+> 以降は普通にダブルクリックで起動できる（右クリック→開く でも可）。
 
 GUI では、入力 MP4・出力先・GPX を選び、機種を選んで「GoPro化を実行」を
 押すだけ（Tkinter 製・追加依存なし）。
