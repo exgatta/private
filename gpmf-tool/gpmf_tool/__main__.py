@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import sys
@@ -33,9 +34,99 @@ def ensure_utf8_output() -> None:
                 pass
 
 
+# ---------------------------------------------------------------------------
+# エラーメッセージの日本語化
+# ---------------------------------------------------------------------------
+
+# よくある OS エラー (errno) を分かりやすい日本語にする
+_ERRNO_JA = {
+    errno.ENOSPC: ("ディスクの空き容量が足りません。保存先の空き容量を確認してください"
+                   "（出力ファイルは元動画とほぼ同じサイズが必要です）。"),
+    errno.EACCES: ("アクセス権がありません。ファイルやフォルダの権限、"
+                   "または書き込み先を確認してください。"),
+    errno.EPERM: "操作が許可されていません。ファイルの権限を確認してください。",
+    errno.ENOENT: "ファイルまたはフォルダが見つかりません。パスが正しいか確認してください。",
+    errno.EISDIR: "フォルダが指定されています。ファイルを指定してください。",
+    errno.ENOTDIR: "パスの一部がフォルダではありません。保存先のフォルダがあるか確認してください。",
+    errno.EROFS: "書き込み禁止のドライブです。別の保存先を指定してください。",
+    errno.ENAMETOOLONG: "ファイル名が長すぎます。",
+    errno.EMFILE: "同時に開いているファイルが多すぎます。",
+    errno.ENFILE: "システムが開けるファイル数の上限に達しました。",
+    errno.EDQUOT: "ディスクの使用量制限に達しました。",
+    errno.EEXIST: "同名のファイルが既に存在します。",
+    errno.EBUSY: "ファイルが他のプログラムに使用中です。",
+}
+
+
+def humanize_error(e: BaseException) -> str:
+    """例外を日本語のわかりやすい 1 行メッセージにする。"""
+    if isinstance(e, (klv.GPMFError, mp4.MP4Error)):
+        return str(e)
+    if isinstance(e, OSError):
+        target = getattr(e, "filename", None)
+        suffix = f"（対象: {target}）" if target else ""
+        base = _ERRNO_JA.get(e.errno)
+        if base:
+            return base + suffix
+        detail = e.strerror or str(e)
+        return f"入出力エラー: {detail}{suffix}"
+    if isinstance(e, KeyboardInterrupt):
+        return "処理を中断しました。"
+    msg = str(e).strip()
+    return msg if msg else e.__class__.__name__
+
+
 def _err(msg: str) -> "sys.NoReturn":
     print(f"エラー: {msg}", file=sys.stderr)
     sys.exit(1)
+
+
+# argparse が出す英語メッセージ断片 → 日本語 (長い語句から先に置換する)
+_ARGPARSE_REPLACEMENTS = [
+    ("the following arguments are required:", "必須の引数が指定されていません:"),
+    ("unrecognized arguments:", "認識できない引数:"),
+    ("expected at least one argument", "引数が少なくとも1つ必要です"),
+    ("expected one argument", "引数が1つ必要です"),
+    ("not allowed with argument", "は次の引数と同時には指定できません:"),
+    ("ambiguous option:", "あいまいなオプション:"),
+    ("invalid choice:", "は不正な選択です:"),
+    ("(choose from", "(選択肢:"),
+    ("is required", "は必須です"),
+    ("invalid", "不正な"),
+    ("value:", "値:"),
+    ("argument", "引数"),
+]
+
+# ヘルプ/使い方の見出しを日本語化
+_ARGPARSE_SECTIONS = [
+    ("usage:", "使い方:"),
+    ("positional arguments:", "位置引数:"),
+    ("options:", "オプション:"),
+    ("optional arguments:", "オプション:"),
+    ("show this help message and exit", "このヘルプを表示して終了する"),
+    ("positional 引数:", "位置引数:"),  # 二重置換の保険
+]
+
+
+def _translate_argparse(text: str, table) -> str:
+    for en, ja in table:
+        text = text.replace(en, ja)
+    return text
+
+
+class JapaneseArgumentParser(argparse.ArgumentParser):
+    """使い方・エラー・ヘルプをすべて日本語で表示する ArgumentParser。"""
+
+    def error(self, message):  # noqa: D401
+        msg = _translate_argparse(message, _ARGPARSE_REPLACEMENTS)
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: エラー: {msg}\n")
+
+    def format_usage(self):
+        return _translate_argparse(super().format_usage(), _ARGPARSE_SECTIONS)
+
+    def format_help(self):
+        return _translate_argparse(super().format_help(), _ARGPARSE_SECTIONS)
 
 
 # ---------------------------------------------------------------------------
@@ -204,10 +295,13 @@ def cmd_info(args: argparse.Namespace) -> None:
 
 def main(argv=None) -> None:
     ensure_utf8_output()
-    ap = argparse.ArgumentParser(
-        prog="gpmf_tool",
-        description="GPMF (GoPro Metadata Format) パーサ / MP4 注入ツール")
-    sub = ap.add_subparsers(dest="command", required=True)
+    ap = JapaneseArgumentParser(
+        prog="gpmf",
+        description="GPMF (GoPro Metadata Format) パーサ / MP4 注入ツール",
+        add_help=False)
+    ap.add_argument("-h", "--help", action="help",
+                    help="このヘルプを表示して終了する")
+    sub = ap.add_subparsers(dest="command", metavar="コマンド", required=True)
 
     p = sub.add_parser("parse", help="GPMF を人間可読形式でダンプ")
     p.add_argument("file", help="MP4 または生 GPMF バイナリ")
@@ -254,8 +348,6 @@ def main(argv=None) -> None:
     args = ap.parse_args(argv)
     try:
         args.func(args)
-    except (klv.GPMFError, mp4.MP4Error, FileNotFoundError) as e:
-        _err(str(e))
     except BrokenPipeError:
         # `| head` などでの中断は正常終了扱い
         try:
@@ -263,6 +355,15 @@ def main(argv=None) -> None:
         except OSError:
             pass
         sys.exit(0)
+    except KeyboardInterrupt:
+        _err("処理を中断しました。")
+    except (klv.GPMFError, mp4.MP4Error, OSError) as e:
+        _err(humanize_error(e))
+    except Exception as e:  # 想定外も日本語で表示 (詳細は GPMF_DEBUG=1)
+        if os.environ.get("GPMF_DEBUG"):
+            raise
+        _err(f"予期しないエラーが発生しました: {humanize_error(e)}\n"
+             f"（詳しい情報を見るには環境変数 GPMF_DEBUG=1 を付けて再実行）")
 
 
 if __name__ == "__main__":

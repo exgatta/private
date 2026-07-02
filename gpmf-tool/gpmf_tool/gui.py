@@ -16,7 +16,7 @@ from . import gopro, klv, mp4, telemetry
 
 
 def run() -> int:
-    from .__main__ import ensure_utf8_output
+    from .__main__ import ensure_utf8_output, humanize_error
     ensure_utf8_output()
     try:
         import tkinter as tk
@@ -198,9 +198,10 @@ def run() -> int:
                 app.after(0, lambda: messagebox.showinfo(
                     "完了", f"GoPro化しました:\n{dst}"))
             except Exception as e:
-                log("エラー: " + str(e))
+                jp = humanize_error(e)
+                log("エラー: " + jp)
                 log(traceback.format_exc())
-                app.after(0, lambda: messagebox.showerror("エラー", str(e)))
+                app.after(0, lambda: messagebox.showerror("エラー", jp))
             finally:
                 app.after(0, lambda: set_running(False))
 
@@ -223,7 +224,7 @@ def run() -> int:
                     cmd_info(argparse.Namespace(file=src))
                 log(buf.getvalue())
             except Exception as e:
-                log("エラー: " + str(e))
+                log("エラー: " + humanize_error(e))
             finally:
                 app.after(0, lambda: set_running(False))
 
