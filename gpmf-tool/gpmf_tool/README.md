@@ -129,6 +129,41 @@ with open("in.mp4", "rb") as src, open("out.mp4", "wb") as dst:
                           handler_renames=gopro.HANDLER_RENAMES)
 ```
 
+## アプリとしてパッケージ化する
+
+依存パッケージゼロなので、単体実行ファイル (Python 不要) に固められる。
+
+### 単体exe / アプリのビルド
+
+```bash
+# Linux / macOS
+bash build_app.sh
+# Windows
+build_app.bat
+```
+
+`dist/gpmf`（Windows は `dist\gpmf.exe`）が生成される。**PyInstaller は
+クロスコンパイル不可**なので、配布したい OS ごとにその OS 上でビルドする
+（Windows の exe は Windows で、Mac のアプリは Mac でビルド）。
+
+生成されるバイナリは **GUI と CLI の兼用**:
+
+```bash
+./dist/gpmf                    # 引数なし → GUI (ファイル選択画面) が開く
+./dist/gpmf inject in.mp4 -o out.mp4 --gpx ride.gpx --device hero11  # 引数あり → CLI
+```
+
+GUI では、入力 MP4・出力先・GPX を選び、機種を選んで「GoPro化を実行」を
+押すだけ（Tkinter 製・追加依存なし）。
+
+### pip でインストールする場合
+
+```bash
+pip install .
+gpmf inject in.mp4 -o out.mp4 --gpx ride.gpx --device hero11   # CLI
+gpmf-gui                                                        # GUI
+```
+
 ## 注意事項
 
 - 生成される GPS データの精度はソースの GPX に依存する。速度 (2D/3D) は
