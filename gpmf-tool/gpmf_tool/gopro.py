@@ -23,6 +23,7 @@ class DevicePreset:
     device_name: str    # GPMF DVNM / udta GPMF の MINF に入るモデル名
     firmware: str       # udta FIRM
     lens_prefix: str    # LENS シリアルの接頭辞
+    is_360: bool = False  # 360 度カメラ (MAX / Fusion) か
 
 
 # 実機のファームウェア命名規則 (HDx / H2x) に合わせたプリセット
@@ -36,6 +37,10 @@ DEVICE_PRESETS = {
     "hero11": DevicePreset("hero11", "HERO11 Black", "H22.01.02.32.00", "LAJ"),
     "hero12": DevicePreset("hero12", "HERO12 Black", "H23.01.02.32.00", "LAJ"),
     "hero13": DevicePreset("hero13", "HERO13 Black", "H24.01.02.02.00", "LAJ"),
+    # 360 度カメラ (.360 ファイル)
+    "max": DevicePreset("max", "GoPro Max", "H19.03.02.00", "LAJ", is_360=True),
+    "fusion": DevicePreset("fusion", "GoPro Fusion", "FS1.04.01.00.00", "LAJ",
+                           is_360=True),
 }
 
 DEFAULT_PRESET = "hero9"

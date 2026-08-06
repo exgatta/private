@@ -46,7 +46,7 @@ python3 -m gpmf_tool inject input.mp4 -o output.mp4 --device hero9
 
 | オプション | 説明 |
 |---|---|
-| `--device {hero5..hero13}` | 機種プリセット（DVNM/FIRM が変わる。既定 hero9） |
+| `--device {hero5..hero13, max, fusion}` | 機種プリセット（DVNM/FIRM が変わる。既定 hero9。`max`/`fusion` は 360 度カメラ用で `.360` にも対応）|
 | `--gpx file.gpx` | GPS テレメトリの元データ |
 | `--rate 10` | GPS サンプリングレート Hz（実機は 10〜18 Hz） |
 | `--no-fit` | GPX の時間軸を動画長に合わせて伸縮しない |
