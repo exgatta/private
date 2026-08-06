@@ -464,6 +464,32 @@ def cmd_info(args: argparse.Namespace) -> None:
         elif not tele["formats"]:
             print("  → `inject --gpx <GPXファイル>` で GPS を後付けできます")
 
+        # --- 360 度動画マーカー ---
+        f.seek(0)
+        sph = mp4.detect_spherical(f)
+        print("\n360度動画マーカー:")
+        if sph["is_360"]:
+            kinds = []
+            if sph["v1"]:
+                kinds.append("V1 (uuid)")
+            if sph["v2"]:
+                kinds.append("V2 (sv3d)")
+            print(f"  ● あり: {', '.join(kinds)}")
+            if sph["projection"]:
+                print(f"  投影方式: {sph['projection']}")
+            if sph["stereo"]:
+                print("  ステレオ(st3d) 情報あり")
+            print("  → GoPro化しても保持されます (360度動画として再生可能)")
+        else:
+            print("  なし (通常の平面動画として扱われます)")
+            print("  → 360度として再生させたい場合は書き出し設定を確認してください")
+
+        # --- 出力に必要な空き容量の目安 ---
+        size = os.path.getsize(args.file)
+        print(f"\nファイルサイズ: {size / 1024 / 1024:.0f} MB")
+        print(f"  GoPro化には保存先に約 {size / 1024 / 1024:.0f} MB "
+              "の空き容量が必要です (元ファイルは残ります)")
+
 
 # ---------------------------------------------------------------------------
 

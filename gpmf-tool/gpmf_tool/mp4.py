@@ -225,6 +225,50 @@ def _parse_iso6709(text: str) -> Optional[Tuple[float, float, Optional[float]]]:
     return lat, lon, ele
 
 
+# 360 度動画マーカー (Spherical Video V1) の UUID
+_SPHERICAL_V1_UUID = bytes.fromhex("ffcc8263f8554a938814587a02521fdd")
+
+
+def detect_spherical(f: BinaryIO) -> dict:
+    """360 度動画マーカー (Spherical Metadata) を検出する。
+
+    - V1: trak 内の uuid ボックス (XML)。YouTube 等が読む従来方式
+    - V2: 映像サンプルエントリ内の sv3d / st3d ボックス (Google 提唱の新方式)
+
+    Returns:
+        {"v1": bool, "v2": bool, "projection": "equirectangular"|"cubemap"|None,
+         "stereo": bool, "is_360": bool}
+    """
+    tops = scan_top_level(f)
+    moov_top = next(b for b in tops if b.type == b"moov")
+    data = read_box_bytes(f, moov_top)
+
+    result = {"v1": False, "v2": False, "projection": None,
+              "stereo": False, "is_360": False}
+
+    if _SPHERICAL_V1_UUID in data:
+        result["v1"] = True
+    # XML 本文でも判定 (uuid が壊れていても拾えるように)
+    if b"GSpherical:Spherical" in data or b"<GSpherical:" in data:
+        result["v1"] = True
+
+    if b"sv3d" in data:
+        result["v2"] = True
+    if b"st3d" in data:
+        result["stereo"] = True
+
+    # 投影方式
+    if b"equirectangular" in data or b"equi" in data:
+        result["projection"] = "equirectangular"
+    elif b"cubemap" in data or b"cbmp" in data:
+        result["projection"] = "cubemap"
+    elif b"EquirectangularProjection" in data:
+        result["projection"] = "equirectangular"
+
+    result["is_360"] = result["v1"] or result["v2"]
+    return result
+
+
 def detect_telemetry(f: BinaryIO) -> dict:
     """MP4 に含まれる位置情報/テレメトリ形式を検出する。
 
