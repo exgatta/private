@@ -449,19 +449,40 @@ def build_gpmd_trak(track_id: int, movie_timescale: int, movie_duration: int,
     media_timescale = 1000
     media_duration = sum(sample_durations_ms)
 
+    # 長尺動画 (マイクロ秒 timescale で約 71.6 分超など) では duration が
+    # 32bit に収まらないため、その場合は version 1 (64bit) の
+    # tkhd / mdhd を出力する
+    _MAX32 = 0xFFFFFFFF
+    need64 = (movie_duration > _MAX32 or media_duration > _MAX32
+              or creation_time > _MAX32)
+
     # --- tkhd (enabled) ---
-    tkhd = _full(b"tkhd", 0, 0x000001,
-                 struct.pack(">IIIII", creation_time, creation_time, track_id,
-                             0, movie_duration)
+    if need64:
+        tkhd_body = (struct.pack(">QQIIQ", creation_time, creation_time,
+                                 track_id, 0, movie_duration))
+        tkhd_ver = 1
+    else:
+        tkhd_body = struct.pack(">IIIII", creation_time, creation_time,
+                                track_id, 0, movie_duration)
+        tkhd_ver = 0
+    tkhd = _full(b"tkhd", tkhd_ver, 0x000001,
+                 tkhd_body
                  + b"\x00" * 8            # reserved
                  + struct.pack(">hhhh", 0, 0, 0, 0)  # layer, alt_group, volume, reserved
                  + _MATRIX_IDENTITY
                  + struct.pack(">II", 0, 0))  # width, height
 
     # --- mdhd ---
-    mdhd = _full(b"mdhd", 0, 0,
-                 struct.pack(">IIII", creation_time, creation_time,
-                             media_timescale, media_duration)
+    if need64:
+        mdhd_body = struct.pack(">QQIQ", creation_time, creation_time,
+                                media_timescale, media_duration)
+        mdhd_ver = 1
+    else:
+        mdhd_body = struct.pack(">IIII", creation_time, creation_time,
+                                media_timescale, media_duration)
+        mdhd_ver = 0
+    mdhd = _full(b"mdhd", mdhd_ver, 0,
+                 mdhd_body
                  + struct.pack(">Hh", 0x55C4, 0))  # language 'und'
 
     # --- hdlr ---

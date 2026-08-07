@@ -13,6 +13,7 @@ import argparse
 import errno
 import json
 import os
+import struct
 import sys
 
 from . import gopro, klv, mp4, telemetry
@@ -72,6 +73,10 @@ def humanize_error(e: BaseException) -> str:
         return f"入出力エラー: {detail}{suffix}"
     if isinstance(e, KeyboardInterrupt):
         return "処理を中断しました。"
+    if isinstance(e, struct.error):
+        return (f"動画の構造を書き出せませんでした（内部エラー: {e}）。"
+                "動画が非常に長い/特殊な場合に起きることがあります。"
+                "この動画の情報を添えて報告してください。")
     msg = str(e).strip()
     return msg if msg else e.__class__.__name__
 
