@@ -209,6 +209,12 @@ svg text.sym { font-size: 12px; font-weight: 700; text-anchor: middle; }
 svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
 svg circle.ghost { fill: var(--ghost); }
 .compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.layer-note {
+  margin-top: 10px; padding: 10px 12px; border-radius: 5px; font-size: 13.5px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  border: 1px solid var(--accent); color: var(--ink);
+}
+.layer-note b { color: var(--accent-ink); }
 ol.notes { margin: 0; padding-left: 1.4em; }
 ol.notes li { margin: 6px 0; }
 footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px; }
@@ -245,6 +251,12 @@ def render_html(model):
             f"{block(k)['name_ja']}×{n}"
             for k, n in sorted(used.items(), key=lambda kv: -kv[1])
         )
+        note_txt = getattr(model, "layer_notes", {}).get(y)
+        note_html = (
+            f'<div class="layer-note"><b>この段の注意:</b> {note_txt}</div>'
+            if note_txt
+            else ""
+        )
         layer_cards.append(
             f'<div class="layer-card">'
             f'<div class="layer-head"><span class="layer-no">{y + 1}段目</span>'
@@ -254,7 +266,8 @@ def render_html(model):
             + "</div>"
             f'<div class="compass">図の上が北（z={z1}）・左が西（x={x1}）。'
             f"小さな点は下の段のブロックの位置（位置合わせの目印）。</div>"
-            "</div>"
+            + note_html
+            + "</div>"
         )
         prev = layer
 

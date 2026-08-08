@@ -16,6 +16,7 @@ class VoxelModel:
         self.name = name
         self.description = description
         self.notes = list(notes or [])  # つくるときのポイント（配線手順など）
+        self.layer_notes = {}  # y -> そのレイヤー図に添える注記（設計図HTMLに表示）
         self.blocks = {}  # (x, y, z) -> block key
 
     # --- 基本操作 -----------------------------------------------------
@@ -63,6 +64,8 @@ class VoxelModel:
         self.blocks = {
             (x - x1, y - y1, z - z1): k for (x, y, z), k in self.blocks.items()
         }
+        if self.layer_notes:
+            self.layer_notes = {y - y1: t for y, t in self.layer_notes.items()}
         return self
 
     def layers(self):
