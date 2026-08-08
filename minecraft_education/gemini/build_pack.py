@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""renderer.js を正本として PROMPT.md と viewer.html を生成する。
+
+renderer.js を直したら必ずこれを実行すること。
+3者（renderer.js / PROMPT.md の埋め込みコード / viewer.html のインラインコード）が
+ズレると、設計図の品質が静かに劣化するため、手書きせず必ずここから生成する。
+
+    python3 build_pack.py
+"""
+
+import re
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).parent
+
+
+def compact_js(src):
+    """コメントと余分な空白を落とす（文字列・正規表現リテラルは壊さない）。
+
+    JSを1文字ずつ走査し、文字列/テンプレート/正規表現の中にいるかを追跡しながら
+    コメントだけを除去する。行頭インデントと空行も落とす。
+    """
+    out = []
+    i, n = 0, len(src)
+    # 直前の意味のあるトークンが値（＝次の / は除算）かどうか
+    prev_significant = ""
+    while i < n:
+        c = src[i]
+        nxt = src[i + 1] if i + 1 < n else ""
+
+        # 行コメント
+        if c == "/" and nxt == "/":
+            while i < n and src[i] != "\n":
+                i += 1
+            continue
+        # ブロックコメント
+        if c == "/" and nxt == "*":
+            i += 2
+            while i < n and not (src[i] == "*" and i + 1 < n and src[i + 1] == "/"):
+                i += 1
+            i += 2
+            continue
+        # 文字列・テンプレートリテラル
+        if c in "\"'`":
+            quote = c
+            out.append(c)
+            i += 1
+            while i < n:
+                if src[i] == "\\":
+                    out.append(src[i : i + 2])
+                    i += 2
+                    continue
+                out.append(src[i])
+                if src[i] == quote:
+                    i += 1
+                    break
+                i += 1
+            prev_significant = quote
+            continue
+        # 正規表現リテラル（直前が演算子・記号なら正規表現とみなす）
+        if c == "/" and prev_significant not in (")", "]", "}") and not (
+            prev_significant.isalnum() or prev_significant == "_"
+        ):
+            out.append(c)
+            i += 1
+            in_class = False
+            while i < n:
+                if src[i] == "\\":
+                    out.append(src[i : i + 2])
+                    i += 2
+                    continue
+                if src[i] == "[":
+                    in_class = True
+                elif src[i] == "]":
+                    in_class = False
+                out.append(src[i])
+                if src[i] == "/" and not in_class:
+                    i += 1
+                    break
+                i += 1
+            prev_significant = "/"
+            continue
+
+        out.append(c)
+        if not c.isspace():
+            prev_significant = c
+        i += 1
+
+    text = "".join(out)
+    # 行頭インデントを削り、空行を落とす
+    lines = [ln.strip() for ln in text.split("\n")]
+    return "\n".join(ln for ln in lines if ln)
+
+
+def read(name):
+    return (HERE / name).read_text(encoding="utf-8")
+
+
+def escape_for_html(js):
+    """HTMLの<script>内に安全に埋め込めるようにする。
+
+    JSのコメントや文字列に `</script>` が含まれていると、ブラウザがそこで
+    スクリプトを終了し、以降のコードがページ本文として表示されてしまう。
+    JS上は `<\\/script>` と書いても意味が同じなのでエスケープする。
+    """
+    return re.sub(r"</(script)", r"<\\/\1", js, flags=re.I)
+
+
+def palette_table():
+    """renderer.js の BLOCKS から、プロンプトに載せるパレット表を作る。
+
+    手書きしないのは、パレットとプロンプトがズレると
+    Gemini が存在しないブロックを使い、設計が壊れるため。
+    """
+    src = read("renderer.js")
+    body = re.search(r"var BLOCKS = \{(.*?)\n  \};", src, re.S)
+    if not body:
+        raise SystemExit("renderer.js から BLOCKS を読み取れませんでした")
+    rows = []
+    for m in re.finditer(
+        r'"?(\w+)"?:\s*\{(.*?)\}', body.group(1).replace("\n", " "), re.S
+    ):
+        key, attrs = m.group(1), m.group(2)
+        name = re.search(r'name_ja:\s*"([^"]*)"', attrs)
+        sym = re.search(r'symbol:\s*"([^"]*)"', attrs)
+        marker = "marker: true" in attrs or "marker:true" in attrs
+        if not (name and sym):
+            continue
+        rows.append(
+            f"| `{key}` | {name.group(1)} | {sym.group(1)} | "
+            + ("**置き物（向き注意）**" if marker else "")
+            + " |"
+        )
+    if len(rows) < 10:
+        raise SystemExit(f"パレット抽出に失敗しました（{len(rows)}件しか取れていません）")
+    return "\n".join(rows), len(rows)
+
+
+def main():
+    renderer = read("renderer.js")
+    compact = compact_js(renderer)
+    table, count = palette_table()
+
+    prompt = (
+        read("templates/PROMPT.template.md")
+        .replace("<<PALETTE>>", table)
+        .replace("<<RENDERER>>", escape_for_html(compact))
+    )
+    viewer_tpl = read("templates/viewer.template.html")
+    viewer = viewer_tpl.replace("<<RENDERER>>", escape_for_html(renderer))
+
+    # 自己検査: 埋め込みで </script> が増えていたら、そこでスクリプトが途切れて
+    # 以降のコードがページ本文として表示されてしまう（実際に起きた不具合）。
+    want = len(re.findall(r"</script\s*>", viewer_tpl, re.I))
+    got = len(re.findall(r"</script\s*>", viewer, re.I))
+    if got != want:
+        raise SystemExit(
+            f"viewer.html の </script> が {want} 個のはずが {got} 個あります。"
+            "renderer.js 内の </script> がエスケープされていません。"
+        )
+
+    (HERE / "PROMPT.md").write_text(prompt, encoding="utf-8")
+    (HERE / "viewer.html").write_text(viewer, encoding="utf-8")
+
+    kb = lambda s: f"{len(s.encode('utf-8')) / 1024:.1f} KB"
+    print(f"パレット {count} 種類を renderer.js から取り込みました")
+    print(f"PROMPT.md    {kb(prompt)}\t… Geminiに貼り付けるプロンプト")
+    print(f"viewer.html  {kb(viewer)}\t… 単体で動く設計図ビューア")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

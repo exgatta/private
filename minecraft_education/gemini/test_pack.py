@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""生成物（PROMPT.md / viewer.html）の回帰テスト。
+
+    python3 test_pack.py
+
+過去に実際に起きた不具合を二度と再発させないための検査を並べている。
+"""
+
+import re
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE))
+
+from build_pack import compact_js, escape_for_html, palette_table  # noqa: E402
+
+
+class TestPack(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # 生成物が最新であることを前提にするため、まず作り直す
+        subprocess.run(
+            [sys.executable, "build_pack.py"], cwd=HERE, check=True,
+            capture_output=True,
+        )
+        cls.renderer = (HERE / "renderer.js").read_text(encoding="utf-8")
+        cls.prompt = (HERE / "PROMPT.md").read_text(encoding="utf-8")
+        cls.viewer = (HERE / "viewer.html").read_text(encoding="utf-8")
+
+    def test_viewer_script_tags_intact(self):
+        """renderer.js のコメント内の </script> でスクリプトが途切れないこと。
+
+        （実際に起きた不具合: ページに JS のソースが本文として表示された）
+        """
+        tpl = (HERE / "templates" / "viewer.template.html").read_text(encoding="utf-8")
+        want = len(re.findall(r"</script\s*>", tpl, re.I))
+        got = len(re.findall(r"</script\s*>", self.viewer, re.I))
+        self.assertEqual(got, want, "埋め込みで </script> が増減している")
+
+    def test_viewer_is_self_contained(self):
+        """外部のURLを一切参照しないこと（ネットが無い学校PCでも動くため）。"""
+        for pat in (r"src\s*=\s*[\"']https?:", r"href\s*=\s*[\"']https?:",
+                    r"@import", r"fetch\s*\(", r"XMLHttpRequest"):
+            self.assertIsNone(
+                re.search(pat, self.viewer, re.I), f"外部参照が含まれている: {pat}"
+            )
+
+    def test_palette_matches_renderer(self):
+        """プロンプトのパレット表が renderer.js と一致すること。
+
+        ズレると Gemini が存在しないブロックを使い、設計が壊れる。
+        """
+        table, count = palette_table()
+        keys = re.findall(r"^\| `(\w+)` \|", table, re.M)
+        self.assertEqual(len(keys), count)
+        for key in keys:
+            self.assertIn(f"| `{key}` |", self.prompt, f"{key} がプロンプトに無い")
+            self.assertRegex(self.renderer, rf"\b{key}:\s*\{{", f"{key} が renderer に無い")
+
+    def test_palette_matches_python(self):
+        """Python版パレットと JS版パレットのキーが完全一致すること。"""
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        js_keys = set(re.findall(r"^\| `(\w+)` \|", palette_table()[0], re.M))
+        self.assertEqual(
+            js_keys, set(BLOCKS), "renderer.js と palette.py のブロックが食い違っている"
+        )
+
+    def test_compact_js_preserves_behaviour(self):
+        """圧縮しても renderer が読み込めること（構文を壊していない）。"""
+        out = HERE / "_out"
+        out.mkdir(exist_ok=True)
+        tmp = out / "_compact_check.js"
+        tmp.write_text(compact_js(self.renderer), encoding="utf-8")
+        r = subprocess.run(
+            ["node", "-e",
+             f"var M=require({str(tmp)!r}); if(!M.renderHTML) process.exit(1)"],
+            capture_output=True,
+        )
+        self.assertEqual(r.returncode, 0, r.stderr.decode()[:300])
+
+    def test_escape_is_reversible_in_js(self):
+        """エスケープが JS の意味を変えないこと。"""
+        self.assertEqual(escape_for_html("a = '</script>';"), "a = '<\\/script>';")
+        r = subprocess.run(
+            ["node", "-e", "var a = '<\\/script>'; if (a !== '</scr'+'ipt>') process.exit(1)"],
+            capture_output=True,
+        )
+        self.assertEqual(r.returncode, 0)
+
+    def test_prompt_has_essential_rules(self):
+        """品質を守る指示がプロンプトから消えていないこと。"""
+        for must in ("0起点", "notes", "layer_notes", "fill", "box", "set", "clear",
+                     "自己点検", "実際のブロックの座標と一致"):
+            self.assertIn(must, self.prompt, f"プロンプトから「{must}」が消えている")
+
+    def test_generated_files_not_hand_edited(self):
+        """生成物に「編集するな」の注意が入っていること。"""
+        self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
