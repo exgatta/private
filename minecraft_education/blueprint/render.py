@@ -40,12 +40,43 @@ def _text_color_for(hex_color):
 
 # ---------------------------------------------------------------- iso view
 
+def _n(v):
+    """SVG座標の数値整形。
+
+    浮動小数点の誤差でそのまま出すと -17.939999999999998 のような桁になり、
+    図が変わらないのにHTMLだけ肥大する。小数2桁で丸め、末尾の0を落とす。
+    """
+    s = f"{v:.2f}".rstrip("0").rstrip(".")
+    return "0" if s in ("", "-0") else s
+
+
+def _is_opaque(key):
+    """向こう側を完全に隠すブロックか。
+
+    ガラス・葉・水などの透けるものと、置き物（小さく描くので隙間ができる）は
+    「隠さない」扱いにする。ここを間違えると、見えるはずのブロックが消える。
+    """
+    b = block(key)
+    return not (b.get("marker") or b.get("transparent"))
+
+
 def _iso_svg(model):
     """完成イメージのアイソメトリック図。"""
     hw, hh, hz = 13, 6.5, 13  # 半幅 / 上面の半高 / ブロックの高さ
     pts = []
     cubes = []
-    for (x, y, z), key in model.blocks.items():
+    blocks = model.blocks
+    for (x, y, z), key in blocks.items():
+        # 6面すべてを不透明ブロックに囲まれていれば、どこからも見えないので描かない
+        if all(
+            n in blocks and _is_opaque(blocks[n])
+            for n in (
+                (x - 1, y, z), (x + 1, y, z),
+                (x, y - 1, z), (x, y + 1, z),
+                (x, y, z - 1), (x, y, z + 1),
+            )
+        ):
+            continue
         cx = (x - z) * hw
         cy = (x + z) * hh - y * hz
         cubes.append((x + z, y, cx, cy, key))
@@ -64,9 +95,12 @@ def _iso_svg(model):
         c = b["color"]
         s = 0.62 if b.get("marker") else 1.0  # 置き物は小さめに描く
         w, h2, z2 = hw * s, hh * s, hz * s
-        top = f"{cx},{cy} {cx - w},{cy - h2} {cx},{cy - 2 * h2} {cx + w},{cy - h2}"
-        left = f"{cx - w},{cy - h2} {cx},{cy} {cx},{cy + z2} {cx - w},{cy - h2 + z2}"
-        right = f"{cx + w},{cy - h2} {cx},{cy} {cx},{cy + z2} {cx + w},{cy - h2 + z2}"
+        top = (f"{_n(cx)},{_n(cy)} {_n(cx - w)},{_n(cy - h2)} "
+               f"{_n(cx)},{_n(cy - 2 * h2)} {_n(cx + w)},{_n(cy - h2)}")
+        left = (f"{_n(cx - w)},{_n(cy - h2)} {_n(cx)},{_n(cy)} "
+                f"{_n(cx)},{_n(cy + z2)} {_n(cx - w)},{_n(cy - h2 + z2)}")
+        right = (f"{_n(cx + w)},{_n(cy - h2)} {_n(cx)},{_n(cy)} "
+                 f"{_n(cx)},{_n(cy + z2)} {_n(cx + w)},{_n(cy - h2 + z2)}")
         faces.append(
             f'<polygon points="{left}" fill="{shade(c, 0.68)}"/>'
             f'<polygon points="{right}" fill="{shade(c, 0.88)}"/>'
@@ -91,9 +125,19 @@ def _layer_svg(model, y, layer, prev_layer, x_range, z_range):
     m = 22  # 座標ラベル用マージン
     w = cols * CELL + m + 2
     h = rows * CELL + m + 2
+    # 空きマスを1マスずつ<rect>で描くと、大きな設計図でHTMLが肥大する
+    # （32×32×24段で空マスだけ2万個以上の図形になっていた）。
+    # 背景1枚＋罫線1本のパスにまとめる。見た目は1マスずつ描いたときと同じ。
+    grid = "".join(
+        f"M{m + i * CELL} {m}V{m + rows * CELL}" for i in range(cols + 1)
+    ) + "".join(
+        f"M{m} {m + j * CELL}H{m + cols * CELL}" for j in range(rows + 1)
+    )
     out = [
         f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{y + 1}段目" '
         f'style="width:{w}px;max-width:100%">'
+        f'<rect x="{m}" y="{m}" width="{cols * CELL}" height="{rows * CELL}" '
+        f'class="empty-bg"/><path class="grid" d="{grid}"/>'
     ]
     # 座標ラベル
     for i in range(cols):
@@ -118,17 +162,13 @@ def _layer_svg(model, y, layer, prev_layer, x_range, z_range):
                     f'<text x="{px + CELL / 2}" y="{py + CELL / 2 + 5}" '
                     f'class="sym" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text>'
                 )
-            else:
+            elif prev_layer and (x, z) in prev_layer:
+                # 下の段にブロックがある目印（位置合わせ用）。空きマス自体は
+                # 上で敷いたパターンが担当するので、ここでは描かない
                 out.append(
-                    f'<rect x="{px}" y="{py}" width="{CELL}" height="{CELL}" '
-                    f'class="empty"/>'
+                    f'<circle cx="{px + CELL / 2}" cy="{py + CELL / 2}" '
+                    f'r="2.2" class="ghost"/>'
                 )
-                if prev_layer and (x, z) in prev_layer:
-                    # 下の段にブロックがある目印（位置合わせ用）
-                    out.append(
-                        f'<circle cx="{px + CELL / 2}" cy="{py + CELL / 2}" '
-                        f'r="2.2" class="ghost"/>'
-                    )
     out.append("</svg>")
     return "".join(out)
 
@@ -207,6 +247,8 @@ svg text.ax {
 }
 svg text.sym { font-size: 12px; font-weight: 700; text-anchor: middle; }
 svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
+svg rect.empty-bg { fill: var(--cell-empty); }
+svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }
 svg circle.ghost { fill: var(--ghost); }
 .compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
 .layer-note {

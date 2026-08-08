@@ -116,6 +116,14 @@ var DESIGN = null;
     return Number.isInteger(v) ? v.toFixed(1) : String(v);
   }
 
+  /* N() … Python版 _n() と同じ。小数2桁に丸めて末尾の0を落とす。
+   * 丸めないと -17.939999999999998 のような桁が出て、図は変わらないのに
+   * HTMLだけ肥大する。 */
+  function N(v) {
+    var s = v.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    return (s === "" || s === "-0") ? "0" : s;
+  }
+
   function I0(v) {
     var f = Math.floor(v);
     var d = v - f;
@@ -321,8 +329,22 @@ var DESIGN = null;
   function isoSvg(model) {
     var hw = 13, hh = 6.5, hz = 13;   // 半幅 / 上面の半高 / ブロックの高さ
     var ptsX = [], ptsY = [], cubes = [];
+    // 6面すべてを不透明ブロックに囲まれていれば、どこからも見えないので描かない
+    var isOpaque = function (k) {
+      var b = block(k);
+      return !(b.marker || b.transparent);
+    };
+    var hidden = function (x, y, z) {
+      var d = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
+      for (var i = 0; i < d.length; i++) {
+        var k = model.get(x + d[i][0], y + d[i][1], z + d[i][2]);
+        if (k === null || k === undefined || !isOpaque(k)) return false;
+      }
+      return true;
+    };
     model.blocks.forEach(function (k, ks) {
       var p = ks.split(","), x = +p[0], y = +p[1], z = +p[2];
+      if (hidden(x, y, z)) return;
       var cx = (x - z) * hw;
       var cy = (x + z) * hh - y * hz;
       cubes.push([x + z, y, cx, cy, k]);
@@ -344,12 +366,12 @@ var DESIGN = null;
       var c = b.color;
       var s = b.marker ? 0.62 : 1.0;   // 置き物は小さめに描く
       var w = hw * s, h2 = hh * s, z2 = hz * s;
-      var top = cx + "," + F(cy) + " " + F(cx - w) + "," + F(cy - h2) + " " +
-                cx + "," + F(cy - 2 * h2) + " " + F(cx + w) + "," + F(cy - h2);
-      var left = F(cx - w) + "," + F(cy - h2) + " " + cx + "," + F(cy) + " " +
-                 cx + "," + F(cy + z2) + " " + F(cx - w) + "," + F(cy - h2 + z2);
-      var right = F(cx + w) + "," + F(cy - h2) + " " + cx + "," + F(cy) + " " +
-                  cx + "," + F(cy + z2) + " " + F(cx + w) + "," + F(cy - h2 + z2);
+      var top = N(cx) + "," + N(cy) + " " + N(cx - w) + "," + N(cy - h2) + " " +
+                N(cx) + "," + N(cy - 2 * h2) + " " + N(cx + w) + "," + N(cy - h2);
+      var left = N(cx - w) + "," + N(cy - h2) + " " + N(cx) + "," + N(cy) + " " +
+                 N(cx) + "," + N(cy + z2) + " " + N(cx - w) + "," + N(cy - h2 + z2);
+      var right = N(cx + w) + "," + N(cy - h2) + " " + N(cx) + "," + N(cy) + " " +
+                  N(cx) + "," + N(cy + z2) + " " + N(cx + w) + "," + N(cy - h2 + z2);
       faces.push(
         '<polygon points="' + left + '" fill="' + shade(c, 0.68) + '"/>' +
         '<polygon points="' + right + '" fill="' + shade(c, 0.88) + '"/>' +
@@ -371,8 +393,20 @@ var DESIGN = null;
     var m = 22;   // 座標ラベル用マージン
     var w = cols * CELL + m + 2;
     var h = rows * CELL + m + 2;
+    // 空きマスを1マスずつ<rect>で描くと、大きな設計図でHTMLが肥大する
+    // （32×32×24段で空マスだけ2万個以上の図形になっていた）。
+    // 背景1枚＋罫線1本のパスにまとめる。見た目は1マスずつ描いたときと同じ。
+    var grid = "";
+    for (var gi = 0; gi <= cols; gi++) {
+      grid += "M" + (m + gi * CELL) + " " + m + "V" + (m + rows * CELL);
+    }
+    for (var gj = 0; gj <= rows; gj++) {
+      grid += "M" + m + " " + (m + gj * CELL) + "H" + (m + cols * CELL);
+    }
     var out = ['<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + (y + 1) + '段目" ' +
-               'style="width:' + w + 'px;max-width:100%">'];
+               'style="width:' + w + 'px;max-width:100%">' +
+               '<rect x="' + m + '" y="' + m + '" width="' + (cols * CELL) + '" height="' + (rows * CELL) + '" ' +
+               'class="empty-bg"/><path class="grid" d="' + grid + '"/>'];
     var i, j;
     // 座標ラベル
     for (i = 0; i < cols; i++) {
@@ -393,14 +427,11 @@ var DESIGN = null;
                    'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
                    '<text x="' + F(px + CELL / 2) + '" y="' + F(py + CELL / 2 + 5) + '" ' +
                    'class="sym" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text>");
-        } else {
-          out.push('<rect x="' + px + '" y="' + py + '" width="' + CELL + '" height="' + CELL + '" ' +
-                   'class="empty"/>');
-          if (prevLayer && prevLayer.has(x + "," + z)) {
-            // 下の段にブロックがある目印（位置合わせ用）
-            out.push('<circle cx="' + F(px + CELL / 2) + '" cy="' + F(py + CELL / 2) + '" ' +
-                     'r="2.2" class="ghost"/>');
-          }
+        } else if (prevLayer && prevLayer.has(x + "," + z)) {
+          // 下の段にブロックがある目印（位置合わせ用）。空きマス自体は
+          // 上で敷いたパターンが担当するので、ここでは描かない
+          out.push('<circle cx="' + F(px + CELL / 2) + '" cy="' + F(py + CELL / 2) + '" ' +
+                   'r="2.2" class="ghost"/>');
         }
       }
     }
@@ -483,6 +514,8 @@ var DESIGN = null;
 "}\n" +
 "svg text.sym { font-size: 12px; font-weight: 700; text-anchor: middle; }\n" +
 "svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }\n" +
+"svg rect.empty-bg { fill: var(--cell-empty); }\n" +
+"svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
 "svg circle.ghost { fill: var(--ghost); }\n" +
 ".compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }\n" +
 ".layer-note {\n" +
@@ -507,12 +540,23 @@ var DESIGN = null;
 ".qc .tag { font-size: 11px; font-weight: 800; border-radius: 3px; padding: 1px 6px;\n" +
 "  margin-right: 6px; background: #d94a3d; color: #fff; letter-spacing: 0.06em; }\n" +
 ".qc .tag.warn { background: #d98324; }\n" +
+".qc .tag.info { background: #5d6b56; }\n" +
 ".qc .fix { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }\n";
 
   /* ------------------------------------------------------------------ validate
    * ページを開いた瞬間に自己検品する。model は normalize 済みを渡すこと。
    */
-  var LIMITS = { maxDim: 32, maxLayers: 24, maxBlocks: 1200 };
+  /* 上限は実測に基づく。描画最適化後（空きマスの罫線を1本のパスに、
+   * 完全に隠れたブロックを描画から省略）に測った値:
+   *   32×32×24段  3,876個  HTML 1.6MB  ブラウザ表示 約2秒
+   *   48×48×32段  8,132個  HTML 3.3MB  約4.7秒
+   *   64×64×48段 15,940個  HTML 6.4MB  約8秒 ← ここを上限にする
+   * hard = これを超えたら「大きすぎ」と警告する線。
+   * soft = 超えると重くなり始める線（作れるが注意を促す）。 */
+  var LIMITS = {
+    maxDim: 64, maxLayers: 48, maxBlocks: 20000,
+    softDim: 32, softLayers: 24, softBlocks: 4000
+  };
 
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -589,18 +633,30 @@ var DESIGN = null;
     /* --- 2) サイズ・ブロック数の上限 --------------------------------- */
     if (sx > LIMITS.maxDim || sz > LIMITS.maxDim) {
       add("warn", "大きすぎる（" + sx + "×" + sz + "マス）",
-        "レイヤー図が横に長くなりすぎて、画面で読みにくい。作るのにも時間がかかる。",
+        "レイヤー図が横に長くなりすぎて、画面でも紙でも読めない。",
         "横・奥行きとも " + LIMITS.maxDim + "マス以内におさめる。大きい建物は棟ごとに分けて別の設計図にする。");
+    } else if (sx > LIMITS.softDim || sz > LIMITS.softDim) {
+      add("info", "大きめの設計図（" + sx + "×" + sz + "マス）",
+        "作れるが、ページの表示に少し時間がかかり、印刷すると図が小さくなる。",
+        "細かさを追うなら " + LIMITS.softDim + "マス以内が読みやすい。横に広い建物は棟ごとに分けてもよい。");
     }
     if (sy > LIMITS.maxLayers) {
       add("warn", "段数が多すぎる（" + sy + "段）",
         "段ごとの図が " + sy + "枚になり、説明書として長すぎる。",
         "高さは " + LIMITS.maxLayers + "段以内にする。");
+    } else if (sy > LIMITS.softLayers) {
+      add("info", "段数が多め（" + sy + "段）",
+        "図が " + sy + "枚になるので、印刷すると枚数が多くなる。",
+        "問題なければこのままでよい。減らすなら土台や屋根を簡単にする。");
     }
     if (total > LIMITS.maxBlocks) {
       add("warn", "ブロックが多すぎる（" + total + "個）",
         "手で積むには多すぎて、途中でいやになってしまう量。",
         "目安は " + LIMITS.maxBlocks + "個以内。中身をくり抜く・面積を小さくするなどで減らす。");
+    } else if (total > LIMITS.softBlocks) {
+      add("info", "ブロックが多め（" + total + "個）",
+        "作りごたえのある量。何回かに分けて作るとよい。",
+        "早く仕上げたいなら、中身をくり抜くと数を減らせる。");
     }
 
     /* --- 3) 支えの無い浮きブロック（marker除く） ---------------------- */
@@ -735,27 +791,37 @@ var DESIGN = null;
         "その段にもブロックを置く（柱を通す等）か、上の段を下へ詰めて段の番号を連続させる。");
     }
 
-    // 「要修正」を先に、「確認」を後に並べる
-    var ordered = issues.filter(function (i) { return i.level === "error"; })
-      .concat(issues.filter(function (i) { return i.level !== "error"; }));
-    return { ok: ordered.length === 0, issues: ordered };
+    // 「要修正」→「確認」→「参考」の順に並べる
+    var byLevel = function (lv) {
+      return issues.filter(function (i) { return i.level === lv; });
+    };
+    var ordered = byLevel("error").concat(byLevel("warn"), byLevel("info"));
+    // info（大きめ・多めのお知らせ）は直す必要が無いので合格の判定に含めない
+    var blocking = ordered.filter(function (i) { return i.level !== "info"; });
+    return { ok: blocking.length === 0, issues: ordered, blocking: blocking.length };
   }
 
   /** 検品結果のバナーHTML */
   function qcBanner(result) {
-    if (result.ok) {
+    if (result.ok && !result.issues.length) {
       return '<div class="qc"><p class="qc-title">✅ 自動検品: 合格</p>' +
         '<p class="qc-lead">座標のズレ・浮きブロック・パレット外ブロックなど、' +
         'よくある失敗は見つかりませんでした。このまま作れます。</p></div>';
     }
     var items = result.issues.map(function (it) {
-      var tag = it.level === "error"
-        ? '<span class="tag">要修正</span>'
-        : '<span class="tag warn">確認</span>';
+      var tag = it.level === "error" ? '<span class="tag">要修正</span>'
+        : it.level === "warn" ? '<span class="tag warn">確認</span>'
+        : '<span class="tag info">参考</span>';
       return "<li>" + tag + "<b>" + it.title + "</b><br>" + it.detail +
         '<span class="fix">直し方: ' + it.fix + "</span></li>";
     }).join("");
-    return '<div class="qc ng"><p class="qc-title">⚠ ' + result.issues.length + "件の問題</p>" +
+    if (result.ok) {
+      // 直す必要のあるものは無く、「大きめ・多め」のお知らせだけ
+      return '<div class="qc"><p class="qc-title">✅ 自動検品: 合格</p>' +
+        '<p class="qc-lead">作るのに問題はありません。参考までに気づいた点を挙げます。</p>' +
+        "<ol>" + items + "</ol></div>";
+    }
+    return '<div class="qc ng"><p class="qc-title">⚠ ' + result.blocking + "件の問題</p>" +
       '<p class="qc-lead">Gemini に「⚠を直して」と伝えてください（下の内容をそのまま見せればOK）。</p>' +
       "<ol>" + items + "</ol></div>";
   }

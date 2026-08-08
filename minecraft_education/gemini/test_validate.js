@@ -67,10 +67,17 @@ cases.push(["⑤ 段目とyの対応ミス／説明のない置き物", {
 }]);
 
 // ⑥ 大きすぎる
+// 上限を超えるのは maxDim(64マス) より大きいとき。
+// 32〜64マスは「作れるが大きめ」として参考表示になるだけで、合格のまま。
 cases.push(["⑥ 上限オーバー", {
   name: "巨大", description: "", notes: [], layer_notes: {},
-  ops: [{ op: "fill", x1: 0, y1: 0, z1: 0, x2: 39, y2: 0, z2: 39, block: "stone" }]
+  ops: [{ op: "fill", x1: 0, y1: 0, z1: 0, x2: 79, y2: 0, z2: 79, block: "stone" }]
 }]);
+
+cases.push(["⑥b 大きめ（上限内なので合格）", {
+  name: "大きめ", description: "", notes: [], layer_notes: {},
+  ops: [{ op: "fill", x1: 0, y1: 0, z1: 0, x2: 39, y2: 0, z2: 39, block: "stone" }]
+}, { expectOk: true }]);
 
 // ⑦ 正常な設計（合格するはず）
 cases.push(["⑦ 問題なしの設計", {
@@ -88,11 +95,13 @@ cases.forEach(function (c) {
   var r = check(c[1]);
   console.log("\n=== " + c[0] + " → " + (r.ok ? "✅ 合格" : "⚠ " + r.issues.length + "件の問題"));
   r.issues.forEach(function (it) {
-    console.log("  【" + (it.level === "error" ? "要修正" : "確認") + "】" + it.title);
+    var lv = it.level === "error" ? "要修正" : it.level === "warn" ? "確認" : "参考";
+    console.log("  【" + lv + "】" + it.title);
     console.log("    " + it.detail);
     console.log("    直し方: " + it.fix);
   });
-  var expectOk = c[0].indexOf("⑦") === 0;
+  // 第3要素で「合格するはず」を明示する。無ければ「不合格になるはず」。
+  var expectOk = !!(c[2] && c[2].expectOk) || c[0].indexOf("⑦") === 0;
   if (expectOk !== r.ok) { fail++; console.log("  !! 期待とちがう結果"); }
 });
 console.log("\n" + (fail === 0 ? "すべて期待どおり ✅" : fail + "件が期待とちがう ❌"));
