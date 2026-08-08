@@ -12,9 +12,10 @@ from .palette import block
 
 
 class VoxelModel:
-    def __init__(self, name, description=""):
+    def __init__(self, name, description="", notes=None):
         self.name = name
         self.description = description
+        self.notes = list(notes or [])  # つくるときのポイント（配線手順など）
         self.blocks = {}  # (x, y, z) -> block key
 
     # --- 基本操作 -----------------------------------------------------

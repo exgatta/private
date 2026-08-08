@@ -194,6 +194,8 @@ svg text.sym { font-size: 12px; font-weight: 700; text-anchor: middle; }
 svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
 svg circle.ghost { fill: var(--ghost); }
 .compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+ol.notes { margin: 0; padding-left: 1.4em; }
+ol.notes li { margin: 6px 0; }
 footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px; }
 """
 
@@ -242,6 +244,15 @@ def render_html(model):
         prev = layer
 
     desc = f'<p class="desc">{model.description}</p>' if model.description else ""
+    notes_section = ""
+    if model.notes:
+        items = "".join(f"<li>{n}</li>" for n in model.notes)
+        notes_section = (
+            '<h2>つくるときのポイント</h2>'
+            '<p class="hint">向きが大事な部品（ピストン・レッドストーン等）の置き方。'
+            "ブロックを積み終わってから、この順番で仕上げる。</p>"
+            f'<div class="panel"><ol class="notes">{items}</ol></div>'
+        )
     return f"""<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{model.name} — マイクラ設計図</title>
@@ -269,6 +280,7 @@ def render_html(model):
 {bom_rows}
 </table></div>
 
+{notes_section}
 <h2>作り方（1段ずつ）</h2>
 <p class="hint">レゴの説明書と同じで、下の段から順番に置いていく。数字はマスの座標。</p>
 <div class="layers">{"".join(layer_cards)}</div>
