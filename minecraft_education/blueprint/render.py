@@ -15,12 +15,27 @@ CELL = 26  # レイヤー図の1マスのピクセル数
 
 # ---------------------------------------------------------------- utilities
 
-def _text_color_for(hex_color):
-    """マスの背景色に対して読める文字色を選ぶ。"""
+def _rel_luminance(hex_color):
+    """WCAG相対輝度。"""
     h = hex_color.lstrip("#")
-    r, g, b = (int(h[i : i + 2], 16) for i in (0, 2, 4))
-    lum = 0.299 * r + 0.587 * g + 0.114 * b
-    return "#20291d" if lum > 140 else "#f4f7f0"
+    lin = []
+    for i in (0, 2, 4):
+        c = int(h[i : i + 2], 16) / 255
+        lin.append(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def _text_color_for(hex_color):
+    """マスの背景色に対して読める文字色を選ぶ（WCAGコントラスト比の高い方）。"""
+    bg = _rel_luminance(hex_color)
+    best, best_ratio = "#20291d", 0
+    for cand in ("#20291d", "#f4f7f0"):
+        fg = _rel_luminance(cand)
+        lo, hi = sorted((bg, fg))
+        ratio = (hi + 0.05) / (lo + 0.05)
+        if ratio > best_ratio:
+            best, best_ratio = cand, ratio
+    return best
 
 
 # ---------------------------------------------------------------- iso view

@@ -49,7 +49,7 @@ BLOCKS = {
     },
     "brick": {
         "name_ja": "レンガ", "bedrock_id": "brick_block",
-        "makecode": "BRICK_BLOCK", "color": "#9E4F3B", "symbol": "赤",
+        "makecode": "BRICKS", "color": "#9E4F3B", "symbol": "赤",
     },
     "sandstone": {
         "name_ja": "砂岩", "bedrock_id": "sandstone",
@@ -57,11 +57,11 @@ BLOCKS = {
     },
     "quartz": {
         "name_ja": "クォーツブロック", "bedrock_id": "quartz_block",
-        "makecode": "QUARTZ_BLOCK", "color": "#EDE8E0", "symbol": "白",
+        "makecode": "BLOCK_OF_QUARTZ", "color": "#EDE8E0", "symbol": "白",
     },
     "wool_white": {
         "name_ja": "白の羊毛", "bedrock_id": "white_wool",
-        "makecode": "WHITE_WOOL", "color": "#F2F2F2", "symbol": "毛",
+        "makecode": "WOOL", "color": "#F2F2F2", "symbol": "毛",
     },
     "wool_red": {
         "name_ja": "赤の羊毛", "bedrock_id": "red_wool",
