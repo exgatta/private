@@ -30,7 +30,7 @@
     oak_planks: { name_ja: "オークの板材", bedrock_id: "oak_planks", makecode: "PLANKS_OAK", color: "#BC9458", symbol: "板" },
     spruce_planks: { name_ja: "トウヒの板材", bedrock_id: "spruce_planks", makecode: "PLANKS_SPRUCE", color: "#7A5732", symbol: "ト" },
     oak_log: { name_ja: "オークの原木", bedrock_id: "oak_log", makecode: "LOG_OAK", color: "#66492A", symbol: "原" },
-    glass: { name_ja: "ガラス", bedrock_id: "glass", makecode: "GLASS", color: "#C4E4EA", symbol: "ガ" },
+    glass: { name_ja: "ガラス", bedrock_id: "glass", makecode: "GLASS", color: "#C4E4EA", symbol: "ガ", transparent: true },
     brick: { name_ja: "レンガ", bedrock_id: "brick_block", makecode: "BRICKS", color: "#9E4F3B", symbol: "赤" },
     sandstone: { name_ja: "砂岩", bedrock_id: "sandstone", makecode: "SANDSTONE", color: "#DECFA0", symbol: "砂" },
     quartz: { name_ja: "クォーツブロック", bedrock_id: "quartz_block", makecode: "BLOCK_OF_QUARTZ", color: "#EDE8E0", symbol: "白" },
@@ -40,11 +40,34 @@
     glowstone: { name_ja: "グロウストーン", bedrock_id: "glowstone", makecode: "GLOWSTONE", color: "#F2D06B", symbol: "光" },
     mossy_stone_bricks: { name_ja: "苔むした石レンガ", bedrock_id: "mossy_stone_bricks", makecode: "MOSSY_STONE_BRICKS", color: "#7B8F6B", symbol: "苔" },
     chiseled_stone_bricks: { name_ja: "模様入りの石レンガ", bedrock_id: "chiseled_stone_bricks", makecode: "CHISELED_STONE_BRICKS", color: "#ABAFAB", symbol: "彫" },
-    lava: { name_ja: "溶岩", bedrock_id: "lava", makecode: "LAVA", color: "#F26B1D", symbol: "溶" },
+    lava: { name_ja: "溶岩", bedrock_id: "lava", makecode: "LAVA", color: "#F26B1D", symbol: "溶", transparent: true },
+    water: { name_ja: "水", bedrock_id: "water", makecode: "WATER", color: "#3E68C4", symbol: "水", transparent: true },
+    oak_stairs: { name_ja: "オークの階段", bedrock_id: "oak_stairs", makecode: "OAK_STAIRS", color: "#B08A50", symbol: "階", transparent: true, orientable: true, shape: "stairs" },
+    stone_brick_stairs: { name_ja: "石レンガの階段", bedrock_id: "stone_brick_stairs", makecode: "STONE_BRICK_STAIRS", color: "#9A9E9A", symbol: "段", transparent: true, orientable: true, shape: "stairs" },
+    cobblestone_stairs: { name_ja: "丸石の階段", bedrock_id: "cobblestone_stairs", makecode: "COBBLESTONE_STAIRS", color: "#6E736E", symbol: "坂", transparent: true, orientable: true, shape: "stairs" },
+    oak_slab: { name_ja: "オークのハーフブロック", bedrock_id: "oak_slab", makecode: "OAK_SLAB", color: "#C69C60", symbol: "半", transparent: true, shape: "slab" },
+    stone_brick_slab: { name_ja: "石レンガのハーフブロック", bedrock_id: "stone_brick_slab", makecode: "STONE_BRICK_SLAB", color: "#ACB0AC", symbol: "平", transparent: true, shape: "slab" },
+    oak_fence: { name_ja: "オークのフェンス", bedrock_id: "oak_fence", makecode: "OAK_FENCE", color: "#A17C46", symbol: "柵", transparent: true, shape: "thin" },
+    oak_fence_gate: { name_ja: "オークのフェンスゲート", bedrock_id: "oak_fence_gate", makecode: "OAK_FENCE_GATE", color: "#B98E4F", symbol: "門", transparent: true, orientable: true, shape: "thin", marker: true },
+    oak_trapdoor: { name_ja: "オークのトラップドア", bedrock_id: "oak_trapdoor", makecode: "OAK_TRAPDOOR", color: "#A8813F", symbol: "蓋", transparent: true, orientable: true, shape: "thin", marker: true },
+    iron_bars: { name_ja: "鉄格子", bedrock_id: "iron_bars", makecode: "IRON_BARS", color: "#8E9296", symbol: "格", transparent: true, shape: "thin" },
+    glass_pane: { name_ja: "板ガラス", bedrock_id: "glass_pane", makecode: "GLASS_PANE", color: "#D4EAEF", symbol: "窓", transparent: true, shape: "thin" },
+    cobblestone_wall: { name_ja: "丸石の塀", bedrock_id: "cobblestone_wall", makecode: "COBBLESTONE_WALL", color: "#6A6F6A", symbol: "塀", transparent: true, shape: "thin" },
+    ladder: { name_ja: "はしご", bedrock_id: "ladder", makecode: "LADDER", color: "#9C7A45", symbol: "梯", transparent: true, orientable: true, shape: "thin", marker: true },
+    carpet_red: { name_ja: "赤いカーペット", bedrock_id: "red_carpet", makecode: "RED_CARPET", color: "#B03A3A", symbol: "絨", transparent: true, shape: "flat" },
+    lantern: { name_ja: "ランタン", bedrock_id: "lantern", makecode: "LANTERN", color: "#E8A93C", symbol: "提", transparent: true, shape: "thin", marker: true },
+    sea_lantern: { name_ja: "シーランタン", bedrock_id: "sea_lantern", makecode: "SEA_LANTERN", color: "#B8D6CE", symbol: "海" },
+    bookshelf: { name_ja: "本棚", bedrock_id: "bookshelf", makecode: "BOOKSHELF", color: "#8A6A3E", symbol: "本" },
+    crafting_table: { name_ja: "作業台", bedrock_id: "crafting_table", makecode: "CRAFTING_TABLE", color: "#8B6239", symbol: "作" },
+    chest: { name_ja: "チェスト", bedrock_id: "chest", makecode: "CHEST", color: "#A57C3C", symbol: "箱", transparent: true, orientable: true, marker: true },
+    oak_leaves: { name_ja: "オークの葉", bedrock_id: "oak_leaves", makecode: "LEAVES_OAK", color: "#4E8B3A", symbol: "葉", transparent: true },
+    flower_poppy: { name_ja: "ポピー（赤い花）", bedrock_id: "poppy", makecode: "POPPY", color: "#CE4040", symbol: "花", transparent: true, shape: "flat", marker: true },
+    flower_dandelion: { name_ja: "タンポポ（黄色い花）", bedrock_id: "dandelion", makecode: "DANDELION", color: "#E3C93F", symbol: "菊", transparent: true, shape: "flat", marker: true },
+    wool_yellow: { name_ja: "黄色の羊毛", bedrock_id: "yellow_wool", makecode: "YELLOW_WOOL", color: "#D8C13A", symbol: "黄" },
+    wool_green: { name_ja: "緑の羊毛", bedrock_id: "green_wool", makecode: "GREEN_WOOL", color: "#4E7A32", symbol: "緑" },
+    wool_black: { name_ja: "黒の羊毛", bedrock_id: "black_wool", makecode: "BLACK_WOOL", color: "#2B2B2E", symbol: "黒" },
     tnt: { name_ja: "TNT", bedrock_id: "tnt", makecode: "TNT", color: "#D9472B", symbol: "爆" },
     redstone_block: { name_ja: "レッドストーンブロック", bedrock_id: "redstone_block", makecode: "REDSTONE_BLOCK", color: "#8E1616", symbol: "動" },
-    // ▼ レッドストーン部品は向き・取り付け面が重要なので marker（手動設置）扱い。
-    //   設計側で notes に配置の向きと配線手順を必ず書くこと。
     sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", marker: true },
     redstone_wire: { name_ja: "レッドストーンダスト", bedrock_id: "redstone_wire", makecode: "REDSTONE_WIRE", color: "#E03A2A", symbol: "線", marker: true },
     redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true },
@@ -124,13 +147,17 @@
     this.notes = (notes || []).slice();
     this.layer_notes = {};      // y -> レイヤー図に添える注記
     this.blocks = new Map();    // "x,y,z" -> block key
+    this.facing = new Map();    // "x,y,z" -> "north"/"south"/"east"/"west"
     this.unknownKeys = [];      // パレット外のキー（検品用）
   }
 
-  VoxelModel.prototype.set = function (x, y, z, key) {
+  VoxelModel.prototype.set = function (x, y, z, key, facing) {
     if (key === null || key === undefined || key === "air") {
       this.blocks.delete(key3(x, y, z));
+      this.facing.delete(key3(x, y, z));
     } else {
+      if (facing) this.facing.set(key3(x, y, z), facing);
+      else this.facing.delete(key3(x, y, z));
       if (!Object.prototype.hasOwnProperty.call(BLOCKS, key) &&
           this.unknownKeys.indexOf(key) === -1) {
         this.unknownKeys.push(key);
@@ -149,11 +176,11 @@
   };
 
   /** 直方体を埋める（両端含む）。 */
-  VoxelModel.prototype.fill = function (x1, y1, z1, x2, y2, z2, key) {
+  VoxelModel.prototype.fill = function (x1, y1, z1, x2, y2, z2, key, facing) {
     for (var x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
       for (var y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
         for (var z = Math.min(z1, z2); z <= Math.max(z1, z2); z++) {
-          this.set(x, y, z, key);
+          this.set(x, y, z, key, facing);
         }
       }
     }
@@ -209,6 +236,12 @@
       moved.set(key3(+p[0] - x1, +p[1] - y1, +p[2] - z1), k);
     });
     this.blocks = moved;
+    var movedF = new Map();
+    this.facing.forEach(function (f, ks) {
+      var q = ks.split(",");
+      movedF.set(key3(+q[0] - x1, +q[1] - y1, +q[2] - z1), f);
+    });
+    this.facing = movedF;
     var ln = {};
     var any = false;
     for (var y in this.layer_notes) {
@@ -260,9 +293,9 @@
       var o = ops[i];
       var k = o.block !== undefined ? o.block : o.key;
       var t = (o.op || "").toLowerCase();
-      if (t === "fill") m.fill(o.x1, o.y1, o.z1, o.x2, o.y2, o.z2, k);
+      if (t === "fill") m.fill(o.x1, o.y1, o.z1, o.x2, o.y2, o.z2, k, o.facing);
       else if (t === "box" || t === "hollow_box") m.hollow_box(o.x1, o.y1, o.z1, o.x2, o.y2, o.z2, k);
-      else if (t === "set") m.set(o.x, o.y, o.z, k);
+      else if (t === "set") m.set(o.x, o.y, o.z, k, o.facing);
       else if (t === "clear" || t === "air") m.set(o.x, o.y, o.z, null);
       else { m.badOps = m.badOps || []; m.badOps.push(o.op); }
     }
@@ -340,8 +373,9 @@
       var y = cubes[i][1], cx = cubes[i][2], cy = cubes[i][3];
       var b = block(cubes[i][4]);
       var c = b.color;
-      var s = b.marker ? 0.62 : 1.0;   // 置き物は小さめに描く
-      var w = hw * s, h2 = hh * s, z2 = hz * s;
+      var sc = shapeScale(b);
+      var w = hw * sc[0], h2 = hh * sc[0], z2 = hz * sc[1];
+      cy = cy + sc[2] * hz;   // 床に接するものは高さのぶんだけ下げる
       var top = N(cx) + "," + N(cy) + " " + N(cx - w) + "," + N(cy - h2) + " " +
                 N(cx) + "," + N(cy - 2 * h2) + " " + N(cx + w) + "," + N(cy - h2);
       var left = N(cx - w) + "," + N(cy - h2) + " " + N(cx) + "," + N(cy) + " " +
@@ -360,8 +394,36 @@
            'style="max-width:' + I0(Math.min(640, vb[2])) + 'px">' + faces.join("") + "</svg>";
   }
 
+  /* 立体図での [横の倍率, 高さの倍率, 下げ量]。Python版 _shape_scale と同じ。
+   * 立方体でないブロックを立方体として描くと、細部が伝わらない。 */
+  function shapeScale(b) {
+    var shape = b.shape;
+    if (shape === "slab") return [1.0, 0.5, 0.5];
+    if (shape === "flat") return [0.9, 0.15, 0.85];
+    if (shape === "thin") return [0.4, 1.0, 0.0];
+    if (shape === "stairs") return [1.0, 0.9, 0.1];
+    if (b.marker) return [0.62, 0.62, 0.0];
+    return [1.0, 1.0, 0.0];
+  }
+
+  /* マスの中に向きの三角形を描く。Python版 _facing_arrow と同じ。
+   * 階段は向きが分からないと作れないので、図の上で必ず読めるようにする。 */
+  function facingArrow(px, py, facing, color) {
+    var cx = px + CELL / 2, cy = py + CELL / 2;
+    var r = 3.8, d = CELL / 2 - 1.6;
+    var tri = {
+      north: [[cx, cy - d], [cx - r, cy - d + r], [cx + r, cy - d + r]],
+      south: [[cx, cy + d], [cx - r, cy + d - r], [cx + r, cy + d - r]],
+      west: [[cx - d, cy], [cx - d + r, cy - r], [cx - d + r, cy + r]],
+      east: [[cx + d, cy], [cx + d - r, cy - r], [cx + d - r, cy + r]]
+    }[facing];
+    if (!tri) return "";
+    var pts = tri.map(function (t) { return N(t[0]) + "," + N(t[1]); }).join(" ");
+    return '<polygon points="' + pts + '" class="dir" fill="' + color + '"/>';
+  }
+
   /* --------------------------------------------------------------------- layers */
-  function layerSvg(y, layer, prevLayer, xRange, zRange) {
+  function layerSvg(model, y, layer, prevLayer, xRange, zRange) {
     var x1 = xRange[0], x2 = xRange[1];
     var z1 = zRange[0], z2 = zRange[1];
     var cols = x2 - x1 + 1;
@@ -403,6 +465,8 @@
                    'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
                    '<text x="' + F(px + CELL / 2) + '" y="' + F(py + CELL / 2 + 5) + '" ' +
                    'class="sym" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text>");
+          var fc = model.facing.get(key3(x, y, z));
+          if (fc) out.push(facingArrow(px, py, fc, textColorFor(b.color)));
         } else if (prevLayer && prevLayer.has(x + "," + z)) {
           // 下の段にブロックがある目印（位置合わせ用）。空きマス自体は
           // 上で敷いたパターンが担当するので、ここでは描かない
@@ -492,6 +556,7 @@
 "svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }\n" +
 "svg rect.empty-bg { fill: var(--cell-empty); }\n" +
 "svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
+"svg polygon.dir { opacity: 0.85; }\n" +
 "svg circle.ghost { fill: var(--ghost); }\n" +
 ".compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }\n" +
 ".layer-note {\n" +
@@ -637,13 +702,24 @@
 
     /* --- 3) 支えの無い浮きブロック（marker除く） ---------------------- */
     // 置き物(marker)は壁や床に横付けするものなので判定から外す。
-    // 残りを上下左右前後でつなげてグループ分けし、いちばん大きい塊から
-    // 離れているものを「浮いている」として報告する。
+    // 残りをつなげてグループ分けし、いちばん大きい塊から離れているものを
+    // 「浮いている」として報告する。
+    // つながりは斜め(角・辺で接する)も含める。階段を1段ずつずらして
+    // 勾配をつくる屋根は、面では接しないが斜めで接しており、
+    // マイクラでは正しい作り方。面だけで見ると屋根が全部「浮いている」に
+    // なってしまい、いちばん使いたい表現が使えなくなる。
     var solid = new Set();
     model.blocks.forEach(function (k, ks) { if (!block(k).marker) solid.add(ks); });
     var seen = new Set();
     var comps = [];
-    var dirs = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    var dirs = [];
+    for (var dx = -1; dx <= 1; dx++) {
+      for (var dy = -1; dy <= 1; dy++) {
+        for (var dz = -1; dz <= 1; dz++) {
+          if (dx || dy || dz) dirs.push([dx, dy, dz]);
+        }
+      }
+    }
     solid.forEach(function (start) {
       if (seen.has(start)) return;
       var stack = [start], comp = [];
@@ -747,7 +823,13 @@
     model.blocks.forEach(function (k) {
       if (block(k).marker && usedMarkers.indexOf(k) === -1) usedMarkers.push(k);
     });
-    var missing = usedMarkers.filter(function (k) { return noteAll.indexOf(block(k).name_ja) === -1; });
+    // 「ポピー（赤い花）」を notes で「ポピー」と書いてあれば説明ありとみなす。
+    // 正式名称そのままを求めると、ふつうの書き方が不合格になってしまう。
+    var coreName = function (n) { return n.split("（")[0].split("(")[0]; };
+    var missing = usedMarkers.filter(function (k) {
+      var n = block(k).name_ja;
+      return noteAll.indexOf(n) === -1 && noteAll.indexOf(coreName(n)) === -1;
+    });
     if (missing.length) {
       add("warn", "置き物の説明が「つくるときのポイント」に無い（" +
         esc(missing.map(function (k) { return block(k).name_ja; }).join("、")) + "）",
@@ -850,7 +932,7 @@
         '<div class="layer-head"><span class="layer-no">' + (y + 1) + "段目</span>" +
         '<span class="layer-count">この段で使うブロック: ' + countTxt + "</span></div>" +
         '<div class="grid-wrap">' +
-        layerSvg(y, layer, prev, [x1, x2], [z1, z2]) + "</div>" +
+        layerSvg(model, y, layer, prev, [x1, x2], [z1, z2]) + "</div>" +
         '<div class="compass">図の上が北（z=' + z1 + "）・左が西（x=" + x1 + "）。" +
         "小さな点は下の段のブロックの位置（位置合わせの目印）。</div>" +
         noteHtml + "</div>"

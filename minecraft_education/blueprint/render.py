@@ -50,6 +50,28 @@ def _n(v):
     return "0" if s in ("", "-0") else s
 
 
+def _shape_scale(b):
+    """立体図での (横の倍率, 高さの倍率, 下げ量) を返す。
+
+    下げ量は「上面をどれだけ下へずらすか」。床に接する低いブロック
+    （ハーフ・カーペット・花）は、上面を下げないと宙に浮いて見える。
+    """
+    shape = b.get("shape")
+    if shape == "slab":
+        return 1.0, 0.5, 0.5
+    if shape == "flat":  # カーペット・花
+        return 0.9, 0.15, 0.85
+    if shape == "thin":  # 柵・板ガラス・鉄格子
+        return 0.4, 1.0, 0.0
+    if shape == "stairs":
+        # 段差が分かる程度に少しだけ低くする。低くしすぎると、階段で作った
+        # 勾配屋根に隙間が空いて「穴が空いている」ように見えてしまう。
+        return 1.0, 0.9, 0.1
+    if b.get("marker"):
+        return 0.62, 0.62, 0.0  # 既存の置き物の描き方（変更しない）
+    return 1.0, 1.0, 0.0
+
+
 def _is_opaque(key):
     """向こう側を完全に隠すブロックか。
 
@@ -93,8 +115,11 @@ def _iso_svg(model):
     for depth, y, cx, cy, key in sorted(cubes, key=lambda c: (c[0], c[1])):
         b = block(key)
         c = b["color"]
-        s = 0.62 if b.get("marker") else 1.0  # 置き物は小さめに描く
-        w, h2, z2 = hw * s, hh * s, hz * s
+        # 形ごとに描き分ける。立方体でないブロック（階段・ハーフ・柵など）を
+        # 立方体として描くと、立体図がのっぺりして細部が伝わらない。
+        sw, sh, drop = _shape_scale(b)
+        w, h2, z2 = hw * sw, hh * sw, hz * sh
+        cy = cy + drop * hz  # 床に接するものは高さのぶんだけ下げる
         top = (f"{_n(cx)},{_n(cy)} {_n(cx - w)},{_n(cy - h2)} "
                f"{_n(cx)},{_n(cy - 2 * h2)} {_n(cx + w)},{_n(cy - h2)}")
         left = (f"{_n(cx - w)},{_n(cy - h2)} {_n(cx)},{_n(cy)} "
@@ -112,6 +137,26 @@ def _iso_svg(model):
         f'role="img" aria-label="完成イメージ" '
         f'style="max-width:{min(640, vb[2]):.0f}px">' + "".join(faces) + "</svg>"
     )
+
+
+def _facing_arrow(px, py, facing, color):
+    """マスの中に向きの三角形を描く。
+
+    階段などは向きが分からないと作れないので、記号だけでなく
+    「どちらを向いているか」を図の上で必ず読めるようにする。
+    図は上が北なので、north=上・south=下・east=右・west=左。
+    """
+    cx, cy = px + CELL / 2, py + CELL / 2
+    r = 3.8          # 三角形の大きさ（記号と重ならない大きさに抑える）
+    d = CELL / 2 - 1.6  # マスのふちからの距離
+    tri = {
+        "north": ((cx, cy - d), (cx - r, cy - d + r), (cx + r, cy - d + r)),
+        "south": ((cx, cy + d), (cx - r, cy + d - r), (cx + r, cy + d - r)),
+        "west": ((cx - d, cy), (cx - d + r, cy - r), (cx - d + r, cy + r)),
+        "east": ((cx + d, cy), (cx + d - r, cy - r), (cx + d - r, cy + r)),
+    }[facing]
+    pts = " ".join(f"{_n(a)},{_n(b)}" for a, b in tri)
+    return f'<polygon points="{pts}" class="dir" fill="{color}"/>'
 
 
 # ---------------------------------------------------------------- layers
@@ -162,6 +207,11 @@ def _layer_svg(model, y, layer, prev_layer, x_range, z_range):
                     f'<text x="{px + CELL / 2}" y="{py + CELL / 2 + 5}" '
                     f'class="sym" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text>'
                 )
+                f = model.facing.get((x, y, z))
+                if f:
+                    out.append(
+                        _facing_arrow(px, py, f, _text_color_for(b["color"]))
+                    )
             elif prev_layer and (x, z) in prev_layer:
                 # 下の段にブロックがある目印（位置合わせ用）。空きマス自体は
                 # 上で敷いたパターンが担当するので、ここでは描かない
@@ -249,6 +299,7 @@ svg text.sym { font-size: 12px; font-weight: 700; text-anchor: middle; }
 svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
 svg rect.empty-bg { fill: var(--cell-empty); }
 svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }
+svg polygon.dir { opacity: 0.85; }
 svg circle.ghost { fill: var(--ghost); }
 .compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
 .layer-note {

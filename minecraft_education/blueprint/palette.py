@@ -46,6 +46,7 @@ BLOCKS = {
     "glass": {
         "name_ja": "ガラス", "bedrock_id": "glass",
         "makecode": "GLASS", "color": "#C4E4EA", "symbol": "ガ",
+        "transparent": True,
     },
     "brick": {
         "name_ja": "レンガ", "bedrock_id": "brick_block",
@@ -86,6 +87,131 @@ BLOCKS = {
     "lava": {
         "name_ja": "溶岩", "bedrock_id": "lava",
         "makecode": "LAVA", "color": "#F26B1D", "symbol": "溶",
+        "transparent": True,
+    },
+    "water": {
+        "name_ja": "水", "bedrock_id": "water",
+        "makecode": "WATER", "color": "#3E68C4", "symbol": "水",
+        "transparent": True,
+    },
+    # ------------------------------------------------------------------
+    # 装飾ブロック。マイクラの「細かさ」はここから生まれる。
+    # 階段・ハーフ・フェンス等は立方体ではないので transparent 扱いにし、
+    # 奥のブロックを隠さない（立体図で不自然に消えるのを防ぐ）。
+    # ------------------------------------------------------------------
+    "oak_stairs": {
+        "name_ja": "オークの階段", "bedrock_id": "oak_stairs",
+        "makecode": "OAK_STAIRS", "color": "#B08A50", "symbol": "階",
+        "transparent": True, "orientable": True, "shape": "stairs",
+    },
+    "stone_brick_stairs": {
+        "name_ja": "石レンガの階段", "bedrock_id": "stone_brick_stairs",
+        "makecode": "STONE_BRICK_STAIRS", "color": "#9A9E9A", "symbol": "段",
+        "transparent": True, "orientable": True, "shape": "stairs",
+    },
+    "cobblestone_stairs": {
+        "name_ja": "丸石の階段", "bedrock_id": "cobblestone_stairs",
+        "makecode": "COBBLESTONE_STAIRS", "color": "#6E736E", "symbol": "坂",
+        "transparent": True, "orientable": True, "shape": "stairs",
+    },
+    "oak_slab": {
+        "name_ja": "オークのハーフブロック", "bedrock_id": "oak_slab",
+        "makecode": "OAK_SLAB", "color": "#C69C60", "symbol": "半",
+        "transparent": True, "shape": "slab",
+    },
+    "stone_brick_slab": {
+        "name_ja": "石レンガのハーフブロック", "bedrock_id": "stone_brick_slab",
+        "makecode": "STONE_BRICK_SLAB", "color": "#ACB0AC", "symbol": "平",
+        "transparent": True, "shape": "slab",
+    },
+    "oak_fence": {
+        "name_ja": "オークのフェンス", "bedrock_id": "oak_fence",
+        "makecode": "OAK_FENCE", "color": "#A17C46", "symbol": "柵",
+        "transparent": True, "shape": "thin",
+    },
+    "oak_fence_gate": {
+        "name_ja": "オークのフェンスゲート", "bedrock_id": "oak_fence_gate",
+        "makecode": "OAK_FENCE_GATE", "color": "#B98E4F", "symbol": "門",
+        "transparent": True, "orientable": True, "shape": "thin", "marker": True,
+    },
+    "oak_trapdoor": {
+        "name_ja": "オークのトラップドア", "bedrock_id": "oak_trapdoor",
+        "makecode": "OAK_TRAPDOOR", "color": "#A8813F", "symbol": "蓋",
+        "transparent": True, "orientable": True, "shape": "thin", "marker": True,
+    },
+    "iron_bars": {
+        "name_ja": "鉄格子", "bedrock_id": "iron_bars",
+        "makecode": "IRON_BARS", "color": "#8E9296", "symbol": "格",
+        "transparent": True, "shape": "thin",
+    },
+    "glass_pane": {
+        "name_ja": "板ガラス", "bedrock_id": "glass_pane",
+        "makecode": "GLASS_PANE", "color": "#D4EAEF", "symbol": "窓",
+        "transparent": True, "shape": "thin",
+    },
+    "cobblestone_wall": {
+        "name_ja": "丸石の塀", "bedrock_id": "cobblestone_wall",
+        "makecode": "COBBLESTONE_WALL", "color": "#6A6F6A", "symbol": "塀",
+        "transparent": True, "shape": "thin",
+    },
+    "ladder": {
+        "name_ja": "はしご", "bedrock_id": "ladder",
+        "makecode": "LADDER", "color": "#9C7A45", "symbol": "梯",
+        "transparent": True, "orientable": True, "shape": "thin", "marker": True,
+    },
+    "carpet_red": {
+        "name_ja": "赤いカーペット", "bedrock_id": "red_carpet",
+        "makecode": "RED_CARPET", "color": "#B03A3A", "symbol": "絨",
+        "transparent": True, "shape": "flat",
+    },
+    "lantern": {
+        "name_ja": "ランタン", "bedrock_id": "lantern",
+        "makecode": "LANTERN", "color": "#E8A93C", "symbol": "提",
+        "transparent": True, "shape": "thin", "marker": True,
+    },
+    "sea_lantern": {
+        "name_ja": "シーランタン", "bedrock_id": "sea_lantern",
+        "makecode": "SEA_LANTERN", "color": "#B8D6CE", "symbol": "海",
+    },
+    "bookshelf": {
+        "name_ja": "本棚", "bedrock_id": "bookshelf",
+        "makecode": "BOOKSHELF", "color": "#8A6A3E", "symbol": "本",
+    },
+    "crafting_table": {
+        "name_ja": "作業台", "bedrock_id": "crafting_table",
+        "makecode": "CRAFTING_TABLE", "color": "#8B6239", "symbol": "作",
+    },
+    "chest": {
+        "name_ja": "チェスト", "bedrock_id": "chest",
+        "makecode": "CHEST", "color": "#A57C3C", "symbol": "箱",
+        "transparent": True, "orientable": True, "marker": True,
+    },
+    "oak_leaves": {
+        "name_ja": "オークの葉", "bedrock_id": "oak_leaves",
+        "makecode": "LEAVES_OAK", "color": "#4E8B3A", "symbol": "葉",
+        "transparent": True,
+    },
+    "flower_poppy": {
+        "name_ja": "ポピー（赤い花）", "bedrock_id": "poppy",
+        "makecode": "POPPY", "color": "#CE4040", "symbol": "花",
+        "transparent": True, "shape": "flat", "marker": True,
+    },
+    "flower_dandelion": {
+        "name_ja": "タンポポ（黄色い花）", "bedrock_id": "dandelion",
+        "makecode": "DANDELION", "color": "#E3C93F", "symbol": "菊",
+        "transparent": True, "shape": "flat", "marker": True,
+    },
+    "wool_yellow": {
+        "name_ja": "黄色の羊毛", "bedrock_id": "yellow_wool",
+        "makecode": "YELLOW_WOOL", "color": "#D8C13A", "symbol": "黄",
+    },
+    "wool_green": {
+        "name_ja": "緑の羊毛", "bedrock_id": "green_wool",
+        "makecode": "GREEN_WOOL", "color": "#4E7A32", "symbol": "緑",
+    },
+    "wool_black": {
+        "name_ja": "黒の羊毛", "bedrock_id": "black_wool",
+        "makecode": "BLACK_WOOL", "color": "#2B2B2E", "symbol": "黒",
     },
     "tnt": {
         "name_ja": "TNT", "bedrock_id": "tnt",

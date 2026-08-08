@@ -99,6 +99,52 @@ class TestPack(unittest.TestCase):
                      "自己点検", "実際のブロックの座標と一致"):
             self.assertIn(must, self.prompt, f"プロンプトから「{must}」が消えている")
 
+    def test_palette_in_sync_with_python(self):
+        """renderer.js のパレットが palette.py と一致していること。
+
+        手で二重管理するとズレ、Geminiが提案したブロックが未定義になる。
+        """
+        r = subprocess.run(
+            [sys.executable, "sync_palette.py", "--check"], cwd=HERE,
+            capture_output=True,
+        )
+        self.assertEqual(r.returncode, 0, r.stdout.decode() + r.stderr.decode())
+
+    def test_stepped_roof_is_not_flagged_as_floating(self):
+        """階段を1段ずつずらした勾配屋根が「浮いている」と誤判定されないこと。
+
+        面の接触だけで判定していたとき、いちばん使いたい表現である
+        階段の勾配屋根が全部エラーになっていた。
+        """
+        design = {
+            "name": "屋根", "description": "", "notes": [], "layer_notes": {},
+            "ops": [
+                {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 4, "y2": 0, "z2": 4,
+                 "block": "stone_bricks"},
+                {"op": "fill", "x1": 0, "y1": 1, "z1": 0, "x2": 4, "y2": 1, "z2": 0,
+                 "block": "oak_stairs", "facing": "south"},
+                {"op": "fill", "x1": 0, "y1": 2, "z1": 1, "x2": 4, "y2": 2, "z2": 1,
+                 "block": "oak_stairs", "facing": "south"},
+                {"op": "fill", "x1": 0, "y1": 3, "z1": 2, "x2": 4, "y2": 3, "z2": 2,
+                 "block": "oak_stairs", "facing": "south"},
+            ],
+        }
+        r = subprocess.run(
+            ["node", "-e",
+             "var M=require('./renderer.js');"
+             "var d=JSON.parse(process.argv[1]);"
+             "var m=M.buildModel(d); m.normalize();"
+             "var v=M.validate(m);"
+             "process.stdout.write(JSON.stringify(v.issues.map(function(i){return i.title})));",
+             __import__("json").dumps(design)],
+            cwd=HERE, capture_output=True,
+        )
+        titles = __import__("json").loads(r.stdout.decode() or "[]")
+        self.assertFalse(
+            [t for t in titles if "浮いている" in t],
+            f"勾配屋根が浮きブロック扱いされた: {titles}",
+        )
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))
