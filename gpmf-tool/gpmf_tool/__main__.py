@@ -426,8 +426,31 @@ def cmd_info(args: argparse.Namespace) -> None:
         moov_top = next(b for b in tops if b.type == b"moov")
         moov = mp4.parse_box_tree(mp4.read_box_bytes(f, moov_top), b"moov")
         mvhd = mp4.parse_mvhd(moov.find(b"mvhd").payload)
-        print(f"\n長さ: {mvhd['duration'] / mvhd['timescale']:.2f} 秒 "
-              f"(timescale={mvhd['timescale']})")
+
+        # --- 動画の基本情報 ---
+        f.seek(0)
+        m = mp4.media_summary(f)
+        print("\n動画情報:")
+        dur = m["duration_sec"]
+        print(f"  長さ: {int(dur // 60)}分{dur % 60:.0f}秒 ({dur:.2f}秒)")
+        if m["creation_time"]:
+            local = m["creation_time"].astimezone()
+            print(f"  撮影日時: {local:%Y-%m-%d %H:%M:%S} "
+                  f"(UTC {m['creation_time']:%Y-%m-%d %H:%M:%S})")
+        else:
+            print("  撮影日時: 記録なし")
+        if m["width"]:
+            print(f"  解像度: {m['width']} x {m['height']}")
+        if m["fps"]:
+            print(f"  フレームレート: {m['fps']:.2f} fps")
+        if m["video_codec"]:
+            print(f"  映像コーデック: {m['video_codec']}")
+        if m["audio_codec"]:
+            print(f"  音声コーデック: {m['audio_codec']}")
+        size = os.path.getsize(args.file)
+        if dur > 0:
+            mbps = size * 8 / dur / 1_000_000
+            print(f"  平均ビットレート: {mbps:.1f} Mbps")
 
         print("\nトラック:")
         for i, trak in enumerate(moov.find_all(b"trak"), 1):

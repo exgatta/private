@@ -155,12 +155,85 @@ def _u32s(data: bytes, offset: int, count: int) -> List[int]:
 def parse_mvhd(payload: bytes) -> dict:
     version = payload[0]
     if version == 1:
+        creation_time = struct.unpack(">Q", payload[4:12])[0]
         timescale, duration = struct.unpack(">IQ", payload[20:32])
     else:
+        creation_time = struct.unpack(">I", payload[4:8])[0]
         timescale, duration = struct.unpack(">II", payload[12:20])
     next_track_id = struct.unpack(">I", payload[-4:])[0]
     return {"version": version, "timescale": timescale,
-            "duration": duration, "next_track_id": next_track_id}
+            "duration": duration, "next_track_id": next_track_id,
+            "creation_time": creation_time}
+
+
+# MP4/QuickTime のエポックは 1904-01-01 UTC
+_MP4_EPOCH = None  # 遅延生成 (datetime を上で import 済み)
+
+
+def mp4_time_to_datetime(seconds_since_1904: int):
+    """mvhd/tkhd の creation_time (1904 起点秒) を datetime(UTC) に。0 は None。"""
+    import datetime
+    if not seconds_since_1904:
+        return None
+    epoch = datetime.datetime(1904, 1, 1, tzinfo=datetime.timezone.utc)
+    try:
+        return epoch + datetime.timedelta(seconds=seconds_since_1904)
+    except OverflowError:
+        return None
+
+
+# コーデック 4CC → 人が読める名前
+_CODEC_NAMES = {
+    "avc1": "H.264 (AVC)", "avc3": "H.264 (AVC)",
+    "hvc1": "H.265 (HEVC)", "hev1": "H.265 (HEVC)",
+    "av01": "AV1", "vp09": "VP9", "mp4v": "MPEG-4",
+    "mp4a": "AAC", "ac-3": "AC-3", "Opus": "Opus",
+}
+
+
+def media_summary(f: BinaryIO) -> dict:
+    """動画の基本情報 (撮影日時・解像度・コーデック・fps 等) をまとめる。"""
+    tops = scan_top_level(f)
+    moov_top = next(b for b in tops if b.type == b"moov")
+    moov = parse_box_tree(read_box_bytes(f, moov_top), b"moov")
+    mvhd = parse_mvhd(moov.find(b"mvhd").payload)
+
+    out = {
+        "duration_sec": (mvhd["duration"] / mvhd["timescale"]
+                         if mvhd["timescale"] else 0),
+        "creation_time": mp4_time_to_datetime(mvhd["creation_time"]),
+        "width": None, "height": None, "video_codec": None,
+        "fps": None, "audio_codec": None, "n_tracks": 0,
+    }
+
+    for trak in moov.find_all(b"trak"):
+        hdlr = trak.find(b"mdia", b"hdlr")
+        handler = parse_hdlr(hdlr.payload)["handler"] if hdlr else b""
+        out["n_tracks"] += 1
+        stsd = trak.find(b"mdia", b"minf", b"stbl", b"stsd")
+        if not stsd:
+            continue
+        codec = stsd.payload[12:16].decode("latin-1", "replace") \
+            if len(stsd.payload) >= 16 else ""
+
+        if handler == b"vide":
+            out["video_codec"] = _CODEC_NAMES.get(codec, codec)
+            # VisualSampleEntry: width/height は stsd payload の 40/42 バイト目
+            if len(stsd.payload) >= 44:
+                w, h = struct.unpack(">HH", stsd.payload[40:44])
+                out["width"], out["height"] = w, h
+            # fps = 総フレーム数 / 尺
+            mdhd = parse_mdhd(trak.find(b"mdia", b"mdhd").payload)
+            stts_box = trak.find(b"mdia", b"minf", b"stbl", b"stts")
+            if stts_box and mdhd["timescale"] and mdhd["duration"]:
+                frames = sum(c for c, _ in parse_stts(stts_box.payload))
+                secs = mdhd["duration"] / mdhd["timescale"]
+                if secs > 0:
+                    out["fps"] = frames / secs
+        elif handler == b"soun":
+            out["audio_codec"] = _CODEC_NAMES.get(codec, codec)
+
+    return out
 
 
 def bump_next_track_id(mvhd: Box, new_id: int) -> None:
