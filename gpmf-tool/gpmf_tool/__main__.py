@@ -13,6 +13,7 @@ import argparse
 import errno
 import json
 import os
+import shutil
 import struct
 import sys
 
@@ -222,6 +223,20 @@ def inject_file(input_path: str, output_path: str, device: str,
         raise klv.GPMFError(
             f"未知のデバイス: {device} (選択肢: {', '.join(gopro.DEVICE_PRESETS)})")
     dname = device_name or preset.device_name
+
+    # 出力先の空き容量を事前チェック (巨大ファイルで書き込み途中の失敗を防ぐ)
+    need = os.path.getsize(input_path)
+    out_dir = os.path.dirname(os.path.abspath(output_path)) or "."
+    try:
+        free = shutil.disk_usage(out_dir).free
+    except OSError:
+        free = None
+    if free is not None and free < need * 1.02:
+        raise OSError(
+            errno.ENOSPC,
+            f"保存先の空き容量が不足しています "
+            f"(必要 約{need / 1024**3:.1f}GB / 空き {free / 1024**3:.1f}GB)",
+            output_path)
 
     with open(input_path, "rb") as f:
         duration = mp4.movie_duration_seconds(f)
