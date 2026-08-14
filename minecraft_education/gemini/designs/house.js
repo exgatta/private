@@ -4,7 +4,7 @@
 var ops = [];
 var F = function (x1, y1, z1, x2, y2, z2, b) { ops.push({ op: "fill", x1: x1, y1: y1, z1: z1, x2: x2, y2: y2, z2: z2, block: b }); };
 var B = function (x1, y1, z1, x2, y2, z2, b) { ops.push({ op: "box", x1: x1, y1: y1, z1: z1, x2: x2, y2: y2, z2: z2, block: b }); };
-var S = function (x, y, z, b) { ops.push({ op: "set", x: x, y: y, z: z, block: b }); };
+var S = function (x, y, z, b, f) { ops.push({ op: "set", x: x, y: y, z: z, block: b, facing: f }); };
 var C = function (x, y, z) { ops.push({ op: "clear", x: x, y: y, z: z }); };
 
 // 1段目: 丸石の床（土台）

@@ -75,8 +75,8 @@ def build():
     m.fill(1, 8, 0, 6, 8, 3, "stone_bricks")
     # 罠ゾーン: z=4とz=6が「落とし床」の列
     for z in (4, 6):
-        m.set(1, 8, z, "sticky_piston")   # 東向き(図の右向き)に設置
-        m.set(6, 8, z, "sticky_piston")   # 西向き(図の左向き)に設置
+        m.set(1, 8, z, "sticky_piston", "east")   # 東向き(図の右向き)に設置
+        m.set(6, 8, z, "sticky_piston", "west")   # 西向き(図の左向き)に設置
         m.set(3, 8, z, "stone_bricks")    # ピストンが保持する落とし床
         m.set(4, 8, z, "stone_bricks")
         # (2,8,z)と(5,8,z)は空欄のまま: 伸びたピストンのアームが埋まる場所

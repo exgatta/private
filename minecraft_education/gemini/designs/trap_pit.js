@@ -4,7 +4,7 @@
 var ops = [];
 var F = function (x1, y1, z1, x2, y2, z2, b) { ops.push({ op: "fill", x1: x1, y1: y1, z1: z1, x2: x2, y2: y2, z2: z2, block: b }); };
 var B = function (x1, y1, z1, x2, y2, z2, b) { ops.push({ op: "box", x1: x1, y1: y1, z1: z1, x2: x2, y2: y2, z2: z2, block: b }); };
-var S = function (x, y, z, b) { ops.push({ op: "set", x: x, y: y, z: z, block: b }); };
+var S = function (x, y, z, b, f) { ops.push({ op: "set", x: x, y: y, z: z, block: b, facing: f }); };
 var C = function (x, y, z) { ops.push({ op: "clear", x: x, y: y, z: z }); };
 
 // ================= 地下部 (y=0..7) =================
@@ -43,8 +43,8 @@ S(6, 7, 6, "redstone_torch");
 F(1, 8, 7, 6, 8, 10, "stone_bricks");
 F(1, 8, 0, 6, 8, 3, "stone_bricks");
 [4, 6].forEach(function (z) {
-  S(1, 8, z, "sticky_piston");   // 東向き(図の右向き)に設置
-  S(6, 8, z, "sticky_piston");   // 西向き(図の左向き)に設置
+  S(1, 8, z, "sticky_piston", "east");   // 東向き(図の右向き)に設置
+  S(6, 8, z, "sticky_piston", "west");   // 西向き(図の左向き)に設置
   S(3, 8, z, "stone_bricks");    // ピストンが保持する落とし床
   S(4, 8, z, "stone_bricks");
 });

@@ -215,6 +215,27 @@ class TestPack(unittest.TestCase):
         self.assertIn("レバー", html)
         self.assertIn("15マスまで", html, "ダストの役割説明が出ていない")
 
+    def test_circuit_iso_is_deterministic(self):
+        """回路の立体図が毎回まったく同じ順序で描かれること。
+
+        （実際に起きた不具合: 描くブロックを集合で集めていたため並び順が
+        実行ごとに変わり、Python版とJS版で図の重なり順が食い違った。）
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from designs import DESIGNS  # noqa: E402
+        from blueprint.render import render_html  # noqa: E402
+
+        def circuit(h):
+            i = h.find("<h2>レッドストーン回路のくわしい図</h2>")
+            return h[i:h.find("<h2>作り方（1段ずつ）</h2>", i)] if i >= 0 else ""
+
+        first = circuit(render_html(DESIGNS["trap_pit"]()))
+        self.assertTrue(first, "trap_pit に回路詳細図が出ていない")
+        for _ in range(3):
+            self.assertEqual(circuit(render_html(DESIGNS["trap_pit"]())), first,
+                             "実行するたびに回路の立体図が変わっている")
+        self.assertIn("回路だけの立体図", first)
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))

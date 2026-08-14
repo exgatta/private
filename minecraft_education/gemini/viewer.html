@@ -359,63 +359,9 @@ var DESIGN = null;
   var CELL = 26;   // レイヤー図の1マスのピクセル数
 
   /* ------------------------------------------------------------------- iso view */
-  function isoSvg(model) {
-    var hw = 13, hh = 6.5, hz = 13;   // 半幅 / 上面の半高 / ブロックの高さ
-    var ptsX = [], ptsY = [], cubes = [];
-    // 6面すべてを不透明ブロックに囲まれていれば、どこからも見えないので描かない
-    var isOpaque = function (k) {
-      var b = block(k);
-      return !(b.marker || b.transparent);
-    };
-    var hidden = function (x, y, z) {
-      var d = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
-      for (var i = 0; i < d.length; i++) {
-        var k = model.get(x + d[i][0], y + d[i][1], z + d[i][2]);
-        if (k === null || k === undefined || !isOpaque(k)) return false;
-      }
-      return true;
-    };
-    model.blocks.forEach(function (k, ks) {
-      var p = ks.split(","), x = +p[0], y = +p[1], z = +p[2];
-      if (hidden(x, y, z)) return;
-      var cx = (x - z) * hw;
-      var cy = (x + z) * hh - y * hz;
-      cubes.push([x + z, y, cx, cy, k]);
-      ptsX.push(cx - hw, cx + hw);
-      ptsY.push(cy - 2 * hh, cy + hz);
-    });
-    if (cubes.length === 0) return "";
-    var minX = Math.min.apply(null, ptsX), maxX = Math.max.apply(null, ptsX);
-    var minY = Math.min.apply(null, ptsY), maxY = Math.max.apply(null, ptsY);
-    var pad = 16;
-    var vb = [minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2];
-
-    cubes.sort(function (a, b) { return (a[0] - b[0]) || (a[1] - b[1]); });
-
-    var faces = [];
-    for (var i = 0; i < cubes.length; i++) {
-      var y = cubes[i][1], cx = cubes[i][2], cy = cubes[i][3];
-      var b = block(cubes[i][4]);
-      var c = b.color;
-      var sc = shapeScale(b);
-      var w = hw * sc[0], h2 = hh * sc[0], z2 = hz * sc[1];
-      cy = cy + sc[2] * hz;   // 床に接するものは高さのぶんだけ下げる
-      var top = N(cx) + "," + N(cy) + " " + N(cx - w) + "," + N(cy - h2) + " " +
-                N(cx) + "," + N(cy - 2 * h2) + " " + N(cx + w) + "," + N(cy - h2);
-      var left = N(cx - w) + "," + N(cy - h2) + " " + N(cx) + "," + N(cy) + " " +
-                 N(cx) + "," + N(cy + z2) + " " + N(cx - w) + "," + N(cy - h2 + z2);
-      var right = N(cx + w) + "," + N(cy - h2) + " " + N(cx) + "," + N(cy) + " " +
-                  N(cx) + "," + N(cy + z2) + " " + N(cx + w) + "," + N(cy - h2 + z2);
-      faces.push(
-        '<polygon points="' + left + '" fill="' + shade(c, 0.68) + '"/>' +
-        '<polygon points="' + right + '" fill="' + shade(c, 0.88) + '"/>' +
-        '<polygon points="' + top + '" fill="' + shade(c, 1.14) + '" ' +
-        'stroke="' + shade(c, 0.55) + '" stroke-width="0.6"/>'
-      );
-    }
-    return '<svg viewBox="' + I0(vb[0]) + " " + I0(vb[1]) + " " + I0(vb[2]) + " " + I0(vb[3]) + '" ' +
-           'role="img" aria-label="完成イメージ" ' +
-           'style="max-width:' + I0(Math.min(640, vb[2])) + 'px">' + faces.join("") + "</svg>";
+  function isOpaqueKey(k) {
+    var b = block(k);
+    return !(b.marker || b.transparent);
   }
 
   /* 立体図での [横の倍率, 高さの倍率, 下げ量]。Python版 _shape_scale と同じ。
@@ -450,6 +396,67 @@ var DESIGN = null;
     return '<polygon points="' + pts + '" class="dir" fill="' + color + '"/>';
   }
 
+  /* ブロックの集まりを立体図で描く。
+   *   cells     … Map("x,y,z" -> block key)
+   *   highlight … 全色で描く座標(Set)。null なら全部そのまま描く。
+   *               指定した場合、それ以外は薄く描いて主役を目立たせる。 */
+  function isoCellsSvg(cells, highlight, label, maxW, scale) {
+    maxW = maxW || 640;
+    scale = scale || 1;
+    var hw = 13, hh = 6.5, hz = 13;
+    var ptsX = [], ptsY = [], cubes = [];
+    var dirs6 = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
+    cells.forEach(function (k, ks) {
+      var q = ks.split(","), x = +q[0], y = +q[1], z = +q[2];
+      var hidden = true;
+      for (var i = 0; i < dirs6.length; i++) {
+        var nk = key3(x + dirs6[i][0], y + dirs6[i][1], z + dirs6[i][2]);
+        var nb = cells.get(nk);
+        if (nb === undefined || !isOpaqueKey(nb)) { hidden = false; break; }
+      }
+      if (hidden) return;
+      var cx = (x - z) * hw;
+      var cy = (x + z) * hh - y * hz;
+      cubes.push([x + z, y, cx, cy, k, highlight === null || highlight.has(ks)]);
+      ptsX.push(cx - hw, cx + hw);
+      ptsY.push(cy - 2 * hh, cy + hz);
+    });
+    if (cubes.length === 0) return "";
+    var minX = Math.min.apply(null, ptsX), maxX = Math.max.apply(null, ptsX);
+    var minY = Math.min.apply(null, ptsY), maxY = Math.max.apply(null, ptsY);
+    var pad = 16;
+    var vb = [minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2];
+    cubes.sort(function (a, b) { return (a[0] - b[0]) || (a[1] - b[1]); });
+
+    var faces = [];
+    for (var i2 = 0; i2 < cubes.length; i2++) {
+      var y2 = cubes[i2][1], cx2 = cubes[i2][2], cy2 = cubes[i2][3];
+      var b = block(cubes[i2][4]);
+      var c = b.color;
+      var sc = shapeScale(b);
+      var w = hw * sc[0], h2 = hh * sc[0], z2 = hz * sc[1];
+      cy2 = cy2 + sc[2] * hz;
+      var top = N(cx2) + "," + N(cy2) + " " + N(cx2 - w) + "," + N(cy2 - h2) + " " +
+                N(cx2) + "," + N(cy2 - 2 * h2) + " " + N(cx2 + w) + "," + N(cy2 - h2);
+      var left = N(cx2 - w) + "," + N(cy2 - h2) + " " + N(cx2) + "," + N(cy2) + " " +
+                 N(cx2) + "," + N(cy2 + z2) + " " + N(cx2 - w) + "," + N(cy2 - h2 + z2);
+      var right = N(cx2 + w) + "," + N(cy2 - h2) + " " + N(cx2) + "," + N(cy2) + " " +
+                  N(cx2) + "," + N(cy2 + z2) + " " + N(cx2 + w) + "," + N(cy2 - h2 + z2);
+      var body =
+        '<polygon points="' + left + '" fill="' + shade(c, 0.68) + '"/>' +
+        '<polygon points="' + right + '" fill="' + shade(c, 0.88) + '"/>' +
+        '<polygon points="' + top + '" fill="' + shade(c, 1.14) + '" ' +
+        'stroke="' + shade(c, 0.55) + '" stroke-width="0.6"/>';
+      faces.push(cubes[i2][5] ? body : '<g class="faint">' + body + "</g>");
+    }
+    return '<svg viewBox="' + I0(vb[0]) + " " + I0(vb[1]) + " " + I0(vb[2]) + " " + I0(vb[3]) + '" ' +
+           'role="img" aria-label="' + label + '" ' +
+           'style="max-width:' + I0(Math.min(maxW, vb[2] * scale)) + 'px">' + faces.join("") + "</svg>";
+  }
+
+  function isoSvg(model) {
+    return isoCellsSvg(model.blocks, null, "完成イメージ");
+  }
 
   /* --------------------------------------------- redstone circuit detail
    * レッドストーン部品がある設計にだけ、回路だけを大きく描いた図を足す。
@@ -494,6 +501,37 @@ var DESIGN = null;
     if (key === "lever") return "手で入れ切りするスイッチ。取り付けた面のブロックを動力化する。";
     if (key === "redstone_block") return "置くだけで常にONの動力源。となりの部品をずっと動かし続ける。";
     return b.name_ja;
+  }
+
+  /* 回路だけの立体図に描くブロックを選ぶ。Python版 _rs_visual_cells と同じ。
+   * 範囲をまるごと切り出すと床や壁にさえぎられて配線が見えないので、
+   * 部品と、その働きに直接かかわるブロックだけを取り出す。 */
+  function rsVisualCells(model, rs) {
+    var DIRV2 = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var cells = new Map();
+    rs.forEach(function (r) { cells.set(r.ks, r.key); });
+    var extra = [];
+    rs.forEach(function (r) {
+      var x = r.pos[0], y = r.pos[1], z = r.pos[2];
+      extra.push([x, y - 1, z]);
+      if (r.key === "redstone_torch") extra.push([x, y + 1, z]);
+      if (block(r.key).piston) {
+        var f = model.facing.get(r.ks);
+        if (f) {
+          var d = DIRV2[f];
+          extra.push([x + d[0], y + d[1], z + d[2]]);
+          extra.push([x + d[0] * 2, y + d[1] * 2, z + d[2] * 2]);
+        }
+      }
+    });
+    extra.forEach(function (q) {
+      var ks = key3(q[0], q[1], q[2]);
+      if (!cells.has(ks)) {
+        var k = model.get(q[0], q[1], q[2]);
+        if (k !== null && k !== undefined) cells.set(ks, k);
+      }
+    });
+    return cells;
   }
 
   function rsLayerSvg(model, y, rsSet, box) {
@@ -598,11 +636,18 @@ var DESIGN = null;
     });
 
     return '<h2>レッドストーン回路のくわしい図</h2>' +
-      '<p class="hint">仕掛けの部分だけを大きく描いたもの。' +
-      'まわり' + RS_MARGIN + 'マスの支えのブロックも一緒に描いてある（薄い色）。' +
-      '回路は1マスのズレでも動かなくなるので、こちらの図で位置を確かめて作る。</p>' +
+      '<p class="hint">仕掛けの部分だけを切り出した図。全体の設計図とは別に、' +
+      'ここで位置と向きを確かめてから作る。</p>' +
+      '<div class="panel iso-panel rs-iso">' +
+      isoCellsSvg(rsVisualCells(model, rs), rsSet, "回路だけの立体図", 560, 2) +
+      '<p class="cap">回路だけを立体で見たところ。色のついたものがレッドストーン部品、' +
+      '薄いものは支えのブロックとピストンが押す先。</p></div>' +
+      '<h3 class="rs-h3">部品と役割</h3>' +
       '<div class="panel"><table class="bom rs-list">' +
       '<tr><th>位置</th><th>部品と役割</th></tr>' + rows.join("") + "</table></div>" +
+      '<h3 class="rs-h3">段ごとの位置（上から見た図）</h3>' +
+      '<p class="hint">まわり' + RS_MARGIN + 'マスの支えのブロックも薄い色で描いてある。' +
+      '回路は1マスのズレでも動かなくなるので、この図で1つずつ確かめる。</p>' +
       '<div class="layers rs-layers">' + cards.join("") + "</div>";
   }
 
@@ -742,6 +787,9 @@ var DESIGN = null;
 "svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
 "svg polygon.dir { opacity: 0.85; }\n" +
 "svg g.faint { opacity: 0.28; }\n" +
+"h3.rs-h3 { font-size: 15.5px; margin: 26px 0 6px; color: var(--accent-ink);\n" +
+"  letter-spacing: 0.04em; }\n" +
+".rs-iso .cap { color: var(--muted); font-size: 13px; margin: 10px 0 0; }\n" +
 "svg rect.rs-ring { fill: none; stroke: var(--accent-ink); stroke-width: 2; rx: 2; }\n" +
 "svg text.sym.rs { font-size: 15px; }\n" +
 "table.bom.rs-list td.n { text-align: left; font-size: 12px; line-height: 1.45; white-space: nowrap; }\n" +

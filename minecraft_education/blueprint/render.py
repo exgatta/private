@@ -82,16 +82,20 @@ def _is_opaque(key):
     return not (b.get("marker") or b.get("transparent"))
 
 
-def _iso_svg(model):
-    """完成イメージのアイソメトリック図。"""
+def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1):
+    """ブロックの集まりを立体図(アイソメトリック)で描く。
+
+    cells     … {(x,y,z): ブロックキー}
+    highlight … 全色で描く座標の集合。None なら全部そのまま描く。
+                指定した場合、それ以外は薄く描いて主役を目立たせる。
+    """
     hw, hh, hz = 13, 6.5, 13  # 半幅 / 上面の半高 / ブロックの高さ
     pts = []
     cubes = []
-    blocks = model.blocks
-    for (x, y, z), key in blocks.items():
+    for (x, y, z), key in cells.items():
         # 6面すべてを不透明ブロックに囲まれていれば、どこからも見えないので描かない
         if all(
-            n in blocks and _is_opaque(blocks[n])
+            n in cells and _is_opaque(cells[n])
             for n in (
                 (x - 1, y, z), (x + 1, y, z),
                 (x, y - 1, z), (x, y + 1, z),
@@ -101,7 +105,7 @@ def _iso_svg(model):
             continue
         cx = (x - z) * hw
         cy = (x + z) * hh - y * hz
-        cubes.append((x + z, y, cx, cy, key))
+        cubes.append((x + z, y, cx, cy, key, highlight is None or (x, y, z) in highlight))
         pts += [(cx - hw, cy - 2 * hh), (cx + hw, cy + hz)]
     if not cubes:
         return ""
@@ -112,7 +116,7 @@ def _iso_svg(model):
           (max(xs) - min(xs)) + pad * 2, (max(ys) - min(ys)) + pad * 2)
 
     faces = []
-    for depth, y, cx, cy, key in sorted(cubes, key=lambda c: (c[0], c[1])):
+    for depth, y, cx, cy, key, main in sorted(cubes, key=lambda c: (c[0], c[1])):
         b = block(key)
         c = b["color"]
         # 形ごとに描き分ける。立方体でないブロック（階段・ハーフ・柵など）を
@@ -126,17 +130,23 @@ def _iso_svg(model):
                 f"{_n(cx)},{_n(cy + z2)} {_n(cx - w)},{_n(cy - h2 + z2)}")
         right = (f"{_n(cx + w)},{_n(cy - h2)} {_n(cx)},{_n(cy)} "
                  f"{_n(cx)},{_n(cy + z2)} {_n(cx + w)},{_n(cy - h2 + z2)}")
-        faces.append(
+        body = (
             f'<polygon points="{left}" fill="{shade(c, 0.68)}"/>'
             f'<polygon points="{right}" fill="{shade(c, 0.88)}"/>'
             f'<polygon points="{top}" fill="{shade(c, 1.14)}" '
             f'stroke="{shade(c, 0.55)}" stroke-width="0.6"/>'
         )
+        faces.append(body if main else f'<g class="faint">{body}</g>')
     return (
         f'<svg viewBox="{vb[0]:.0f} {vb[1]:.0f} {vb[2]:.0f} {vb[3]:.0f}" '
-        f'role="img" aria-label="完成イメージ" '
-        f'style="max-width:{min(640, vb[2]):.0f}px">' + "".join(faces) + "</svg>"
+        f'role="img" aria-label="{label}" '
+        f'style="max-width:{min(max_w, vb[2] * scale):.0f}px">' + "".join(faces) + "</svg>"
     )
+
+
+def _iso_svg(model):
+    """完成イメージのアイソメトリック図。"""
+    return _iso_cells_svg(model.blocks, None, "完成イメージ")
 
 
 def _facing_arrow(px, py, facing, color):
@@ -284,6 +294,39 @@ def _rs_role(model, key, facing):
     return b["name_ja"]
 
 
+
+def _rs_visual_cells(model, rs):
+    """回路だけの立体図に描くブロックを選ぶ。
+
+    範囲をまるごと切り出すと、床や壁にさえぎられて肝心の配線が見えない。
+    そこで「部品」＋「その働きに直接かかわるブロック」だけを取り出す:
+      - 部品の真下（支え。トーチや感圧板はここが動力を受ける）
+      - ピストンが押す先の1マスと2マス目
+      - トーチの真上（動力化されるブロック）
+    """
+    cells = {}
+    for pos in rs:
+        cells[pos] = model.blocks[pos]
+    # 集合ではなくリストで順番を保つ。集合だと並び順が実行ごとに変わり、
+    # 図の描画順（＝重なり順）がぶれて Python版とJS版で出力が食い違う。
+    extra = []
+    for pos, key in rs.items():
+        x, y, z = pos
+        extra.append((x, y - 1, z))  # 支え
+        if key == "redstone_torch":
+            extra.append((x, y + 1, z))  # トーチが動力化する先
+        if block(key).get("piston"):
+            f = model.facing.get(pos)
+            if f:
+                dx, dy, dz = DIR_VEC[f]
+                extra.append((x + dx, y + dy, z + dz))
+                extra.append((x + dx * 2, y + dy * 2, z + dz * 2))
+    for pos in extra:
+        if pos not in cells and pos in model.blocks:
+            cells[pos] = model.blocks[pos]
+    return cells
+
+
 def _rs_layer_svg(model, y, rs, box):
     """回路詳細図の1段分。回路は色つき、まわりのブロックは薄く描く。"""
     x1, _, z1, x2, _, z2 = box
@@ -386,11 +429,18 @@ def _circuit_section(model):
 
     return (
         '<h2>レッドストーン回路のくわしい図</h2>'
-        '<p class="hint">仕掛けの部分だけを大きく描いたもの。'
-        f'まわり{RS_MARGIN}マスの支えのブロックも一緒に描いてある（薄い色）。'
-        '回路は1マスのズレでも動かなくなるので、こちらの図で位置を確かめて作る。</p>'
+        '<p class="hint">仕掛けの部分だけを切り出した図。全体の設計図とは別に、'
+        'ここで位置と向きを確かめてから作る。</p>'
+        '<div class="panel iso-panel rs-iso">'
+        + _iso_cells_svg(_rs_visual_cells(model, rs), set(rs), "回路だけの立体図", 560, 2)
+        + '<p class="cap">回路だけを立体で見たところ。色のついたものがレッドストーン部品、'
+          '薄いものは支えのブロックとピストンが押す先。</p></div>'
+        '<h3 class="rs-h3">部品と役割</h3>'
         f'<div class="panel"><table class="bom rs-list">'
         f'<tr><th>位置</th><th>部品と役割</th></tr>{"".join(rows)}</table></div>'
+        '<h3 class="rs-h3">段ごとの位置（上から見た図）</h3>'
+        f'<p class="hint">まわり{RS_MARGIN}マスの支えのブロックも薄い色で描いてある。'
+        '回路は1マスのズレでも動かなくなるので、この図で1つずつ確かめる。</p>'
         f'<div class="layers rs-layers">{"".join(cards)}</div>'
     )
 
@@ -473,6 +523,9 @@ svg rect.empty-bg { fill: var(--cell-empty); }
 svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }
 svg polygon.dir { opacity: 0.85; }
 svg g.faint { opacity: 0.28; }
+h3.rs-h3 { font-size: 15.5px; margin: 26px 0 6px; color: var(--accent-ink);
+  letter-spacing: 0.04em; }
+.rs-iso .cap { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
 svg rect.rs-ring { fill: none; stroke: var(--accent-ink); stroke-width: 2; rx: 2; }
 svg text.sym.rs { font-size: 15px; }
 table.bom.rs-list td.n { text-align: left; font-size: 12px; line-height: 1.45; white-space: nowrap; }
