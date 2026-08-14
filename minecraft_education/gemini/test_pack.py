@@ -145,6 +145,42 @@ class TestPack(unittest.TestCase):
             f"勾配屋根が浮きブロック扱いされた: {titles}",
         )
 
+    def test_blocked_piston_is_detected(self):
+        """伸びる先がふさがったピストンをエラーとして捕まえること。
+
+        （実際に起きた不具合: 2マス幅の自動ドアで、向かい合うピストンの
+        あいだにガラスを2枚入れてしまい、どちらも永久に動かなかった。
+        図の上では正しく見えるので人の目では気づけない。）
+        """
+        import json as _json
+        design = {
+            "name": "詰まったドア", "description": "", "layer_notes": {},
+            "notes": ["粘着ピストンは東向きと西向き。ガラスが扉。"],
+            "ops": [
+                {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 5, "y2": 0, "z2": 2,
+                 "block": "stone"},
+                {"op": "set", "x": 1, "y": 1, "z": 1, "block": "sticky_piston",
+                 "facing": "east"},
+                {"op": "set", "x": 2, "y": 1, "z": 1, "block": "glass"},
+                {"op": "set", "x": 3, "y": 1, "z": 1, "block": "glass"},
+                {"op": "set", "x": 4, "y": 1, "z": 1, "block": "sticky_piston",
+                 "facing": "west"},
+            ],
+        }
+        r = subprocess.run(
+            ["node", "-e",
+             "var M=require('./renderer.js');"
+             "var d=JSON.parse(process.argv[1]);"
+             "var m=M.buildModel(d); m.normalize();"
+             "process.stdout.write(JSON.stringify(M.validate(m).issues));",
+             _json.dumps(design)],
+            cwd=HERE, capture_output=True,
+        )
+        issues = _json.loads(r.stdout.decode() or "[]")
+        blocked = [i for i in issues if "伸びられない" in i["title"]]
+        self.assertTrue(blocked, f"詰まったピストンを見逃した: {issues}")
+        self.assertEqual(blocked[0]["level"], "error")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))

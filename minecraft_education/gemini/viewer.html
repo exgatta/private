@@ -92,7 +92,7 @@ var DESIGN = null;
     wool_black: { name_ja: "黒の羊毛", bedrock_id: "black_wool", makecode: "BLACK_WOOL", color: "#2B2B2E", symbol: "黒" },
     tnt: { name_ja: "TNT", bedrock_id: "tnt", makecode: "TNT", color: "#D9472B", symbol: "爆" },
     redstone_block: { name_ja: "レッドストーンブロック", bedrock_id: "redstone_block", makecode: "REDSTONE_BLOCK", color: "#8E1616", symbol: "動" },
-    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", marker: true },
+    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", orientable: true, marker: true, piston: true },
     redstone_wire: { name_ja: "レッドストーンダスト", bedrock_id: "redstone_wire", makecode: "REDSTONE_WIRE", color: "#E03A2A", symbol: "線", marker: true },
     redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true },
     stone_pressure_plate: { name_ja: "石の感圧板", bedrock_id: "stone_pressure_plate", makecode: "STONE_PRESSURE_PLATE", color: "#B8B8B8", symbol: "踏", marker: true },
@@ -839,6 +839,52 @@ var DESIGN = null;
           "layer_notes のキーを 0〜" + (sy - 1) + " の範囲にする（キーはyの値＝段目−1）。");
       }
     });
+
+    /* --- 4b) ピストンが伸びられない / 向かい合って干渉する -------------
+     * ピストンは「前1マスが空」か「前1マスのブロックを前2マスへ押し出せる」
+     * ときだけ伸びる。前2マスまで埋まっていると永久に動かず、自動ドアは開かない。
+     * 図の上では正しく見えるので、人の目では気づけない種類の失敗。 */
+    var DIRV = {
+      north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0]
+    };
+    var pistons = [];
+    model.blocks.forEach(function (k, ks) {
+      if (block(k).piston) {
+        var p = ks.split(",").map(Number);
+        pistons.push({ pos: p, key: ks, facing: model.facing.get(ks) });
+      }
+    });
+    var noFacing = pistons.filter(function (p) { return !p.facing; });
+    if (noFacing.length) {
+      add("error", "ピストンの向きが決まっていない（" + noFacing.length + "台）",
+        "どちらへ押すのか図から読めないので、作る人が向きを決められない。" +
+        "向きを1つ間違えるだけで仕掛けは動かない。",
+        'そのピストンの set に "facing" を付ける（north/south/east/west）。');
+    }
+    var stuck = [], where3 = [];
+    pistons.forEach(function (p) {
+      var d = DIRV[p.facing];
+      if (!d) return;
+      var a = [p.pos[0] + d[0], p.pos[1] + d[1], p.pos[2] + d[2]];
+      var b = [a[0] + d[0], a[1] + d[1], a[2] + d[2]];
+      var ka = model.get(a[0], a[1], a[2]);
+      var kb = model.get(b[0], b[1], b[2]);
+      if (ka && kb) {
+        stuck.push(p);
+        where3.push("(x=" + p.pos[0] + ", y=" + p.pos[1] + ", z=" + p.pos[2] + ")の" +
+          "前が" + block(ka).name_ja + "、その先も" + block(kb).name_ja);
+      }
+    });
+    if (stuck.length) {
+      add("error", "ピストンが伸びられない（" + stuck.length + "台）",
+        esc(where3.slice(0, 3).join(" / ")) + (where3.length > 3 ? " ほか" : "") +
+        "。前のブロックを押し出す先がふさがっているので、ピストンは動かない。" +
+        "自動ドアなら永久に閉じたままになる。",
+        "ピストンの前2マス目を空けるか、ピストンを1マス外側へ下げて" +
+        "「ピストン→動かす板→通り道」の並びにする。" +
+        "向かい合う2台で2マスの通路をふさぐなら、ピストンは通路の両どなりではなく" +
+        "さらに1マス外側に置き、動かす板をそのあいだに入れる。");
+    }
 
     /* --- 5) marker ブロックが notes で説明されていない ----------------- */
     var noteAll = (model.notes || []).join("\n") + "\n" +

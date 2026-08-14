@@ -225,7 +225,8 @@ BLOCKS = {
     #   設計側で m.notes に配置の向きと配線手順を必ず書くこと。
     "sticky_piston": {
         "name_ja": "粘着ピストン", "bedrock_id": "sticky_piston",
-        "makecode": "STICKY_PISTON", "color": "#8AA05A", "symbol": "押", "marker": True,
+        "makecode": "STICKY_PISTON", "color": "#8AA05A", "symbol": "押",
+        "marker": True, "orientable": True, "piston": True,
     },
     "redstone_wire": {
         "name_ja": "レッドストーンダスト", "bedrock_id": "redstone_wire",
