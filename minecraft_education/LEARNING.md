@@ -70,3 +70,78 @@ BuildGuides / Bloxelizer / Mineprints などのサイトもこの形式を採用
 - [Minecraft Education exclusive features（Minecraft Wiki）](https://minecraft.wiki/w/Minecraft_Education_exclusive_features)
 - [BuildGuides — レイヤー式設計図サイトの例](https://buildguides.net/)
 - [Mineprints — レイヤー表示ビューア](https://www.mineprints.net/)
+
+## ブロックIDの落とし穴（実際に6件間違えた）
+
+Bedrock版のブロック名は「新しい名前」に統一されていない。見た目から推測すると外れる。
+
+| 日本語 | 正しいID | 間違えやすい名前 |
+|---|---|---|
+| オークのトラップドア | `trapdoor` | ~~oak_trapdoor~~ |
+| オークのフェンスゲート | `fence_gate` | ~~oak_fence_gate~~ |
+| 丸石の階段 | `stone_stairs` | ~~cobblestone_stairs~~ |
+| コンパレーター | `unpowered_comparator` | ~~comparator~~ |
+| リピーター | `unpowered_repeater` | ~~repeater~~ |
+| 看板 | `standing_sign` | ~~oak_sign~~ |
+| オークのドア | `wooden_door` | ~~oak_door~~ |
+
+一方で `oak_stairs` `oak_slab` `oak_fence` `oak_leaves` は新しい名前が正しい。
+**規則性が無いので、必ず公式データと照合する。**
+
+- 参照データ: `reference/bedrock_blocks.json`（1415ブロック）
+  出所は [Mojang/bedrock-samples](https://github.com/Mojang/bedrock-samples) の
+  `metadata/vanilladata_modules/mojang-blocks.json`
+- 照合: `python3 tools/verify_block_ids.py`（`--update` で取り直し）
+- 回帰テストにも入っているので、間違ったIDを足すとテストが落ちる
+
+## ブロックの「状態」＝向きの指定
+
+`/setblock` はブロック名だけだと**既定の向き**で置く。向きは状態で指定する。
+
+```
+/setblock ~1 ~1 ~0 oak_stairs ["weirdo_direction"=3]
+/setblock ~1 ~1 ~1 hopper ["facing_direction"=0]
+/setblock ~2 ~1 ~2 unpowered_comparator ["minecraft:cardinal_direction"="south"]
+```
+
+状態プロパティはブロックごとに違う（同じ「向き」でも書き方が4種類ある）。
+
+| 状態プロパティ | 値 | 使うブロック |
+|---|---|---|
+| `weirdo_direction` | 0=東 1=西 2=南 3=北 | 階段 |
+| `direction` | 同上 | トラップドア |
+| `facing_direction` | 0=下 1=上 2=北 3=南 4=西 5=東 | ホッパー・ピストン・ディスペンサー・ドロッパー・はしご |
+| `minecraft:cardinal_direction` | "north" 等の文字列 | チェスト・コンパレーター・リピーター・フェンスゲート・ドア |
+| `minecraft:facing_direction` | "down" 等の文字列 | オブザーバー |
+| `ground_sign_direction` | 0〜15（0=南、時計回り） | 看板 |
+
+**上下を向けるのは `facing_direction` 系だけ**。階段やチェストに「下向き」を指定しても
+無視されるので、検品でエラーにしている。
+
+変換表は `blueprint/blockstate.py`。状態プロパティ名が実在するかも
+`tools/verify_block_ids.py` が公式データと照合する。
+
+## レッドストーンで学んだこと（設計上の要点）
+
+- **ピストンは前2マス目が空いていないと伸びない**。前1マスのブロックを前2マス目へ
+  押し出すため。2マス幅の自動ドアを作るとき、通路の両どなりにピストンを置くと
+  互いの可動域が重なって永久に動かない（実際にそうなった）
+- **動力が来ている場所にピストンを置くと即座に伸びる**。動かす板を先に置き、
+  ピストンは最後に置く
+- **レッドストーントーチは真下のブロックが動力を受けると消える**。これで信号を
+  反転でき、「ふだん閉・踏むと開く」自動ドアが作れる
+- **コンパレーターは容器の中身の量を信号の強さにする**。中身1個だと信号は1しかなく、
+  そのままでは1マスも進まない。リピーターで15に戻す必要がある
+- **コンパレーターの真横にダストを置くと止まる**（横入力が背面入力以上だと出力0）
+- 「中身が入ったら撃つ」装置は、コンパレーター＋リピーターでディスペンサーに
+  信号を戻すだけでよい。クロック回路は要らず、空になると自然に止まる
+- 斜めに接したブロックは「浮いている」ではない。階段を1段ずつずらす勾配屋根は
+  面では接していないが正しい作り方（面接触だけで判定してエラーにしていた）
+
+## まだ確認できていないこと
+
+- **MakeCode（Code Builder）のブロック定数名**。定義ファイルが取得できず未検証。
+  `commands.txt` の方はIDも向きも公式データで検証済みなので、確実さを求めるなら
+  そちらを使う
+- **溶岩の当たり判定の高さ**（看板で溶岩を支えてヒナだけ助ける仕組み）。
+  公式資料が参照できず、実機での確認が必要

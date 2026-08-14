@@ -8,6 +8,15 @@
 - color     : 設計図・立体図で使う代表色 (hex)
 - symbol    : レイヤー図のマスに表示する1文字記号
 - marker    : True なら「置き物」(たいまつ・ドア等)。自動建築コードでは手動設置扱い
+
+bedrock_id は Mojang 公式の Bedrock ブロック定義（Mojang/bedrock-samples の
+mojang-blocks.json）と照合して確定させている。
+Bedrock は「新しい名前」に統一されておらず、オーク系や回路部品は昔の名前のまま
+（例: オークのトラップドアは trapdoor、コンパレーターは unpowered_comparator）。
+推測で書くと必ず外れるので、ブロックを足したら
+    python3 tools/verify_block_ids.py --update   （参照データを取り直す）
+    python3 tools/verify_block_ids.py            （照合する）
+を実行して確かめること。test_pack.py でも自動で照合している。
 """
 
 BLOCKS = {
@@ -110,7 +119,7 @@ BLOCKS = {
         "transparent": True, "orientable": True, "shape": "stairs",
     },
     "cobblestone_stairs": {
-        "name_ja": "丸石の階段", "bedrock_id": "cobblestone_stairs",
+        "name_ja": "丸石の階段", "bedrock_id": "stone_stairs",
         "makecode": "COBBLESTONE_STAIRS", "color": "#6E736E", "symbol": "坂",
         "transparent": True, "orientable": True, "shape": "stairs",
     },
@@ -130,12 +139,12 @@ BLOCKS = {
         "transparent": True, "shape": "thin",
     },
     "oak_fence_gate": {
-        "name_ja": "オークのフェンスゲート", "bedrock_id": "oak_fence_gate",
+        "name_ja": "オークのフェンスゲート", "bedrock_id": "fence_gate",
         "makecode": "OAK_FENCE_GATE", "color": "#B98E4F", "symbol": "門",
         "transparent": True, "orientable": True, "shape": "thin", "marker": True,
     },
     "oak_trapdoor": {
-        "name_ja": "オークのトラップドア", "bedrock_id": "oak_trapdoor",
+        "name_ja": "オークのトラップドア", "bedrock_id": "trapdoor",
         "makecode": "OAK_TRAPDOOR", "color": "#A8813F", "symbol": "蓋",
         "transparent": True, "orientable": True, "shape": "thin", "marker": True,
     },
@@ -158,6 +167,7 @@ BLOCKS = {
         "name_ja": "はしご", "bedrock_id": "ladder",
         "makecode": "LADDER", "color": "#9C7A45", "symbol": "梯",
         "transparent": True, "orientable": True, "shape": "thin", "marker": True,
+            "updown": True,
     },
     "carpet_red": {
         "name_ja": "赤いカーペット", "bedrock_id": "red_carpet",
@@ -229,6 +239,7 @@ BLOCKS = {
         "makecode": "STICKY_PISTON", "color": "#8AA05A", "symbol": "押",
         "marker": True, "orientable": True, "piston": True,
             "redstone": True,
+            "updown": True,
     },
     "redstone_wire": {
         "name_ja": "レッドストーンダスト", "bedrock_id": "redstone_wire",
@@ -259,24 +270,27 @@ BLOCKS = {
         "name_ja": "ホッパー", "bedrock_id": "hopper",
         "makecode": "HOPPER", "color": "#4A4E52", "symbol": "漏",
         "transparent": True, "orientable": True, "marker": True, "redstone": True,
+            "updown": True,
     },
     "dispenser": {
         "name_ja": "ディスペンサー（発射装置）", "bedrock_id": "dispenser",
         "makecode": "DISPENSER", "color": "#6E6E6E", "symbol": "発",
         "orientable": True, "marker": True, "redstone": True,
+            "updown": True,
     },
     "dropper": {
         "name_ja": "ドロッパー", "bedrock_id": "dropper",
         "makecode": "DROPPER", "color": "#767676", "symbol": "落",
         "orientable": True, "marker": True, "redstone": True,
+            "updown": True,
     },
     "comparator": {
-        "name_ja": "レッドストーンコンパレーター", "bedrock_id": "comparator",
+        "name_ja": "レッドストーンコンパレーター", "bedrock_id": "unpowered_comparator",
         "makecode": "COMPARATOR", "color": "#C9C4BE", "symbol": "比",
         "transparent": True, "orientable": True, "marker": True, "redstone": True,
     },
     "repeater": {
-        "name_ja": "レッドストーンリピーター（反復装置）", "bedrock_id": "repeater",
+        "name_ja": "レッドストーンリピーター（反復装置）", "bedrock_id": "unpowered_repeater",
         "makecode": "REPEATER", "color": "#B9B4AE", "symbol": "反",
         "transparent": True, "orientable": True, "marker": True, "redstone": True,
     },
@@ -284,9 +298,10 @@ BLOCKS = {
         "name_ja": "オブザーバー（観察者）", "bedrock_id": "observer",
         "makecode": "OBSERVER", "color": "#5A5A5A", "symbol": "観",
         "orientable": True, "marker": True, "redstone": True,
+            "updown": True,
     },
     "sign": {
-        "name_ja": "看板", "bedrock_id": "oak_sign",
+        "name_ja": "看板", "bedrock_id": "standing_sign",
         "makecode": "OAK_SIGN", "color": "#B08D55", "symbol": "札",
         "transparent": True, "orientable": True, "shape": "thin", "marker": True,
     },

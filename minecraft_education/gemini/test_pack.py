@@ -295,6 +295,95 @@ class TestPack(unittest.TestCase):
                      "中身の量", "15の強さに戻して"):
             self.assertIn(must, html, f"役割の説明に「{must}」が無い")
 
+    def test_block_ids_exist_in_official_data(self):
+        """全ブロックIDが Mojang 公式の定義に実在すること。
+
+        Bedrock の名前は新旧が混在していて、それらしい名前を推測すると外れる。
+        （実際に6件外していた: オークのトラップドアは oak_trapdoor ではなく
+        trapdoor、コンパレーターは unpowered_comparator など）
+        設計図の見た目は正常なので、ゲームでコマンドを打つまで誰も気づけない。
+        """
+        r = subprocess.run(
+            [sys.executable, "tools/verify_block_ids.py"],
+            cwd=HERE.parent, capture_output=True,
+        )
+        self.assertEqual(r.returncode, 0,
+                         r.stdout.decode() + r.stderr.decode())
+
+    def test_commands_include_facing(self):
+        """コマンド出力に向きが入ること。
+
+        以前は facing を完全に無視していたため、階段もホッパーも
+        すべて既定の向きで置かれ、仕掛けが動かなかった。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.model import VoxelModel  # noqa: E402
+        from blueprint.makecode import export_commands  # noqa: E402
+
+        m = VoxelModel("t", "")
+        m.fill(0, 0, 0, 3, 0, 3, "stone")
+        m.set(0, 1, 0, "oak_stairs", "north")
+        m.set(1, 1, 0, "hopper", "down")
+        m.set(2, 1, 0, "comparator", "south")
+        out = export_commands(m)
+        self.assertIn('oak_stairs ["weirdo_direction"=3]', out)
+        self.assertIn('hopper ["facing_direction"=0]', out)
+        self.assertIn('unpowered_comparator ["minecraft:cardinal_direction"="south"]', out)
+
+    def test_runs_do_not_merge_different_facings(self):
+        """向きの違うブロックが1つのコマンドにまとめられないこと。
+
+        まとめると片方の向きが失われる。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.model import VoxelModel  # noqa: E402
+        from blueprint.makecode import export_commands  # noqa: E402
+
+        m = VoxelModel("t", "")
+        m.fill(0, 0, 0, 3, 0, 0, "stone")
+        m.set(0, 1, 0, "oak_stairs", "north")
+        m.set(1, 1, 0, "oak_stairs", "north")
+        m.set(2, 1, 0, "oak_stairs", "south")
+        out = export_commands(m)
+        self.assertIn('/fill ~0 ~1 ~0 ~1 ~1 ~0 oak_stairs ["weirdo_direction"=3]', out)
+        self.assertIn('/setblock ~2 ~1 ~0 oak_stairs ["weirdo_direction"=2]', out)
+
+    def test_impossible_facing_is_detected(self):
+        """そのブロックに指定できない向きをエラーにすること。
+
+        階段は上下を向けない。指定しても無視されて既定の向きで置かれるため、
+        図のとおりに見えるのに現物だけ違う、という気づきにくい事故になる。
+        """
+        import json as _json
+
+        def issues(design):
+            r = subprocess.run(
+                ["node", "-e",
+                 "var M=require('./renderer.js');"
+                 "var d=JSON.parse(process.argv[1]);"
+                 "var m=M.buildModel(d); m.normalize();"
+                 "process.stdout.write(JSON.stringify("
+                 "M.validate(m).issues.map(function(i){return i.title})));",
+                 _json.dumps(design)],
+                cwd=HERE, capture_output=True,
+            )
+            return _json.loads(r.stdout.decode() or "[]")
+
+        base = {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 3, "y2": 0,
+                "z2": 3, "block": "stone"}
+        bad = {"name": "t", "description": "", "notes": [], "layer_notes": {},
+               "ops": [base, {"op": "set", "x": 1, "y": 1, "z": 1,
+                              "block": "oak_stairs", "facing": "down"}]}
+        self.assertTrue([t for t in issues(bad) if "向きの指定" in t],
+                        "階段の上下向きを見逃した")
+
+        ok = {"name": "t", "description": "", "notes": ["ホッパーは下向き。"],
+              "layer_notes": {},
+              "ops": [base, {"op": "set", "x": 1, "y": 1, "z": 1,
+                             "block": "hopper", "facing": "down"}]}
+        self.assertFalse([t for t in issues(ok) if "向きの指定" in t],
+                         "ホッパーの下向きは正しいのにエラーになった")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))

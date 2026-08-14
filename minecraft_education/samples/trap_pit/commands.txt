@@ -1,4 +1,5 @@
 # 古代神殿の宝物回廊トラップ — チャットコマンド版（1行ずつチャットに貼り付け）
+# ブロック名と向きの指定は Mojang 公式のブロック定義と照合済み。
 # 建てたい場所に立って、動かずに順番に実行する（~はプレイヤー相対座標）
 
 /fill ~2 ~0 ~3 ~5 ~0 ~3 stone
@@ -142,22 +143,22 @@
 /fill ~2 ~11 ~10 ~5 ~11 ~10 stone_bricks
 /setblock ~6 ~11 ~10 chiseled_stone_bricks
 
-# ▼ 置き物は最後に（向きの調整は手動が確実）
+# ▼ 置き物は最後に。向きは状態指定で入れてある
 /setblock ~1 ~7 ~4 redstone_torch
-/setblock ~1 ~7 ~6 redstone_torch
 /setblock ~6 ~7 ~4 redstone_torch
-/setblock ~6 ~7 ~6 redstone_torch
+/setblock ~1 ~8 ~4 sticky_piston ["facing_direction"=5]   # 東向き
+/setblock ~6 ~8 ~4 sticky_piston ["facing_direction"=4]   # 西向き
 /setblock ~2 ~7 ~5 redstone_wire
 /setblock ~3 ~7 ~5 redstone_wire
 /setblock ~4 ~7 ~5 redstone_wire
 /setblock ~5 ~7 ~5 redstone_wire
-/setblock ~1 ~8 ~4 sticky_piston
-/setblock ~1 ~8 ~6 sticky_piston
-/setblock ~6 ~8 ~4 sticky_piston
-/setblock ~6 ~8 ~6 sticky_piston
 /setblock ~2 ~9 ~5 stone_pressure_plate
 /setblock ~3 ~9 ~5 stone_pressure_plate
 /setblock ~4 ~9 ~5 stone_pressure_plate
 /setblock ~5 ~9 ~5 stone_pressure_plate
+/setblock ~1 ~7 ~6 redstone_torch
+/setblock ~6 ~7 ~6 redstone_torch
+/setblock ~1 ~8 ~6 sticky_piston ["facing_direction"=5]   # 東向き
+/setblock ~6 ~8 ~6 sticky_piston ["facing_direction"=4]   # 西向き
 /setblock ~1 ~10 ~7 torch
 /setblock ~6 ~10 ~7 torch

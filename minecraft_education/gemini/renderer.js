@@ -44,16 +44,16 @@
     water: { name_ja: "水", bedrock_id: "water", makecode: "WATER", color: "#3E68C4", symbol: "水", transparent: true },
     oak_stairs: { name_ja: "オークの階段", bedrock_id: "oak_stairs", makecode: "OAK_STAIRS", color: "#B08A50", symbol: "階", transparent: true, orientable: true, shape: "stairs" },
     stone_brick_stairs: { name_ja: "石レンガの階段", bedrock_id: "stone_brick_stairs", makecode: "STONE_BRICK_STAIRS", color: "#9A9E9A", symbol: "段", transparent: true, orientable: true, shape: "stairs" },
-    cobblestone_stairs: { name_ja: "丸石の階段", bedrock_id: "cobblestone_stairs", makecode: "COBBLESTONE_STAIRS", color: "#6E736E", symbol: "坂", transparent: true, orientable: true, shape: "stairs" },
+    cobblestone_stairs: { name_ja: "丸石の階段", bedrock_id: "stone_stairs", makecode: "COBBLESTONE_STAIRS", color: "#6E736E", symbol: "坂", transparent: true, orientable: true, shape: "stairs" },
     oak_slab: { name_ja: "オークのハーフブロック", bedrock_id: "oak_slab", makecode: "OAK_SLAB", color: "#C69C60", symbol: "半", transparent: true, shape: "slab" },
     stone_brick_slab: { name_ja: "石レンガのハーフブロック", bedrock_id: "stone_brick_slab", makecode: "STONE_BRICK_SLAB", color: "#ACB0AC", symbol: "平", transparent: true, shape: "slab" },
     oak_fence: { name_ja: "オークのフェンス", bedrock_id: "oak_fence", makecode: "OAK_FENCE", color: "#A17C46", symbol: "柵", transparent: true, shape: "thin" },
-    oak_fence_gate: { name_ja: "オークのフェンスゲート", bedrock_id: "oak_fence_gate", makecode: "OAK_FENCE_GATE", color: "#B98E4F", symbol: "門", transparent: true, orientable: true, shape: "thin", marker: true },
-    oak_trapdoor: { name_ja: "オークのトラップドア", bedrock_id: "oak_trapdoor", makecode: "OAK_TRAPDOOR", color: "#A8813F", symbol: "蓋", transparent: true, orientable: true, shape: "thin", marker: true },
+    oak_fence_gate: { name_ja: "オークのフェンスゲート", bedrock_id: "fence_gate", makecode: "OAK_FENCE_GATE", color: "#B98E4F", symbol: "門", transparent: true, orientable: true, shape: "thin", marker: true },
+    oak_trapdoor: { name_ja: "オークのトラップドア", bedrock_id: "trapdoor", makecode: "OAK_TRAPDOOR", color: "#A8813F", symbol: "蓋", transparent: true, orientable: true, shape: "thin", marker: true },
     iron_bars: { name_ja: "鉄格子", bedrock_id: "iron_bars", makecode: "IRON_BARS", color: "#8E9296", symbol: "格", transparent: true, shape: "thin" },
     glass_pane: { name_ja: "板ガラス", bedrock_id: "glass_pane", makecode: "GLASS_PANE", color: "#D4EAEF", symbol: "窓", transparent: true, shape: "thin" },
     cobblestone_wall: { name_ja: "丸石の塀", bedrock_id: "cobblestone_wall", makecode: "COBBLESTONE_WALL", color: "#6A6F6A", symbol: "塀", transparent: true, shape: "thin" },
-    ladder: { name_ja: "はしご", bedrock_id: "ladder", makecode: "LADDER", color: "#9C7A45", symbol: "梯", transparent: true, orientable: true, shape: "thin", marker: true },
+    ladder: { name_ja: "はしご", bedrock_id: "ladder", makecode: "LADDER", color: "#9C7A45", symbol: "梯", transparent: true, orientable: true, shape: "thin", marker: true, updown: true },
     carpet_red: { name_ja: "赤いカーペット", bedrock_id: "red_carpet", makecode: "RED_CARPET", color: "#B03A3A", symbol: "絨", transparent: true, shape: "flat" },
     lantern: { name_ja: "ランタン", bedrock_id: "lantern", makecode: "LANTERN", color: "#E8A93C", symbol: "提", transparent: true, shape: "thin", marker: true },
     sea_lantern: { name_ja: "シーランタン", bedrock_id: "sea_lantern", makecode: "SEA_LANTERN", color: "#B8D6CE", symbol: "海" },
@@ -68,18 +68,18 @@
     wool_black: { name_ja: "黒の羊毛", bedrock_id: "black_wool", makecode: "BLACK_WOOL", color: "#2B2B2E", symbol: "黒" },
     tnt: { name_ja: "TNT", bedrock_id: "tnt", makecode: "TNT", color: "#D9472B", symbol: "爆" },
     redstone_block: { name_ja: "レッドストーンブロック", bedrock_id: "redstone_block", makecode: "REDSTONE_BLOCK", color: "#8E1616", symbol: "動", redstone: true },
-    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", orientable: true, marker: true, piston: true, redstone: true },
+    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", orientable: true, marker: true, piston: true, redstone: true, updown: true },
     redstone_wire: { name_ja: "レッドストーンダスト", bedrock_id: "redstone_wire", makecode: "REDSTONE_WIRE", color: "#E03A2A", symbol: "線", marker: true, redstone: true },
     redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true, redstone: true },
     stone_pressure_plate: { name_ja: "石の感圧板", bedrock_id: "stone_pressure_plate", makecode: "STONE_PRESSURE_PLATE", color: "#B8B8B8", symbol: "踏", marker: true, redstone: true },
     lever: { name_ja: "レバー", bedrock_id: "lever", makecode: "LEVER", color: "#8B7355", symbol: "柄", marker: true, redstone: true },
-    hopper: { name_ja: "ホッパー", bedrock_id: "hopper", makecode: "HOPPER", color: "#4A4E52", symbol: "漏", transparent: true, orientable: true, marker: true, redstone: true },
-    dispenser: { name_ja: "ディスペンサー（発射装置）", bedrock_id: "dispenser", makecode: "DISPENSER", color: "#6E6E6E", symbol: "発", orientable: true, marker: true, redstone: true },
-    dropper: { name_ja: "ドロッパー", bedrock_id: "dropper", makecode: "DROPPER", color: "#767676", symbol: "落", orientable: true, marker: true, redstone: true },
-    comparator: { name_ja: "レッドストーンコンパレーター", bedrock_id: "comparator", makecode: "COMPARATOR", color: "#C9C4BE", symbol: "比", transparent: true, orientable: true, marker: true, redstone: true },
-    repeater: { name_ja: "レッドストーンリピーター（反復装置）", bedrock_id: "repeater", makecode: "REPEATER", color: "#B9B4AE", symbol: "反", transparent: true, orientable: true, marker: true, redstone: true },
-    observer: { name_ja: "オブザーバー（観察者）", bedrock_id: "observer", makecode: "OBSERVER", color: "#5A5A5A", symbol: "観", orientable: true, marker: true, redstone: true },
-    sign: { name_ja: "看板", bedrock_id: "oak_sign", makecode: "OAK_SIGN", color: "#B08D55", symbol: "札", transparent: true, orientable: true, shape: "thin", marker: true },
+    hopper: { name_ja: "ホッパー", bedrock_id: "hopper", makecode: "HOPPER", color: "#4A4E52", symbol: "漏", transparent: true, orientable: true, marker: true, redstone: true, updown: true },
+    dispenser: { name_ja: "ディスペンサー（発射装置）", bedrock_id: "dispenser", makecode: "DISPENSER", color: "#6E6E6E", symbol: "発", orientable: true, marker: true, redstone: true, updown: true },
+    dropper: { name_ja: "ドロッパー", bedrock_id: "dropper", makecode: "DROPPER", color: "#767676", symbol: "落", orientable: true, marker: true, redstone: true, updown: true },
+    comparator: { name_ja: "レッドストーンコンパレーター", bedrock_id: "unpowered_comparator", makecode: "COMPARATOR", color: "#C9C4BE", symbol: "比", transparent: true, orientable: true, marker: true, redstone: true },
+    repeater: { name_ja: "レッドストーンリピーター（反復装置）", bedrock_id: "unpowered_repeater", makecode: "REPEATER", color: "#B9B4AE", symbol: "反", transparent: true, orientable: true, marker: true, redstone: true },
+    observer: { name_ja: "オブザーバー（観察者）", bedrock_id: "observer", makecode: "OBSERVER", color: "#5A5A5A", symbol: "観", orientable: true, marker: true, redstone: true, updown: true },
+    sign: { name_ja: "看板", bedrock_id: "standing_sign", makecode: "OAK_SIGN", color: "#B08D55", symbol: "札", transparent: true, orientable: true, shape: "thin", marker: true },
     torch: { name_ja: "たいまつ", bedrock_id: "torch", makecode: "TORCH", color: "#F5A623", symbol: "灯", marker: true },
     door: { name_ja: "オークのドア", bedrock_id: "wooden_door", makecode: "OAK_DOOR", color: "#C98A3F", symbol: "戸", marker: true }
   };
@@ -1116,6 +1116,33 @@
         "「ピストン→動かす板→通り道」の並びにする。" +
         "向かい合う2台で2マスの通路をふさぐなら、ピストンは通路の両どなりではなく" +
         "さらに1マス外側に置き、動かす板をそのあいだに入れる。");
+    }
+
+    /* --- 4c) 向きの指定がそのブロックに合っているか -------------------
+     * 階段やチェストは「上・下」を向けない。指定しても無視されて既定の向きで
+     * 置かれるため、図どおりに見えるのに現物だけ違う、という事故になる。 */
+    var badFacing = [];
+    model.facing.forEach(function (f, ks) {
+      var k = model.blocks.get(ks);
+      if (!k) return;
+      var b = block(k);
+      var q = ks.split(",");
+      var where = "(x=" + q[0] + ", " + (+q[1] + 1) + "段目, z=" + q[2] + ")";
+      if (!b.orientable) {
+        badFacing.push(esc(b.name_ja) + where + " は向きを指定できないブロック");
+      } else if ((f === "up" || f === "down") && !b.updown) {
+        badFacing.push(esc(b.name_ja) + where + " は上下を向けない（" +
+          (f === "down" ? "下" : "上") + "が指定されている）");
+      }
+    });
+    if (badFacing.length) {
+      add("error", "向きの指定が合っていない（" + badFacing.length + "か所）",
+        badFacing.slice(0, 3).join(" / ") + (badFacing.length > 3 ? " ほか" : "") +
+        "。指定しても無視されて既定の向きで置かれるので、" +
+        "図のとおりに見えても現物だけ向きが違うことになる。",
+        "そのブロックから facing を外すか、向きを north/south/east/west に直す。" +
+        "上下を向けるのはホッパー・ディスペンサー・ドロッパー・ピストン・" +
+        "オブザーバー・はしごだけ。");
     }
 
     /* --- 5) marker ブロックが notes で説明されていない ----------------- */
