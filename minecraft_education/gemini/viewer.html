@@ -459,18 +459,96 @@ var DESIGN = null;
     return "<defs>" + out.join("") + "</defs>";
   }
 
+  /* レッドストーンダストが「つながる」相手。Python版 _RS_CONNECT / _dust_links と同じ。
+   * ダストを赤い板で描くだけだと配線が追えないので、
+   * つながっている向きへ腕を伸ばして描く（Minecraftと同じ考え方）。 */
+  var RS_CONNECT = ["redstone_wire", "redstone_torch", "repeater", "comparator",
+    "lever", "sticky_piston", "dispenser", "dropper", "observer",
+    "redstone_block", "stone_pressure_plate"];
+
+  function dustLinks(cells, pos) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var x = pos[0], y = pos[1], z = pos[2];
+    var links = {};
+    var up0 = cells.get(key3(x, y + 1, z));
+    var aboveOpen = !(up0 !== undefined && up0 !== null && isOpaqueKey(up0));
+    ["north", "south", "east", "west"].forEach(function (name) {
+      var d = DV[name];
+      var nk = cells.get(key3(x + d[0], y, z + d[2]));
+      if (nk !== undefined && nk !== null && RS_CONNECT.indexOf(nk) !== -1) {
+        links[name] = "flat";
+        return;
+      }
+      if (aboveOpen && cells.get(key3(x + d[0], y + 1, z + d[2])) === "redstone_wire") {
+        links[name] = "up";
+        return;
+      }
+      if (cells.get(key3(x + d[0], y - 1, z + d[2])) === "redstone_wire" &&
+          !(nk !== undefined && nk !== null && isOpaqueKey(nk))) {
+        links[name] = "down";
+      }
+    });
+    return links;
+  }
+
+  function dustParts(links) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var names = Object.keys(links);
+    if (!names.length) return [[0, 0, 0.22, 0.22, 0.0625, 0.0625]];
+    var parts = [[0, 0, 0.16, 0.16, 0.0625, 0.0625]];
+    ["north", "south", "east", "west"].forEach(function (name) {
+      if (!Object.prototype.hasOwnProperty.call(links, name)) return;
+      var d = DV[name];
+      if (d[0]) parts.push([d[0] * 0.33, 0, 0.17, 0.11, 0.0625, 0.0625]);
+      else parts.push([0, d[2] * 0.33, 0.11, 0.17, 0.0625, 0.0625]);
+      if (links[name] !== "flat") {
+        var h = links[name] === "up" ? 0.5 : 0.0625;
+        if (d[0]) parts.push([d[0] * 0.47, 0, 0.05, 0.11, h + 0.0625, 0.0625]);
+        else parts.push([0, d[2] * 0.47, 0.11, 0.05, h + 0.0625, 0.0625]);
+      }
+    });
+    return parts;
+  }
+
+  /* 上から見た図に、ダストのつながり方を線で描く。Python版 _dust_wire_svg と同じ。 */
+  function dustWireSvg(px, py, cell, links) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var cx = px + cell / 2, cy = py + cell / 2;
+    var w = cell * 0.17;
+    var out = ['<rect x="' + N(cx - w * 0.9) + '" y="' + N(cy - w * 0.9) +
+      '" width="' + N(w * 1.8) + '" height="' + N(w * 1.8) + '" class="wire"/>'];
+    Object.keys(links).forEach(function (name) {
+      var kind = links[name], d = DV[name];
+      if (d[0]) {
+        var x0 = d[0] > 0 ? cx : px;
+        out.push('<rect x="' + N(x0) + '" y="' + N(cy - w / 2) + '" width="' +
+          N(cell / 2) + '" height="' + N(w) + '" class="wire"/>');
+      } else {
+        var y0 = d[2] > 0 ? cy : py;
+        out.push('<rect x="' + N(cx - w / 2) + '" y="' + N(y0) + '" width="' +
+          N(w) + '" height="' + N(cell / 2) + '" class="wire"/>');
+      }
+      if (kind !== "flat") {
+        var g = kind === "up" ? "上" : "下";
+        out.push('<text x="' + N(cx + d[0] * cell * 0.34) + '" y="' +
+          N(cy + d[2] * cell * 0.34 + cell * 0.1) + '" class="wireup">' + g + "</text>");
+      }
+    });
+    return out.join("");
+  }
+
   /* 立体図での「そのブロックの形」を箱のリストで返す。Python版 _iso_parts と同じ。
    * 各要素は [ずれx, ずれz, 半分の幅x, 半分の幅z, 上面の高さ, 箱の高さ]（マス単位）。
    * レッドストーン部品を小さな立方体で描くとMinecraftと別物になるので、
    * ダスト=床の線 / トーチ=棒＋先端 / リピーター=薄い板＋灯 / ホッパー=漏斗
    * のように実物の形で描く。 */
-  function isoParts(key, b, facing) {
+  function isoParts(key, b, facing, links) {
     var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
       down: [0, -1, 0], up: [0, 1, 0] };
     var d = (facing && DV[facing]) || [0, 0, 0];
     var shape = b.shape;
 
-    if (key === "redstone_wire") return [[0, 0, 0.5, 0.5, 0.0625, 0.0625]];
+    if (key === "redstone_wire") return dustParts(links || {});
     if (key === "stone_pressure_plate") return [[0, 0, 0.44, 0.44, 0.0625, 0.0625]];
     if (key === "redstone_torch" || key === "torch") {
       return [[0, 0, 0.09, 0.09, 0.62, 0.62], [0, 0, 0.15, 0.15, 0.78, 0.16]];
@@ -587,7 +665,8 @@ var DESIGN = null;
     for (var i2 = 0; i2 < cubes.length; i2++) {
       var cx2 = cubes[i2][2], cy2 = cubes[i2][3], k2 = cubes[i2][4];
       var b = block(k2);
-      var body = isoParts(k2, b, facings.get(cubes[i2][6])).map(function (q) {
+      var lk = k2 === "redstone_wire" ? dustLinks(cells, cubes[i2][6].split(",").map(Number)) : null;
+      var body = isoParts(k2, b, facings.get(cubes[i2][6]), lk).map(function (q) {
         return isoBox(cx2, cy2, q[0], q[1], q[2], q[3], q[4], q[5], k2);
       }).join("");
       faces.push(cubes[i2][5] ? body : '<g class="faint">' + body + "</g>");
@@ -733,11 +812,17 @@ var DESIGN = null;
         var px = m + i * CELL_RS, py = m + j * CELL_RS;
         var b = block(key);
         var isRs = rsSet.has(key3(x, y, z));
+        if (key === "redstone_wire") {
+          out.push("<g" + (isRs ? "" : ' class="faint"') + '><rect x="' + px + '" y="' + py +
+            '" width="' + CELL_RS + '" height="' + CELL_RS + '" class="wire-bg"/>' +
+            dustWireSvg(px, py, CELL_RS, dustLinks(model.blocks, [x, y, z])) + "</g>");
+        } else {
         out.push("<g" + (isRs ? "" : ' class="faint"') + '><rect x="' + px + '" y="' + py +
           '" width="' + CELL_RS + '" height="' + CELL_RS + '" ' +
           'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
           '<text x="' + F(px + CELL_RS / 2) + '" y="' + F(py + CELL_RS / 2 + 6) + '" ' +
           'class="sym rs" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text></g>");
+        }
         if (isRs) {
           out.push('<rect x="' + F(px + 1.5) + '" y="' + F(py + 1.5) + '" width="' + (CELL_RS - 3) +
             '" height="' + (CELL_RS - 3) + '" class="rs-ring"/>');
@@ -863,12 +948,20 @@ var DESIGN = null;
         var key = layer.get(x + "," + z);
         if (key) {
           var b = block(key);
+          if (key === "redstone_wire") {
+            out.push('<rect x="' + px + '" y="' + py + '" width="' + CELL +
+              '" height="' + CELL + '" class="wire-bg"/>' +
+              dustWireSvg(px, py, CELL, dustLinks(model.blocks, [x, y, z])));
+          } else {
           out.push('<rect x="' + px + '" y="' + py + '" width="' + CELL + '" height="' + CELL + '" ' +
                    'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
                    '<text x="' + F(px + CELL / 2) + '" y="' + F(py + CELL / 2 + 5) + '" ' +
                    'class="sym" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text>");
+          }
           var fc = model.facing.get(key3(x, y, z));
-          if (fc) out.push(facingArrow(px, py, fc, textColorFor(b.color)));
+          if (fc && key !== "redstone_wire") {
+            out.push(facingArrow(px, py, fc, textColorFor(b.color)));
+          }
         } else if (prevLayer && prevLayer.has(x + "," + z)) {
           // 下の段にブロックがある目印（位置合わせ用）。空きマス自体は
           // 上で敷いたパターンが担当するので、ここでは描かない
@@ -959,6 +1052,10 @@ var DESIGN = null;
 "svg rect.empty-bg { fill: var(--cell-empty); }\n" +
 "svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
 "svg polygon.dir { opacity: 0.85; }\n" +
+"svg rect.wire-bg { fill: var(--cell-empty); stroke: var(--cell-line); }\n" +
+"svg rect.wire { fill: #e03a2a; }\n" +
+"svg text.wireup { font-size: 8.5px; font-weight: 800; fill: #7b1f17;\n" +
+"  text-anchor: middle; }\n" +
 "svg text.updown { font-size: 9.5px; font-weight: 800; text-anchor: middle;\n" +
 "  opacity: 0.9; }\n" +
 "svg g.faint { opacity: 0.28; }\n" +

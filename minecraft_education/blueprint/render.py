@@ -202,7 +202,75 @@ def _tex_defs(keys):
 
 
 
-def _iso_parts(key, b, facing):
+
+# レッドストーンダストが「つながる」相手。Minecraftと同じ考え方で、
+# となりのダストや回路部品に向かって線が伸びる。
+# これが無いと、ダストがただの赤い板になって配線が追えない。
+_RS_CONNECT = (
+    "redstone_wire", "redstone_torch", "repeater", "comparator", "lever",
+    "sticky_piston", "dispenser", "dropper", "observer", "redstone_block",
+    "stone_pressure_plate",
+)
+
+
+def _dust_links(cells, pos):
+    """そのダストがどの向きにつながっているかを返す。
+
+    戻り値: {"north": "flat"/"up"/"down", ...}
+    ・となりが同じ高さのダストや回路部品 → まっすぐつながる(flat)
+    ・となりの1段上にダストがあり、自分の真上がふさがっていない → 登る(up)
+    ・となりの1段下にダストがあり、となりのマスがふさがっていない → 下る(down)
+    """
+    x, y, z = pos
+    links = {}
+    above_open = not (
+        (x, y + 1, z) in cells and _is_opaque(cells[(x, y + 1, z)])
+    )
+    for name, (dx, dy, dz) in DIR_VEC.items():
+        if name in ("up", "down"):
+            continue
+        n = (x + dx, y, z + dz)
+        nk = cells.get(n)
+        if nk in _RS_CONNECT:
+            links[name] = "flat"
+            continue
+        up = (x + dx, y + 1, z + dz)
+        if above_open and cells.get(up) == "redstone_wire":
+            links[name] = "up"
+            continue
+        dn = (x + dx, y - 1, z + dz)
+        if cells.get(dn) == "redstone_wire" and not (
+            nk is not None and _is_opaque(nk)
+        ):
+            links[name] = "down"
+    return links
+
+
+def _dust_parts(links):
+    """ダストの形。中心の点＋つながっている向きへの腕。"""
+    if not links:
+        # どこにもつながっていない＝ぽつんと1つ。Minecraftでは十字に見える
+        return [(0, 0, 0.22, 0.22, 0.0625, 0.0625)]
+    parts = [(0, 0, 0.16, 0.16, 0.0625, 0.0625)]
+    for name in ("north", "south", "east", "west"):
+        if name not in links:
+            continue
+        dx, _dy, dz = DIR_VEC[name]
+        if dx:
+            parts.append((dx * 0.33, 0, 0.17, 0.11, 0.0625, 0.0625))
+        else:
+            parts.append((0, dz * 0.33, 0.11, 0.17, 0.0625, 0.0625))
+        if links[name] != "flat":
+            # 段差でつながるときは、坂の途中に短い板を立てて上下を示す
+            h = 0.5 if links[name] == "up" else 0.0625
+            if dx:
+                parts.append((dx * 0.47, 0, 0.05, 0.11, h + 0.0625, 0.0625))
+            else:
+                parts.append((0, dz * 0.47, 0.11, 0.05, h + 0.0625, 0.0625))
+    return parts
+
+
+def _iso_parts(key, b, facing, links=None):
     """立体図での「そのブロックの形」を、箱のリストで返す。
 
     各要素は (中心のずれx, 中心のずれz, 半分の幅x, 半分の幅z, 上面の高さ, 箱の高さ)。
@@ -218,9 +286,9 @@ def _iso_parts(key, b, facing):
     d = DIR_VEC.get(facing or "", (0, 0, 0))
     shape = b.get("shape")
 
-    if key in ("redstone_wire",):
-        # 床に貼りついた線。マスいっぱいに薄く広がる
-        return [(0, 0, 0.5, 0.5, 0.0625, 0.0625)]
+    if key == "redstone_wire":
+        # 床に貼りついた線。つながっている向きへ腕が伸びる（配線が追えるように）
+        return _dust_parts(links or {})
     if key == "stone_pressure_plate":
         return [(0, 0, 0.44, 0.44, 0.0625, 0.0625)]
     if key in ("redstone_torch", "torch"):
@@ -361,9 +429,10 @@ def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1, facings=None):
         c = b["color"]
         # 形ごとに描き分ける。立方体でないブロック（階段・ハーフ・柵など）を
         # 立方体として描くと、立体図がのっぺりして細部が伝わらない。
+        links = _dust_links(cells, key_pos) if key == "redstone_wire" else None
         body = "".join(
             _iso_box(cx, cy, *part, key)
-            for part in _iso_parts(key, b, facings.get(key_pos))
+            for part in _iso_parts(key, b, facings.get(key_pos), links)
         )
         faces.append(body if main else f'<g class="faint">{body}</g>')
     used = sorted({c[4] for c in cubes})
@@ -378,6 +447,46 @@ def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1, facings=None):
 def _iso_svg(model):
     """完成イメージのアイソメトリック図。"""
     return _iso_cells_svg(model.blocks, None, "完成イメージ", facings=model.facing)
+
+
+
+def _dust_wire_svg(px, py, cell, links):
+    """上から見た図に、ダストのつながり方を線で描く。
+
+    マスを赤く塗るだけだと「どこからどこへつながっているか」が読めない。
+    中心の点と、つながっている向きへの線を重ねて描く。
+    段差でつながるときは向きの先に小さな「上」「下」を添える。
+    """
+    cx, cy = px + cell / 2, py + cell / 2
+    w = cell * 0.17          # 線の太さ
+    out = [
+        f'<rect x="{_n(cx - w * 0.9)}" y="{_n(cy - w * 0.9)}" '
+        f'width="{_n(w * 1.8)}" height="{_n(w * 1.8)}" class="wire"/>'
+    ]
+    if not links:
+        return "".join(out)
+    for name, kind in links.items():
+        dx, _dy, dz = DIR_VEC[name]
+        if dx:
+            x0 = cx if dx > 0 else px
+            out.append(
+                f'<rect x="{_n(x0)}" y="{_n(cy - w / 2)}" '
+                f'width="{_n(cell / 2)}" height="{_n(w)}" class="wire"/>'
+            )
+        else:
+            y0 = cy if dz > 0 else py
+            out.append(
+                f'<rect x="{_n(cx - w / 2)}" y="{_n(y0)}" '
+                f'width="{_n(w)}" height="{_n(cell / 2)}" class="wire"/>'
+            )
+        if kind != "flat":
+            g = "上" if kind == "up" else "下"
+            tx = cx + dx * cell * 0.34
+            ty = cy + dz * cell * 0.34 + cell * 0.1
+            out.append(
+                f'<text x="{_n(tx)}" y="{_n(ty)}" class="wireup">{g}</text>'
+            )
+    return "".join(out)
 
 
 def _facing_arrow(px, py, facing, color):
@@ -452,12 +561,21 @@ def _layer_svg(model, y, layer, prev_layer, x_range, z_range):
             key = layer.get((x, z))
             if key:
                 b = block(key)
-                out.append(
-                    f'<rect x="{px}" y="{py}" width="{CELL}" height="{CELL}" '
-                    f'fill="{b["color"]}" stroke="{shade(b["color"], 0.6)}"/>'
-                    f'<text x="{px + CELL / 2}" y="{py + CELL / 2 + 5}" '
-                    f'class="sym" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text>'
-                )
+                if key == "redstone_wire":
+                    # ダストは記号ではなく配線の形で描く（つながりが読めるように）
+                    out.append(
+                        f'<rect x="{px}" y="{py}" width="{CELL}" height="{CELL}" '
+                        f'class="wire-bg"/>'
+                        + _dust_wire_svg(px, py, CELL,
+                                         _dust_links(model.blocks, (x, y, z)))
+                    )
+                else:
+                    out.append(
+                        f'<rect x="{px}" y="{py}" width="{CELL}" height="{CELL}" '
+                        f'fill="{b["color"]}" stroke="{shade(b["color"], 0.6)}"/>'
+                        f'<text x="{px + CELL / 2}" y="{py + CELL / 2 + 5}" '
+                        f'class="sym" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text>'
+                    )
                 f = model.facing.get((x, y, z))
                 if f:
                     out.append(
@@ -619,12 +737,21 @@ def _rs_layer_svg(model, y, rs, box):
             b = block(key)
             is_rs = (x, y, z) in rs
             cls = "" if is_rs else ' class="faint"'
-            out.append(
-                f'<g{cls}><rect x="{px}" y="{py}" width="{CELL_RS}" height="{CELL_RS}" '
-                f'fill="{b["color"]}" stroke="{shade(b["color"], 0.6)}"/>'
-                f'<text x="{px + CELL_RS / 2}" y="{py + CELL_RS / 2 + 6}" '
-                f'class="sym rs" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text></g>'
-            )
+            if key == "redstone_wire":
+                out.append(
+                    f'<g{cls}><rect x="{px}" y="{py}" width="{CELL_RS}" '
+                    f'height="{CELL_RS}" class="wire-bg"/>'
+                    + _dust_wire_svg(px, py, CELL_RS,
+                                     _dust_links(model.blocks, (x, y, z)))
+                    + "</g>"
+                )
+            else:
+                out.append(
+                    f'<g{cls}><rect x="{px}" y="{py}" width="{CELL_RS}" height="{CELL_RS}" '
+                    f'fill="{b["color"]}" stroke="{shade(b["color"], 0.6)}"/>'
+                    f'<text x="{px + CELL_RS / 2}" y="{py + CELL_RS / 2 + 6}" '
+                    f'class="sym rs" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text></g>'
+                )
             if is_rs:
                 out.append(
                     f'<rect x="{px + 1.5}" y="{py + 1.5}" width="{CELL_RS - 3}" '
@@ -780,6 +907,10 @@ svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
 svg rect.empty-bg { fill: var(--cell-empty); }
 svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }
 svg polygon.dir { opacity: 0.85; }
+svg rect.wire-bg { fill: var(--cell-empty); stroke: var(--cell-line); }
+svg rect.wire { fill: #e03a2a; }
+svg text.wireup { font-size: 8.5px; font-weight: 800; fill: #7b1f17;
+  text-anchor: middle; }
 svg text.updown { font-size: 9.5px; font-weight: 800; text-anchor: middle;
   opacity: 0.9; }
 svg g.faint { opacity: 0.28; }

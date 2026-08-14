@@ -420,6 +420,60 @@ class TestPack(unittest.TestCase):
             self.assertEqual(q, [(0, 0, 0.5, 0.5, 1.0, 1.0)],
                              f"{key} が立方体で描かれていない")
 
+    def test_dust_shows_connections(self):
+        """レッドストーンダストが「どこへつながっているか」を描くこと。
+
+        （実際に起きた不具合: ダストを床の赤い板で描いたら、Minecraftらしくは
+        なったが配線がどこへ続いているのか読めなくなった。
+        Minecraftと同じく、つながる向きへ腕が伸びる形にする。）
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.render import _dust_links, _dust_parts  # noqa: E402
+
+        # 東西に3個つながったダスト。真ん中は東西の2方向につながる
+        cells = {(0, 1, 0): "redstone_wire", (1, 1, 0): "redstone_wire",
+                 (2, 1, 0): "redstone_wire"}
+        mid = _dust_links(cells, (1, 1, 0))
+        self.assertEqual(set(mid), {"east", "west"}, f"つながりが違う: {mid}")
+        end = _dust_links(cells, (0, 1, 0))
+        self.assertEqual(set(end), {"east"}, f"端のつながりが違う: {end}")
+
+        # つながる向きの数だけ腕が増える
+        self.assertGreater(len(_dust_parts(mid)), len(_dust_parts(end)))
+        self.assertEqual(len(_dust_parts({})), 1, "孤立したダストは点1つ")
+
+        # 回路部品にもつながる（ディスペンサーへ届いていることが読める）
+        cells2 = {(0, 1, 0): "redstone_wire", (1, 1, 0): "dispenser"}
+        self.assertEqual(set(_dust_links(cells2, (0, 1, 0))), {"east"})
+
+        # 段差でつながるときは up / down を返す
+        cells3 = {(0, 1, 0): "redstone_wire", (1, 2, 0): "redstone_wire"}
+        self.assertEqual(_dust_links(cells3, (0, 1, 0)).get("east"), "up")
+
+    def test_dust_wire_drawn_in_layer_grid(self):
+        """段ごとの図でもダストが配線の形で描かれること。"""
+        import json as _json
+        design = {
+            "name": "配線", "description": "", "notes": ["ダストを一直線に置く。"],
+            "layer_notes": {},
+            "ops": [
+                {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 4, "y2": 0, "z2": 2,
+                 "block": "stone"},
+                {"op": "fill", "x1": 0, "y1": 1, "z1": 1, "x2": 3, "y2": 1, "z2": 1,
+                 "block": "redstone_wire"},
+            ],
+        }
+        r = subprocess.run(
+            ["node", "-e",
+             "var M=require('./renderer.js');"
+             "process.stdout.write(M.renderHTML(JSON.parse(process.argv[1]),{banner:false}));",
+             _json.dumps(design)],
+            cwd=HERE, capture_output=True,
+        )
+        html = r.stdout.decode()
+        self.assertIn('class="wire"', html, "配線の線が描かれていない")
+        self.assertIn('class="wire-bg"', html, "ダストのマスの下地が無い")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))
