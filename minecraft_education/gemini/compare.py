@@ -114,7 +114,8 @@ def extract(html):
         # 座標の目盛りラベル
         axes = re.findall(r'class="ax">(-?\d+)</text>', svg)
 
-        compass = _text(re.search(r'<div class="compass">(.*?)</div>', card, re.S).group(1))
+        cm = re.search(r'<div class="compass">(.*?)</div>', card, re.S)
+        compass = _text(cm.group(1)) if cm else ""
         m = re.search(r'<div class="layer-note">(.*?)</div>', card, re.S)
         note = _text(m.group(1)) if m else None
 
@@ -171,6 +172,21 @@ def run(name):
     out.mkdir(exist_ok=True)
     (out / f"{name}.py.html").write_text(py_html, encoding="utf-8")
     (out / f"{name}.js.html").write_text(js_html, encoding="utf-8")
+
+    def circuit(h):
+        i = h.find("<h2>レッドストーン回路のくわしい図</h2>")
+        if i < 0:
+            return None
+        return h[i:h.find("<h2>作り方（1段ずつ）</h2>", i)]
+
+    cpy, cjs = circuit(py_html), circuit(js_html)
+    if cpy is None and cjs is None:
+        print("  ―  レッドストーン回路なし（詳細図は出さない）")
+    elif cpy == cjs:
+        print(f"  ✅ レッドストーン回路のくわしい図 {len(cpy)}文字・完全一致")
+    else:
+        print("  ✗ レッドストーン回路のくわしい図が Python版とJS版で違う")
+        return False
 
     a, b = extract(py_html), extract(js_html)
 

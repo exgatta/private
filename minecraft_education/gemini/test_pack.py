@@ -181,6 +181,40 @@ class TestPack(unittest.TestCase):
         self.assertTrue(blocked, f"詰まったピストンを見逃した: {issues}")
         self.assertEqual(blocked[0]["level"], "error")
 
+    def test_circuit_detail_section(self):
+        """レッドストーンがある設計にだけ回路詳細図が付き、無い設計には付かないこと。"""
+        import json as _json
+        H = "<h2>レッドストーン回路のくわしい図</h2>"
+
+        def render(design):
+            r = subprocess.run(
+                ["node", "-e",
+                 "var M=require('./renderer.js');"
+                 "process.stdout.write(M.renderHTML(JSON.parse(process.argv[1]),"
+                 "{banner:false}));",
+                 _json.dumps(design)],
+                cwd=HERE, capture_output=True,
+            )
+            return r.stdout.decode()
+
+        plain = {"name": "小屋", "description": "", "notes": [], "layer_notes": {},
+                 "ops": [{"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 3, "y2": 0,
+                          "z2": 3, "block": "oak_planks"}]}
+        self.assertNotIn(H, render(plain), "回路が無いのに詳細図が出た")
+
+        wired = {"name": "スイッチ", "description": "",
+                 "notes": ["レバーとレッドストーンダストを置く。"], "layer_notes": {},
+                 "ops": [
+                     {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 3, "y2": 0,
+                      "z2": 3, "block": "stone"},
+                     {"op": "set", "x": 1, "y": 1, "z": 1, "block": "redstone_wire"},
+                     {"op": "set", "x": 2, "y": 1, "z": 1, "block": "lever"},
+                 ]}
+        html = render(wired)
+        self.assertIn(H, html, "回路があるのに詳細図が出ない")
+        self.assertIn("レバー", html)
+        self.assertIn("15マスまで", html, "ダストの役割説明が出ていない")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))

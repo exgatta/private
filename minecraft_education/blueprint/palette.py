@@ -220,6 +220,7 @@ BLOCKS = {
     "redstone_block": {
         "name_ja": "レッドストーンブロック", "bedrock_id": "redstone_block",
         "makecode": "REDSTONE_BLOCK", "color": "#8E1616", "symbol": "動",
+            "redstone": True,
     },
     # ▼ レッドストーン部品は向き・取り付け面が重要なので marker（手動設置）扱い。
     #   設計側で m.notes に配置の向きと配線手順を必ず書くこと。
@@ -227,22 +228,27 @@ BLOCKS = {
         "name_ja": "粘着ピストン", "bedrock_id": "sticky_piston",
         "makecode": "STICKY_PISTON", "color": "#8AA05A", "symbol": "押",
         "marker": True, "orientable": True, "piston": True,
+            "redstone": True,
     },
     "redstone_wire": {
         "name_ja": "レッドストーンダスト", "bedrock_id": "redstone_wire",
         "makecode": "REDSTONE_WIRE", "color": "#E03A2A", "symbol": "線", "marker": True,
+            "redstone": True,
     },
     "redstone_torch": {
         "name_ja": "レッドストーントーチ", "bedrock_id": "redstone_torch",
         "makecode": "REDSTONE_TORCH", "color": "#C22F1E", "symbol": "信", "marker": True,
+            "redstone": True,
     },
     "stone_pressure_plate": {
         "name_ja": "石の感圧板", "bedrock_id": "stone_pressure_plate",
         "makecode": "STONE_PRESSURE_PLATE", "color": "#B8B8B8", "symbol": "踏", "marker": True,
+            "redstone": True,
     },
     "lever": {
         "name_ja": "レバー", "bedrock_id": "lever",
         "makecode": "LEVER", "color": "#8B7355", "symbol": "柄", "marker": True,
+            "redstone": True,
     },
     "torch": {
         "name_ja": "たいまつ", "bedrock_id": "torch",

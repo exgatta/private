@@ -140,15 +140,19 @@ def _iso_svg(model):
 
 
 def _facing_arrow(px, py, facing, color):
+    return _facing_arrow_at(px, py, CELL, facing, color)
+
+
+def _facing_arrow_at(px, py, cell, facing, color):
     """マスの中に向きの三角形を描く。
 
     階段などは向きが分からないと作れないので、記号だけでなく
     「どちらを向いているか」を図の上で必ず読めるようにする。
     図は上が北なので、north=上・south=下・east=右・west=左。
     """
-    cx, cy = px + CELL / 2, py + CELL / 2
-    r = 3.8          # 三角形の大きさ（記号と重ならない大きさに抑える）
-    d = CELL / 2 - 1.6  # マスのふちからの距離
+    cx, cy = px + cell / 2, py + cell / 2
+    r = cell * 0.146      # 三角形の大きさ（記号と重ならない大きさに抑える）
+    d = cell / 2 - 1.6    # マスのふちからの距離
     tri = {
         "north": ((cx, cy - d), (cx - r, cy - d + r), (cx + r, cy - d + r)),
         "south": ((cx, cy + d), (cx - r, cy + d - r), (cx + r, cy + d - r)),
@@ -221,6 +225,174 @@ def _layer_svg(model, y, layer, prev_layer, x_range, z_range):
                 )
     out.append("</svg>")
     return "".join(out)
+
+
+
+# ------------------------------------------------- redstone circuit detail
+
+CELL_RS = 34   # 回路詳細図の1マス（読み違いが命取りなので大きめ）
+RS_MARGIN = 2  # 回路のまわり何マスまで一緒に描くか（支えの床や壁が要るため）
+
+DIR_VEC = {
+    "north": (0, 0, -1), "south": (0, 0, 1),
+    "east": (1, 0, 0), "west": (-1, 0, 0),
+}
+DIR_JA = {"north": "北", "south": "南", "east": "東", "west": "西"}
+
+
+def _rs_cells(model):
+    """レッドストーン部品のある座標。"""
+    return {p: k for p, k in model.blocks.items() if block(k).get("redstone")}
+
+
+def _rs_bounds(model, cells):
+    """部品のまわりに余白を足した範囲。支えの床や壁も見えるようにする。"""
+    xs = [p[0] for p in cells]
+    ys = [p[1] for p in cells]
+    zs = [p[2] for p in cells]
+    bx1, by1, bz1, bx2, by2, bz2 = model.bounds()
+    return (
+        max(bx1, min(xs) - RS_MARGIN), max(by1, min(ys) - 1), max(bz1, min(zs) - RS_MARGIN),
+        min(bx2, max(xs) + RS_MARGIN), min(by2, max(ys) + 1), min(bz2, max(zs) + RS_MARGIN),
+    )
+
+
+def _rs_role(model, key, facing):
+    """その部品が回路で何をしているかの説明（部品の種類ごとに1つ）。"""
+    b = block(key)
+    if key == "redstone_torch":
+        return ("真下のブロックの上に立てる（壁に横付けしない）。"
+                "その真下のブロックが動力を受けると消える＝スイッチが逆になる。"
+                "ふだんは真上のブロックを強く動力化している。")
+    if key == "stone_pressure_plate":
+        return ("踏むと真下のブロックを強く動力化する。"
+                "そのブロックにとなり合うレッドストーンダストへ動力が伝わる。")
+    if b.get("piston"):
+        if not facing:
+            return "向きが決まっていない。どちらへ押すか決めないと作れない。"
+        return (f"{DIR_JA[facing]}向き（図の矢印のとおり）。"
+                "前の1マスにあるブロックを、前の2マス目へ押し出す。"
+                "前の2マス目がふさがっていると伸びられないので必ず空けておく。"
+                "動力を受けているあいだ伸びたままになる。")
+    if key == "redstone_wire":
+        return ("となり合うダストへ信号を運ぶ（動力源から15マスまで）。"
+                "かならず下に支えのブロックが要る。位置は下の図で確かめる。")
+    if key == "lever":
+        return "手で入れ切りするスイッチ。取り付けた面のブロックを動力化する。"
+    if key == "redstone_block":
+        return "置くだけで常にONの動力源。となりの部品をずっと動かし続ける。"
+    return b["name_ja"]
+
+
+def _rs_layer_svg(model, y, rs, box):
+    """回路詳細図の1段分。回路は色つき、まわりのブロックは薄く描く。"""
+    x1, _, z1, x2, _, z2 = box
+    cols, rows = x2 - x1 + 1, z2 - z1 + 1
+    m = 26
+    w, h = cols * CELL_RS + m + 2, rows * CELL_RS + m + 2
+    grid = "".join(
+        f"M{m + i * CELL_RS} {m}V{m + rows * CELL_RS}" for i in range(cols + 1)
+    ) + "".join(
+        f"M{m} {m + j * CELL_RS}H{m + cols * CELL_RS}" for j in range(rows + 1)
+    )
+    out = [
+        f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="回路 {y + 1}段目" '
+        f'style="width:{w}px;max-width:100%">'
+        f'<rect x="{m}" y="{m}" width="{cols * CELL_RS}" height="{rows * CELL_RS}" '
+        f'class="empty-bg"/><path class="grid" d="{grid}"/>'
+    ]
+    for i in range(cols):
+        out.append(
+            f'<text x="{m + i * CELL_RS + CELL_RS / 2}" y="{m - 9}" class="ax">{x1 + i}</text>'
+        )
+    for j in range(rows):
+        out.append(
+            f'<text x="{m - 9}" y="{m + j * CELL_RS + CELL_RS / 2 + 4}" class="ax">{z1 + j}</text>'
+        )
+    for j in range(rows):
+        for i in range(cols):
+            x, z = x1 + i, z1 + j
+            key = model.get(x, y, z)
+            if not key:
+                continue
+            px, py = m + i * CELL_RS, m + j * CELL_RS
+            b = block(key)
+            is_rs = (x, y, z) in rs
+            cls = "" if is_rs else ' class="faint"'
+            out.append(
+                f'<g{cls}><rect x="{px}" y="{py}" width="{CELL_RS}" height="{CELL_RS}" '
+                f'fill="{b["color"]}" stroke="{shade(b["color"], 0.6)}"/>'
+                f'<text x="{px + CELL_RS / 2}" y="{py + CELL_RS / 2 + 6}" '
+                f'class="sym rs" fill="{_text_color_for(b["color"])}">{b["symbol"]}</text></g>'
+            )
+            if is_rs:
+                out.append(
+                    f'<rect x="{px + 1.5}" y="{py + 1.5}" width="{CELL_RS - 3}" '
+                    f'height="{CELL_RS - 3}" class="rs-ring"/>'
+                )
+            f = model.facing.get((x, y, z))
+            if f:
+                out.append(_facing_arrow_at(px, py, CELL_RS, f, _text_color_for(b["color"])))
+    out.append("</svg>")
+    return "".join(out)
+
+
+def _circuit_section(model):
+    """レッドストーン回路だけを抜き出した詳細ページ。回路が無ければ空。"""
+    rs = _rs_cells(model)
+    if not rs:
+        return ""
+    box = _rs_bounds(model, rs)
+    x1, y1, z1, x2, y2, z2 = box
+
+    # 段ごとの図（回路部品がある段だけ。支えを見せるため上下1段も出す）
+    ys = sorted({p[1] for p in rs})
+    show = sorted(set(range(max(y1, min(ys) - 1), min(y2, max(ys) + 1) + 1)))
+    cards = []
+    for y in show:
+        n = sum(1 for p in rs if p[1] == y)
+        head = f"{n}個の部品" if n else "部品なし（支えの段）"
+        cards.append(
+            f'<div class="layer-card rs-card"><div class="layer-head">'
+            f'<span class="layer-no">{y + 1}段目</span>'
+            f'<span class="layer-count">{head}</span></div>'
+            f'<div class="grid-wrap">{_rs_layer_svg(model, y, rs, box)}</div></div>'
+        )
+
+    # 部品ごとの一覧。同じ種類・同じ向きはまとめて1行にする
+    # （ダストを1個ずつ並べると同じ文が何十行も続いて読めなくなる）
+    groups = {}
+    for pos in sorted(rs, key=lambda p: (p[1], p[2], p[0])):
+        g = (rs[pos], model.facing.get(pos))
+        groups.setdefault(g, []).append(pos)
+
+    rows = []
+    for (key, facing), poss in groups.items():
+        b = block(key)
+        if len(poss) <= 6:
+            where = "<br>".join(f"{p[1] + 1}段目 x={p[0]}, z={p[2]}" for p in poss)
+        else:
+            ys = sorted({p[1] for p in poss})
+            where = ("<br>".join(f"{y + 1}段目" for y in ys)
+                     + f"<br>ぜんぶで{len(poss)}個")
+        rows.append(
+            f'<tr><td class="n">{where}</td>'
+            f'<td><span class="swatch" style="background:{b["color"]}"></span>'
+            f'<b>{b["name_ja"]}</b>'
+            + (f'<b>（{DIR_JA[facing]}向き）</b>' if facing else "")
+            + f' ×{len(poss)}'
+            + f'<div class="role">{_rs_role(model, key, facing)}</div></td></tr>'
+        )
+
+    return (
+        '<h2>レッドストーン回路のくわしい図</h2>'
+        '<p class="hint">仕掛けの部分だけを大きく描いたもの。'
+        f'まわり{RS_MARGIN}マスの支えのブロックも一緒に描いてある（薄い色）。'
+        '回路は1マスのズレでも動かなくなるので、こちらの図で位置を確かめて作る。</p>'
+        f'<div class="panel"><table class="bom rs-list">'
+        f'<tr><th>位置</th><th>部品と役割</th></tr>{"".join(rows)}</table></div>'
+        f'<div class="layers rs-layers">{"".join(cards)}</div>'
+    )
 
 
 # ---------------------------------------------------------------- html
@@ -300,6 +472,12 @@ svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
 svg rect.empty-bg { fill: var(--cell-empty); }
 svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }
 svg polygon.dir { opacity: 0.85; }
+svg g.faint { opacity: 0.28; }
+svg rect.rs-ring { fill: none; stroke: var(--accent-ink); stroke-width: 2; rx: 2; }
+svg text.sym.rs { font-size: 15px; }
+table.bom.rs-list td.n { text-align: left; font-size: 12px; line-height: 1.45; white-space: nowrap; }
+table.bom.rs-list .role { color: var(--muted); font-size: 13px; margin-top: 3px; }
+.rs-layers { margin-top: 18px; }
 svg circle.ghost { fill: var(--ghost); }
 .compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
 .layer-note {
@@ -365,6 +543,7 @@ def render_html(model):
         prev = layer
 
     desc = f'<p class="desc">{model.description}</p>' if model.description else ""
+    circuit_section = _circuit_section(model)
     notes_section = ""
     if model.notes:
         items = "".join(f"<li>{n}</li>" for n in model.notes)
@@ -402,6 +581,7 @@ def render_html(model):
 </table></div>
 
 {notes_section}
+{circuit_section}
 <h2>作り方（1段ずつ）</h2>
 <p class="hint">レゴの説明書と同じで、下の段から順番に置いていく。数字はマスの座標。</p>
 <div class="layers">{"".join(layer_cards)}</div>

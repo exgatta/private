@@ -91,12 +91,12 @@ var DESIGN = null;
     wool_green: { name_ja: "緑の羊毛", bedrock_id: "green_wool", makecode: "GREEN_WOOL", color: "#4E7A32", symbol: "緑" },
     wool_black: { name_ja: "黒の羊毛", bedrock_id: "black_wool", makecode: "BLACK_WOOL", color: "#2B2B2E", symbol: "黒" },
     tnt: { name_ja: "TNT", bedrock_id: "tnt", makecode: "TNT", color: "#D9472B", symbol: "爆" },
-    redstone_block: { name_ja: "レッドストーンブロック", bedrock_id: "redstone_block", makecode: "REDSTONE_BLOCK", color: "#8E1616", symbol: "動" },
-    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", orientable: true, marker: true, piston: true },
-    redstone_wire: { name_ja: "レッドストーンダスト", bedrock_id: "redstone_wire", makecode: "REDSTONE_WIRE", color: "#E03A2A", symbol: "線", marker: true },
-    redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true },
-    stone_pressure_plate: { name_ja: "石の感圧板", bedrock_id: "stone_pressure_plate", makecode: "STONE_PRESSURE_PLATE", color: "#B8B8B8", symbol: "踏", marker: true },
-    lever: { name_ja: "レバー", bedrock_id: "lever", makecode: "LEVER", color: "#8B7355", symbol: "柄", marker: true },
+    redstone_block: { name_ja: "レッドストーンブロック", bedrock_id: "redstone_block", makecode: "REDSTONE_BLOCK", color: "#8E1616", symbol: "動", redstone: true },
+    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", orientable: true, marker: true, piston: true, redstone: true },
+    redstone_wire: { name_ja: "レッドストーンダスト", bedrock_id: "redstone_wire", makecode: "REDSTONE_WIRE", color: "#E03A2A", symbol: "線", marker: true, redstone: true },
+    redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true, redstone: true },
+    stone_pressure_plate: { name_ja: "石の感圧板", bedrock_id: "stone_pressure_plate", makecode: "STONE_PRESSURE_PLATE", color: "#B8B8B8", symbol: "踏", marker: true, redstone: true },
+    lever: { name_ja: "レバー", bedrock_id: "lever", makecode: "LEVER", color: "#8B7355", symbol: "柄", marker: true, redstone: true },
     torch: { name_ja: "たいまつ", bedrock_id: "torch", makecode: "TORCH", color: "#F5A623", symbol: "灯", marker: true },
     door: { name_ja: "オークのドア", bedrock_id: "wooden_door", makecode: "OAK_DOOR", color: "#C98A3F", symbol: "戸", marker: true }
   };
@@ -433,8 +433,12 @@ var DESIGN = null;
   /* マスの中に向きの三角形を描く。Python版 _facing_arrow と同じ。
    * 階段は向きが分からないと作れないので、図の上で必ず読めるようにする。 */
   function facingArrow(px, py, facing, color) {
-    var cx = px + CELL / 2, cy = py + CELL / 2;
-    var r = 3.8, d = CELL / 2 - 1.6;
+    return facingArrowAt(px, py, CELL, facing, color);
+  }
+
+  function facingArrowAt(px, py, cell, facing, color) {
+    var cx = px + cell / 2, cy = py + cell / 2;
+    var r = cell * 0.146, d = cell / 2 - 1.6;
     var tri = {
       north: [[cx, cy - d], [cx - r, cy - d + r], [cx + r, cy - d + r]],
       south: [[cx, cy + d], [cx - r, cy + d - r], [cx + r, cy + d - r]],
@@ -444,6 +448,162 @@ var DESIGN = null;
     if (!tri) return "";
     var pts = tri.map(function (t) { return N(t[0]) + "," + N(t[1]); }).join(" ");
     return '<polygon points="' + pts + '" class="dir" fill="' + color + '"/>';
+  }
+
+
+  /* --------------------------------------------- redstone circuit detail
+   * レッドストーン部品がある設計にだけ、回路だけを大きく描いた図を足す。
+   * 回路は1マスのズレで動かなくなるので、全体図とは別に確認用の図が要る。 */
+  var CELL_RS = 34;
+  var RS_MARGIN = 2;
+  var DIR_JA = { north: "北", south: "南", east: "東", west: "西" };
+
+  function rsCells(model) {
+    var out = [];
+    model.blocks.forEach(function (k, ks) {
+      if (block(k).redstone) {
+        var q = ks.split(",").map(Number);
+        out.push({ pos: q, key: k, ks: ks });
+      }
+    });
+    return out;
+  }
+
+  function rsRole(key, facing) {
+    var b = block(key);
+    if (key === "redstone_torch") {
+      return "真下のブロックの上に立てる（壁に横付けしない）。" +
+        "その真下のブロックが動力を受けると消える＝スイッチが逆になる。" +
+        "ふだんは真上のブロックを強く動力化している。";
+    }
+    if (key === "stone_pressure_plate") {
+      return "踏むと真下のブロックを強く動力化する。" +
+        "そのブロックにとなり合うレッドストーンダストへ動力が伝わる。";
+    }
+    if (b.piston) {
+      if (!facing) return "向きが決まっていない。どちらへ押すか決めないと作れない。";
+      return DIR_JA[facing] + "向き（図の矢印のとおり）。" +
+        "前の1マスにあるブロックを、前の2マス目へ押し出す。" +
+        "前の2マス目がふさがっていると伸びられないので必ず空けておく。" +
+        "動力を受けているあいだ伸びたままになる。";
+    }
+    if (key === "redstone_wire") {
+      return "となり合うダストへ信号を運ぶ（動力源から15マスまで）。" +
+        "かならず下に支えのブロックが要る。位置は下の図で確かめる。";
+    }
+    if (key === "lever") return "手で入れ切りするスイッチ。取り付けた面のブロックを動力化する。";
+    if (key === "redstone_block") return "置くだけで常にONの動力源。となりの部品をずっと動かし続ける。";
+    return b.name_ja;
+  }
+
+  function rsLayerSvg(model, y, rsSet, box) {
+    var x1 = box[0], z1 = box[2], x2 = box[3], z2 = box[5];
+    var cols = x2 - x1 + 1, rows = z2 - z1 + 1;
+    var m = 26;
+    var w = cols * CELL_RS + m + 2, h = rows * CELL_RS + m + 2;
+    var grid = "", i, j;
+    for (i = 0; i <= cols; i++) grid += "M" + (m + i * CELL_RS) + " " + m + "V" + (m + rows * CELL_RS);
+    for (j = 0; j <= rows; j++) grid += "M" + m + " " + (m + j * CELL_RS) + "H" + (m + cols * CELL_RS);
+    var out = ['<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="回路 ' + (y + 1) + '段目" ' +
+      'style="width:' + w + 'px;max-width:100%">' +
+      '<rect x="' + m + '" y="' + m + '" width="' + (cols * CELL_RS) + '" height="' + (rows * CELL_RS) + '" ' +
+      'class="empty-bg"/><path class="grid" d="' + grid + '"/>'];
+    for (i = 0; i < cols; i++) {
+      out.push('<text x="' + F(m + i * CELL_RS + CELL_RS / 2) + '" y="' + (m - 9) + '" class="ax">' + (x1 + i) + "</text>");
+    }
+    for (j = 0; j < rows; j++) {
+      out.push('<text x="' + (m - 9) + '" y="' + F(m + j * CELL_RS + CELL_RS / 2 + 4) + '" class="ax">' + (z1 + j) + "</text>");
+    }
+    for (j = 0; j < rows; j++) {
+      for (i = 0; i < cols; i++) {
+        var x = x1 + i, z = z1 + j;
+        var key = model.get(x, y, z);
+        if (!key) continue;
+        var px = m + i * CELL_RS, py = m + j * CELL_RS;
+        var b = block(key);
+        var isRs = rsSet.has(key3(x, y, z));
+        out.push("<g" + (isRs ? "" : ' class="faint"') + '><rect x="' + px + '" y="' + py +
+          '" width="' + CELL_RS + '" height="' + CELL_RS + '" ' +
+          'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
+          '<text x="' + F(px + CELL_RS / 2) + '" y="' + F(py + CELL_RS / 2 + 6) + '" ' +
+          'class="sym rs" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text></g>");
+        if (isRs) {
+          out.push('<rect x="' + F(px + 1.5) + '" y="' + F(py + 1.5) + '" width="' + (CELL_RS - 3) +
+            '" height="' + (CELL_RS - 3) + '" class="rs-ring"/>');
+        }
+        var fc = model.facing.get(key3(x, y, z));
+        if (fc) out.push(facingArrowAt(px, py, CELL_RS, fc, textColorFor(b.color)));
+      }
+    }
+    out.push("</svg>");
+    return out.join("");
+  }
+
+  function circuitSection(model) {
+    var rs = rsCells(model);
+    if (!rs.length) return "";
+    var mb = model.bounds();
+    var xs = rs.map(function (r) { return r.pos[0]; });
+    var ys = rs.map(function (r) { return r.pos[1]; });
+    var zs = rs.map(function (r) { return r.pos[2]; });
+    var mn = function (a) { return Math.min.apply(null, a); };
+    var mx = function (a) { return Math.max.apply(null, a); };
+    var box = [
+      Math.max(mb[0], mn(xs) - RS_MARGIN), Math.max(mb[1], mn(ys) - 1), Math.max(mb[2], mn(zs) - RS_MARGIN),
+      Math.min(mb[3], mx(xs) + RS_MARGIN), Math.min(mb[4], mx(ys) + 1), Math.min(mb[5], mx(zs) + RS_MARGIN)
+    ];
+    var rsSet = new Set(rs.map(function (r) { return r.ks; }));
+
+    var from = Math.max(box[1], mn(ys) - 1), to = Math.min(box[4], mx(ys) + 1);
+    var cards = [], y;
+    for (y = from; y <= to; y++) {
+      var n = rs.filter(function (r) { return r.pos[1] === y; }).length;
+      var head = n ? n + "個の部品" : "部品なし（支えの段）";
+      cards.push('<div class="layer-card rs-card"><div class="layer-head">' +
+        '<span class="layer-no">' + (y + 1) + '段目</span>' +
+        '<span class="layer-count">' + head + "</span></div>" +
+        '<div class="grid-wrap">' + rsLayerSvg(model, y, rsSet, box) + "</div></div>");
+    }
+
+    // 同じ種類・同じ向きはまとめて1行にする（ダストが何十行も並ぶのを防ぐ）
+    var sorted = rs.slice().sort(function (a, c) {
+      return (a.pos[1] - c.pos[1]) || (a.pos[2] - c.pos[2]) || (a.pos[0] - c.pos[0]);
+    });
+    var order = [], groups = {};
+    sorted.forEach(function (r) {
+      var f = model.facing.get(r.ks) || "";
+      var g = r.key + "|" + f;
+      if (!groups[g]) { groups[g] = { key: r.key, facing: f, poss: [] }; order.push(g); }
+      groups[g].poss.push(r.pos);
+    });
+    var rows = order.map(function (g) {
+      var G = groups[g], b = block(G.key), where;
+      if (G.poss.length <= 6) {
+        where = G.poss.map(function (q) {
+          return (q[1] + 1) + "段目 x=" + q[0] + ", z=" + q[2];
+        }).join("<br>");
+      } else {
+        var uy = [];
+        G.poss.forEach(function (q) { if (uy.indexOf(q[1]) === -1) uy.push(q[1]); });
+        uy.sort(function (a, c) { return a - c; });
+        where = uy.map(function (v) { return (v + 1) + "段目"; }).join("<br>") +
+          "<br>ぜんぶで" + G.poss.length + "個";
+      }
+      return '<tr><td class="n">' + where + "</td>" +
+        '<td><span class="swatch" style="background:' + b.color + '"></span>' +
+        "<b>" + esc(b.name_ja) + "</b>" +
+        (G.facing ? "<b>（" + DIR_JA[G.facing] + "向き）</b>" : "") +
+        " ×" + G.poss.length +
+        '<div class="role">' + rsRole(G.key, G.facing) + "</div></td></tr>";
+    });
+
+    return '<h2>レッドストーン回路のくわしい図</h2>' +
+      '<p class="hint">仕掛けの部分だけを大きく描いたもの。' +
+      'まわり' + RS_MARGIN + 'マスの支えのブロックも一緒に描いてある（薄い色）。' +
+      '回路は1マスのズレでも動かなくなるので、こちらの図で位置を確かめて作る。</p>' +
+      '<div class="panel"><table class="bom rs-list">' +
+      '<tr><th>位置</th><th>部品と役割</th></tr>' + rows.join("") + "</table></div>" +
+      '<div class="layers rs-layers">' + cards.join("") + "</div>";
   }
 
   /* --------------------------------------------------------------------- layers */
@@ -581,6 +741,12 @@ var DESIGN = null;
 "svg rect.empty-bg { fill: var(--cell-empty); }\n" +
 "svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
 "svg polygon.dir { opacity: 0.85; }\n" +
+"svg g.faint { opacity: 0.28; }\n" +
+"svg rect.rs-ring { fill: none; stroke: var(--accent-ink); stroke-width: 2; rx: 2; }\n" +
+"svg text.sym.rs { font-size: 15px; }\n" +
+"table.bom.rs-list td.n { text-align: left; font-size: 12px; line-height: 1.45; white-space: nowrap; }\n" +
+"table.bom.rs-list .role { color: var(--muted); font-size: 13px; margin-top: 3px; }\n" +
+".rs-layers { margin-top: 18px; }\n" +
 "svg circle.ghost { fill: var(--ghost); }\n" +
 ".compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }\n" +
 ".layer-note {\n" +
@@ -1054,6 +1220,7 @@ bomRows + "\n" +
 "</table></div>\n" +
 "\n" +
 notesSection + "\n" +
+circuitSection(model) + "\n" +
 "<h2>作り方（1段ずつ）</h2>\n" +
 '<p class="hint">レゴの説明書と同じで、下の段から順番に置いていく。数字はマスの座標。</p>\n' +
 '<div class="layers">' + layerCards.join("") + "</div>\n" +
