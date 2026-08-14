@@ -236,6 +236,65 @@ class TestPack(unittest.TestCase):
                              "実行するたびに回路の立体図が変わっている")
         self.assertIn("回路だけの立体図", first)
 
+    def test_updown_facing_is_shown(self):
+        """ホッパー等の上下向きが図に出ること。
+
+        ホッパーは真下を向くのが基本で、それが読めないと自動装置が作れない。
+        上下を三角矢印にすると南北と見分けがつかないため、文字で出している。
+        """
+        import json as _json
+        design = {
+            "name": "ホッパー", "description": "",
+            "notes": ["ホッパーは下向きと東向き。"], "layer_notes": {},
+            "ops": [
+                {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 2, "y2": 0, "z2": 2,
+                 "block": "stone"},
+                {"op": "set", "x": 1, "y": 1, "z": 1, "block": "hopper", "facing": "down"},
+                {"op": "set", "x": 0, "y": 1, "z": 1, "block": "hopper", "facing": "east"},
+            ],
+        }
+        r = subprocess.run(
+            ["node", "-e",
+             "var M=require('./renderer.js');"
+             "process.stdout.write(M.renderHTML(JSON.parse(process.argv[1]),{banner:false}));",
+             _json.dumps(design)],
+            cwd=HERE, capture_output=True,
+        )
+        html = r.stdout.decode()
+        self.assertIn('class="updown"', html, "上下向きの表示が出ていない")
+        self.assertIn('class="dir"', html, "横向きの矢印が出ていない")
+
+    def test_automation_blocks_have_roles(self):
+        """ホッパー等の自動装置ブロックに役割の説明が付くこと。
+
+        名前が出るだけでは、どう置けば動くのか分からない。
+        """
+        import json as _json
+        design = {
+            "name": "自動装置", "description": "",
+            "notes": ["ホッパーとディスペンサーとコンパレーターとリピーター。"],
+            "layer_notes": {},
+            "ops": [
+                {"op": "fill", "x1": 0, "y1": 0, "z1": 0, "x2": 4, "y2": 0, "z2": 4,
+                 "block": "stone"},
+                {"op": "set", "x": 1, "y": 1, "z": 1, "block": "hopper", "facing": "down"},
+                {"op": "set", "x": 2, "y": 1, "z": 1, "block": "dispenser", "facing": "north"},
+                {"op": "set", "x": 2, "y": 1, "z": 2, "block": "comparator", "facing": "south"},
+                {"op": "set", "x": 2, "y": 1, "z": 3, "block": "repeater", "facing": "south"},
+            ],
+        }
+        r = subprocess.run(
+            ["node", "-e",
+             "var M=require('./renderer.js');"
+             "process.stdout.write(M.renderHTML(JSON.parse(process.argv[1]),{banner:false}));",
+             _json.dumps(design)],
+            cwd=HERE, capture_output=True,
+        )
+        html = r.stdout.decode()
+        for must in ("向きを間違えると流れが止まって", "動力を受けると中身を1つ発射",
+                     "中身の量", "15の強さに戻して"):
+            self.assertIn(must, html, f"役割の説明に「{must}」が無い")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))

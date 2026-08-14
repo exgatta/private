@@ -250,6 +250,46 @@ BLOCKS = {
         "makecode": "LEVER", "color": "#8B7355", "symbol": "柄", "marker": True,
             "redstone": True,
     },
+    # ------------------------------------------------------------------
+    # 自動装置用。ホッパー・ディスペンサー等が無いと「全自動◯◯装置」が
+    # まったく設計できず、羊毛で代用するしかなくなる（実際にそうなった）。
+    # どれも向きと接続先が命なので marker（手で設置）扱いにする。
+    # ------------------------------------------------------------------
+    "hopper": {
+        "name_ja": "ホッパー", "bedrock_id": "hopper",
+        "makecode": "HOPPER", "color": "#4A4E52", "symbol": "漏",
+        "transparent": True, "orientable": True, "marker": True, "redstone": True,
+    },
+    "dispenser": {
+        "name_ja": "ディスペンサー（発射装置）", "bedrock_id": "dispenser",
+        "makecode": "DISPENSER", "color": "#6E6E6E", "symbol": "発",
+        "orientable": True, "marker": True, "redstone": True,
+    },
+    "dropper": {
+        "name_ja": "ドロッパー", "bedrock_id": "dropper",
+        "makecode": "DROPPER", "color": "#767676", "symbol": "落",
+        "orientable": True, "marker": True, "redstone": True,
+    },
+    "comparator": {
+        "name_ja": "レッドストーンコンパレーター", "bedrock_id": "comparator",
+        "makecode": "COMPARATOR", "color": "#C9C4BE", "symbol": "比",
+        "transparent": True, "orientable": True, "marker": True, "redstone": True,
+    },
+    "repeater": {
+        "name_ja": "レッドストーンリピーター（反復装置）", "bedrock_id": "repeater",
+        "makecode": "REPEATER", "color": "#B9B4AE", "symbol": "反",
+        "transparent": True, "orientable": True, "marker": True, "redstone": True,
+    },
+    "observer": {
+        "name_ja": "オブザーバー（観察者）", "bedrock_id": "observer",
+        "makecode": "OBSERVER", "color": "#5A5A5A", "symbol": "観",
+        "orientable": True, "marker": True, "redstone": True,
+    },
+    "sign": {
+        "name_ja": "看板", "bedrock_id": "oak_sign",
+        "makecode": "OAK_SIGN", "color": "#B08D55", "symbol": "札",
+        "transparent": True, "orientable": True, "shape": "thin", "marker": True,
+    },
     "torch": {
         "name_ja": "たいまつ", "bedrock_id": "torch",
         "makecode": "TORCH", "color": "#F5A623", "symbol": "灯", "marker": True,

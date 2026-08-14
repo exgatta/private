@@ -73,6 +73,13 @@
     redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true, redstone: true },
     stone_pressure_plate: { name_ja: "石の感圧板", bedrock_id: "stone_pressure_plate", makecode: "STONE_PRESSURE_PLATE", color: "#B8B8B8", symbol: "踏", marker: true, redstone: true },
     lever: { name_ja: "レバー", bedrock_id: "lever", makecode: "LEVER", color: "#8B7355", symbol: "柄", marker: true, redstone: true },
+    hopper: { name_ja: "ホッパー", bedrock_id: "hopper", makecode: "HOPPER", color: "#4A4E52", symbol: "漏", transparent: true, orientable: true, marker: true, redstone: true },
+    dispenser: { name_ja: "ディスペンサー（発射装置）", bedrock_id: "dispenser", makecode: "DISPENSER", color: "#6E6E6E", symbol: "発", orientable: true, marker: true, redstone: true },
+    dropper: { name_ja: "ドロッパー", bedrock_id: "dropper", makecode: "DROPPER", color: "#767676", symbol: "落", orientable: true, marker: true, redstone: true },
+    comparator: { name_ja: "レッドストーンコンパレーター", bedrock_id: "comparator", makecode: "COMPARATOR", color: "#C9C4BE", symbol: "比", transparent: true, orientable: true, marker: true, redstone: true },
+    repeater: { name_ja: "レッドストーンリピーター（反復装置）", bedrock_id: "repeater", makecode: "REPEATER", color: "#B9B4AE", symbol: "反", transparent: true, orientable: true, marker: true, redstone: true },
+    observer: { name_ja: "オブザーバー（観察者）", bedrock_id: "observer", makecode: "OBSERVER", color: "#5A5A5A", symbol: "観", orientable: true, marker: true, redstone: true },
+    sign: { name_ja: "看板", bedrock_id: "oak_sign", makecode: "OAK_SIGN", color: "#B08D55", symbol: "札", transparent: true, orientable: true, shape: "thin", marker: true },
     torch: { name_ja: "たいまつ", bedrock_id: "torch", makecode: "TORCH", color: "#F5A623", symbol: "灯", marker: true },
     door: { name_ja: "オークのドア", bedrock_id: "wooden_door", makecode: "OAK_DOOR", color: "#C98A3F", symbol: "戸", marker: true }
   };
@@ -361,6 +368,12 @@
   function facingArrowAt(px, py, cell, facing, color) {
     var cx = px + cell / 2, cy = py + cell / 2;
     var r = cell * 0.146, d = cell / 2 - 1.6;
+    if (facing === "down" || facing === "up") {
+      // 上下向きは矢印だと南北と見分けがつかないので隅に文字で出す
+      var g = facing === "down" ? "下" : "上";
+      return '<text x="' + N(px + cell * 0.2) + '" y="' + N(py + cell * 0.33) + '" ' +
+        'class="updown" fill="' + color + '">' + g + "</text>";
+    }
     var tri = {
       north: [[cx, cy - d], [cx - r, cy - d + r], [cx + r, cy - d + r]],
       south: [[cx, cy + d], [cx - r, cy + d - r], [cx + r, cy + d - r]],
@@ -439,7 +452,8 @@
    * 回路は1マスのズレで動かなくなるので、全体図とは別に確認用の図が要る。 */
   var CELL_RS = 34;
   var RS_MARGIN = 2;
-  var DIR_JA = { north: "北", south: "南", east: "東", west: "西" };
+  var DIR_JA = { north: "北", south: "南", east: "東", west: "西",
+    down: "下", up: "上" };
 
   function rsCells(model) {
     var out = [];
@@ -470,6 +484,30 @@
         "前の2マス目がふさがっていると伸びられないので必ず空けておく。" +
         "動力を受けているあいだ伸びたままになる。";
     }
+    if (key === "hopper") {
+      return "アイテムを吸い取り、向いている先（チェスト・ホッパー・ディスペンサー等）へ" +
+        "流し込む。真上に落ちたアイテムも拾う。向きを間違えると流れが止まって" +
+        "装置全体が動かなくなる。";
+    }
+    if (key === "dispenser") {
+      return "動力を受けると中身を1つ発射する。向いている方向へ飛んでいく。" +
+        "卵や矢を撃ち出すのに使う。";
+    }
+    if (key === "dropper") {
+      return "動力を受けると中身を1つ、向いている先へ押し出す（飛ばさずに置く）。";
+    }
+    if (key === "comparator") {
+      return "うしろにあるチェストやディスペンサーの「中身の量」を信号の強さにして出す。" +
+        "中身が少ないと信号も弱い。真横にレッドストーンダストを置くと" +
+        "止まってしまうので、横は必ず空けるか固いブロックにする。";
+    }
+    if (key === "repeater") {
+      return "弱った信号を15の強さに戻して先へ送る。うしろから入れて前へ出す。" +
+        "コンパレーターの弱い信号を遠くまで届かせるのに必要。";
+    }
+    if (key === "observer") {
+      return "前のブロックが変化したときに、うしろ側から短い信号を出す。";
+    }
     if (key === "redstone_wire") {
       return "となり合うダストへ信号を運ぶ（動力源から15マスまで）。" +
         "かならず下に支えのブロックが要る。位置は下の図で確かめる。";
@@ -483,7 +521,8 @@
    * 範囲をまるごと切り出すと床や壁にさえぎられて配線が見えないので、
    * 部品と、その働きに直接かかわるブロックだけを取り出す。 */
   function rsVisualCells(model, rs) {
-    var DIRV2 = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var DIRV2 = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0] };
     var cells = new Map();
     rs.forEach(function (r) { cells.set(r.ks, r.key); });
     var extra = [];
@@ -762,6 +801,8 @@
 "svg rect.empty-bg { fill: var(--cell-empty); }\n" +
 "svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
 "svg polygon.dir { opacity: 0.85; }\n" +
+"svg text.updown { font-size: 9.5px; font-weight: 800; text-anchor: middle;\n" +
+"  opacity: 0.9; }\n" +
 "svg g.faint { opacity: 0.28; }\n" +
 "h3.rs-h3 { font-size: 15.5px; margin: 26px 0 6px; color: var(--accent-ink);\n" +
 "  letter-spacing: 0.04em; }\n" +
@@ -1035,7 +1076,8 @@
      * ときだけ伸びる。前2マスまで埋まっていると永久に動かず、自動ドアは開かない。
      * 図の上では正しく見えるので、人の目では気づけない種類の失敗。 */
     var DIRV = {
-      north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0]
+      north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0]
     };
     var pistons = [];
     model.blocks.forEach(function (k, ks) {

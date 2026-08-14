@@ -163,6 +163,12 @@ def _facing_arrow_at(px, py, cell, facing, color):
     cx, cy = px + cell / 2, py + cell / 2
     r = cell * 0.146      # 三角形の大きさ（記号と重ならない大きさに抑える）
     d = cell / 2 - 1.6    # マスのふちからの距離
+    if facing in ("down", "up"):
+        # 上下向きを矢印で描くと南北と見分けがつかないので、隅に文字で出す。
+        # ホッパーやディスペンサーは下向きが基本なので、これが読めないと作れない。
+        g = "下" if facing == "down" else "上"
+        return (f'<text x="{_n(px + cell * 0.2)}" y="{_n(py + cell * 0.33)}" '
+                f'class="updown" fill="{color}">{g}</text>')
     tri = {
         "north": ((cx, cy - d), (cx - r, cy - d + r), (cx + r, cy - d + r)),
         "south": ((cx, cy + d), (cx - r, cy + d - r), (cx + r, cy + d - r)),
@@ -246,8 +252,10 @@ RS_MARGIN = 2  # 回路のまわり何マスまで一緒に描くか（支えの
 DIR_VEC = {
     "north": (0, 0, -1), "south": (0, 0, 1),
     "east": (1, 0, 0), "west": (-1, 0, 0),
+    "down": (0, -1, 0), "up": (0, 1, 0),
 }
-DIR_JA = {"north": "北", "south": "南", "east": "東", "west": "西"}
+DIR_JA = {"north": "北", "south": "南", "east": "東", "west": "西",
+          "down": "下", "up": "上"}
 
 
 def _rs_cells(model):
@@ -284,6 +292,24 @@ def _rs_role(model, key, facing):
                 "前の1マスにあるブロックを、前の2マス目へ押し出す。"
                 "前の2マス目がふさがっていると伸びられないので必ず空けておく。"
                 "動力を受けているあいだ伸びたままになる。")
+    if key == "hopper":
+        return ("アイテムを吸い取り、向いている先（チェスト・ホッパー・ディスペンサー等）へ"
+                "流し込む。真上に落ちたアイテムも拾う。向きを間違えると流れが止まって"
+                "装置全体が動かなくなる。")
+    if key == "dispenser":
+        return ("動力を受けると中身を1つ発射する。向いている方向へ飛んでいく。"
+                "卵や矢を撃ち出すのに使う。")
+    if key == "dropper":
+        return ("動力を受けると中身を1つ、向いている先へ押し出す（飛ばさずに置く）。")
+    if key == "comparator":
+        return ("うしろにあるチェストやディスペンサーの「中身の量」を信号の強さにして出す。"
+                "中身が少ないと信号も弱い。真横にレッドストーンダストを置くと"
+                "止まってしまうので、横は必ず空けるか固いブロックにする。")
+    if key == "repeater":
+        return ("弱った信号を15の強さに戻して先へ送る。うしろから入れて前へ出す。"
+                "コンパレーターの弱い信号を遠くまで届かせるのに必要。")
+    if key == "observer":
+        return ("前のブロックが変化したときに、うしろ側から短い信号を出す。")
     if key == "redstone_wire":
         return ("となり合うダストへ信号を運ぶ（動力源から15マスまで）。"
                 "かならず下に支えのブロックが要る。位置は下の図で確かめる。")
@@ -522,6 +548,8 @@ svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }
 svg rect.empty-bg { fill: var(--cell-empty); }
 svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }
 svg polygon.dir { opacity: 0.85; }
+svg text.updown { font-size: 9.5px; font-weight: 800; text-anchor: middle;
+  opacity: 0.9; }
 svg g.faint { opacity: 0.28; }
 h3.rs-h3 { font-size: 15.5px; margin: 26px 0 6px; color: var(--accent-ink);
   letter-spacing: 0.04em; }

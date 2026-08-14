@@ -22,7 +22,8 @@ class VoxelModel:
 
     # --- 基本操作 -----------------------------------------------------
 
-    FACINGS = ("north", "south", "east", "west")
+    # ホッパーやディスペンサーは真下・真上も向く。無いと自動装置が組めない。
+    FACINGS = ("north", "south", "east", "west", "down", "up")
 
     def set(self, x, y, z, key, facing=None):
         """1マスにブロックを置く。
