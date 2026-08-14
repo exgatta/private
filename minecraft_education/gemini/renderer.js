@@ -385,13 +385,92 @@
     return '<polygon points="' + pts + '" class="dir" fill="' + color + '"/>';
   }
 
+  var TEXTURES = {
+    "noise": [[1,2,3,3,0.86], [9,1,4,3,1.1], [4,7,5,4,0.9], [11,9,3,4,1.08], [2,12,4,3,1.04]],
+    "planks": [[0,0,16,1,0.78], [0,5,16,1,0.78], [0,10,16,1,0.78], [0,15,16,1,0.78], [6,1,1,4,0.88], [11,6,1,4,0.88], [3,11,1,4,0.88]],
+    "bricks": [[0,0,16,1,0.76], [0,8,16,1,0.76], [7,1,1,7,0.8], [0,9,1,7,0.8], [15,9,1,7,0.8]],
+    "glass": [[0,0,16,1,0.72], [0,15,16,1,0.72], [0,0,1,16,0.72], [15,0,1,16,0.72], [3,3,3,3,1.25], [8,9,2,2,1.15]],
+    "leaves": [[1,1,3,3,0.84], [6,2,4,3,1.14], [11,5,4,4,0.86], [2,8,4,4,1.1], [8,11,5,4,0.84], [13,12,2,3,1.06]],
+    "log": [[2,0,1,16,0.84], [6,0,2,16,0.92], [11,0,1,16,0.84], [14,0,1,16,0.94]],
+    "wool": [[2,3,2,2,0.94], [9,6,3,2,1.06], [5,11,3,2,0.95], [12,12,2,2,1.04]],
+    "liquid": [[0,2,9,3,1.14], [7,7,9,3,0.88], [1,11,8,3,1.1]],
+    "smooth": [[0,0,16,1,0.95], [0,0,1,16,0.95]],
+    "device": [[0,0,16,1,0.8], [0,15,16,1,0.8], [0,0,1,16,0.8], [15,0,1,16,0.8], [5,5,6,6,0.86], [6,6,4,4,1.1]]
+  };
+  var TEX_OF = { "grass": "noise", "dirt": "noise", "stone": "noise", "cobblestone": "noise", "cobblestone_stairs": "noise", "cobblestone_wall": "noise", "sandstone": "noise", "stone_bricks": "bricks", "mossy_stone_bricks": "bricks", "chiseled_stone_bricks": "bricks", "brick": "bricks", "stone_brick_stairs": "bricks", "stone_brick_slab": "bricks", "oak_planks": "planks", "spruce_planks": "planks", "oak_stairs": "planks", "oak_slab": "planks", "oak_fence": "planks", "oak_fence_gate": "planks", "oak_trapdoor": "planks", "bookshelf": "planks", "crafting_table": "planks", "sign": "planks", "ladder": "planks", "chest": "planks", "oak_log": "log", "glass": "glass", "glass_pane": "glass", "iron_bars": "glass", "oak_leaves": "leaves", "wool_white": "wool", "wool_red": "wool", "wool_blue": "wool", "wool_yellow": "wool", "wool_green": "wool", "wool_black": "wool", "carpet_red": "wool", "lava": "liquid", "water": "liquid", "hopper": "device", "dispenser": "device", "dropper": "device", "observer": "device", "sticky_piston": "device", "comparator": "device", "repeater": "device", "tnt": "device", "redstone_block": "noise", "glowstone": "noise", "sea_lantern": "smooth", "quartz": "smooth" };
+
+  /* 立体図のテクスチャ。単色の立方体だと積み木にしか見えないので、
+   * 16×16の升目の模様を<pattern>にして面ごとに敷く。
+   * パターンはブロックの種類×3面ぶんだけなので、ブロックが増えても図形は増えない。 */
+  var FACE_MATRIX = {
+    t: [13 / 16, 6.5 / 16, -13 / 16, 6.5 / 16],
+    l: [-13 / 16, 6.5 / 16, 0, 13 / 16],
+    r: [13 / 16, 6.5 / 16, 0, 13 / 16]
+  };
+  var FACE_SHADE = { t: 1.14, l: 0.68, r: 0.88 };
+
+  function texName(key) {
+    return Object.prototype.hasOwnProperty.call(TEX_OF, key) ? TEX_OF[key] : "smooth";
+  }
+
+  function texDefs(keys) {
+    var out = [];
+    keys.forEach(function (key) {
+      var color = block(key).color;
+      var spec = TEXTURES[texName(key)];
+      ["t", "l", "r"].forEach(function (face) {
+        var mat = FACE_MATRIX[face];
+        var base = shade(color, FACE_SHADE[face]);
+        var rects = spec.map(function (r) {
+          return '<rect x="' + r[0] + '" y="' + r[1] + '" width="' + r[2] +
+            '" height="' + r[3] + '" fill="' + shade(base, r[4]) + '"/>';
+        }).join("");
+        out.push('<pattern id="t' + face + "_" + key + '" width="16" height="16" ' +
+          'patternUnits="userSpaceOnUse" ' +
+          'patternTransform="matrix(' + N(mat[0]) + "," + N(mat[1]) + "," +
+          N(mat[2]) + "," + N(mat[3]) + ',0,0)">' +
+          '<rect width="16" height="16" fill="' + base + '"/>' + rects + "</pattern>");
+      });
+    });
+    return "<defs>" + out.join("") + "</defs>";
+  }
+
+  /* 立方体の一部を描く（階段のように箱を2つ重ねた形を作るため）。Python版 _iso_box と同じ。 */
+  function isoBox(cx, cy, offx, offz, ax, az, topFrac, hgt, key) {
+    var hw = 13, hh = 6.5, hz = 13;
+    var b = block(key), c = b.color;
+    var ccx = cx + (offx - offz) * hw;
+    var ccy = cy + (1 - topFrac) * hz - hh + (offx + offz) * hh;
+    var uxx = ax * hw, uxy = ax * hh;
+    var uzx = -az * hw, uzy = az * hh;
+    var bot = [ccx + uxx + uzx, ccy + uxy + uzy];
+    var lft = [ccx - uxx + uzx, ccy - uxy + uzy];
+    var top = [ccx - uxx - uzx, ccy - uxy - uzy];
+    var rgt = [ccx + uxx - uzx, ccy + uxy - uzy];
+    var h = hgt * hz;
+    var stroke = shade(c, 0.5);
+    var poly = function (pts, fill) {
+      var d = pts.map(function (q) { return N(q[0]) + "," + N(q[1]); }).join(" ");
+      return '<polygon points="' + d + '" fill="' + fill + '" ' +
+        'stroke="' + stroke + '" stroke-width="0.5"/>';
+    };
+    var full = ax === 0.5 && az === 0.5 && hgt === 1.0;
+    var fl = full ? "url(#tl_" + key + ")" : shade(c, 0.68);
+    var fr = full ? "url(#tr_" + key + ")" : shade(c, 0.88);
+    var ft = full ? "url(#tt_" + key + ")" : shade(c, 1.14);
+    return poly([lft, bot, [bot[0], bot[1] + h], [lft[0], lft[1] + h]], fl) +
+      poly([rgt, bot, [bot[0], bot[1] + h], [rgt[0], rgt[1] + h]], fr) +
+      poly([bot, lft, top, rgt], ft);
+  }
+
   /* ブロックの集まりを立体図で描く。
    *   cells     … Map("x,y,z" -> block key)
    *   highlight … 全色で描く座標(Set)。null なら全部そのまま描く。
    *               指定した場合、それ以外は薄く描いて主役を目立たせる。 */
-  function isoCellsSvg(cells, highlight, label, maxW, scale) {
+  function isoCellsSvg(cells, highlight, label, maxW, scale, facings) {
     maxW = maxW || 640;
     scale = scale || 1;
+    facings = facings || new Map();
     var hw = 13, hh = 6.5, hz = 13;
     var ptsX = [], ptsY = [], cubes = [];
     var dirs6 = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
@@ -406,7 +485,7 @@
       if (hidden) return;
       var cx = (x - z) * hw;
       var cy = (x + z) * hh - y * hz;
-      cubes.push([x + z, y, cx, cy, k, highlight === null || highlight.has(ks)]);
+      cubes.push([x + z, y, cx, cy, k, highlight === null || highlight.has(ks), ks]);
       ptsX.push(cx - hw, cx + hw);
       ptsY.push(cy - 2 * hh, cy + hz);
     });
@@ -418,33 +497,40 @@
     cubes.sort(function (a, b) { return (a[0] - b[0]) || (a[1] - b[1]); });
 
     var faces = [];
+    var DIRV3 = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0] };
     for (var i2 = 0; i2 < cubes.length; i2++) {
-      var y2 = cubes[i2][1], cx2 = cubes[i2][2], cy2 = cubes[i2][3];
-      var b = block(cubes[i2][4]);
-      var c = b.color;
+      var cx2 = cubes[i2][2], cy2 = cubes[i2][3], k2 = cubes[i2][4];
+      var b = block(k2);
       var sc = shapeScale(b);
-      var w = hw * sc[0], h2 = hh * sc[0], z2 = hz * sc[1];
-      cy2 = cy2 + sc[2] * hz;
-      var top = N(cx2) + "," + N(cy2) + " " + N(cx2 - w) + "," + N(cy2 - h2) + " " +
-                N(cx2) + "," + N(cy2 - 2 * h2) + " " + N(cx2 + w) + "," + N(cy2 - h2);
-      var left = N(cx2 - w) + "," + N(cy2 - h2) + " " + N(cx2) + "," + N(cy2) + " " +
-                 N(cx2) + "," + N(cy2 + z2) + " " + N(cx2 - w) + "," + N(cy2 - h2 + z2);
-      var right = N(cx2 + w) + "," + N(cy2 - h2) + " " + N(cx2) + "," + N(cy2) + " " +
-                  N(cx2) + "," + N(cy2 + z2) + " " + N(cx2 + w) + "," + N(cy2 - h2 + z2);
-      var body =
-        '<polygon points="' + left + '" fill="' + shade(c, 0.68) + '"/>' +
-        '<polygon points="' + right + '" fill="' + shade(c, 0.88) + '"/>' +
-        '<polygon points="' + top + '" fill="' + shade(c, 1.14) + '" ' +
-        'stroke="' + shade(c, 0.55) + '" stroke-width="0.6"/>';
+      var body;
+      var f2 = facings.get(cubes[i2][6]);
+      if (b.shape === "stairs" && f2) {
+        // 階段は「下半分の箱」＋「奥半分の背の高い箱」で描く。
+        // 背の高い側は矢印の向きの側（屋根なら矢印を棟へ向けると段が上がる）。
+        var d3 = DIRV3[f2];
+        body = isoBox(cx2, cy2, 0, 0, 0.5, 0.5, 0.5, 0.5, k2);
+        if (d3[0]) {
+          body += isoBox(cx2, cy2, d3[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5, k2);
+        } else {
+          body += isoBox(cx2, cy2, 0, d3[2] * 0.25, 0.5, 0.25, 1.0, 0.5, k2);
+        }
+      } else {
+        body = isoBox(cx2, cy2, 0, 0, sc[0] / 2, sc[0] / 2, 1 - sc[2], sc[1], k2);
+      }
       faces.push(cubes[i2][5] ? body : '<g class="faint">' + body + "</g>");
     }
+    var usedKeys = [];
+    cubes.forEach(function (c3) { if (usedKeys.indexOf(c3[4]) === -1) usedKeys.push(c3[4]); });
+    usedKeys.sort();
     return '<svg viewBox="' + I0(vb[0]) + " " + I0(vb[1]) + " " + I0(vb[2]) + " " + I0(vb[3]) + '" ' +
            'role="img" aria-label="' + label + '" ' +
-           'style="max-width:' + I0(Math.min(maxW, vb[2] * scale)) + 'px">' + faces.join("") + "</svg>";
+           'style="max-width:' + I0(Math.min(maxW, vb[2] * scale)) + 'px">' +
+           texDefs(usedKeys) + faces.join("") + "</svg>";
   }
 
   function isoSvg(model) {
-    return isoCellsSvg(model.blocks, null, "完成イメージ");
+    return isoCellsSvg(model.blocks, null, "完成イメージ", 640, 1, model.facing);
   }
 
   /* --------------------------------------------- redstone circuit detail
@@ -654,7 +740,7 @@
       '<p class="hint">仕掛けの部分だけを切り出した図。全体の設計図とは別に、' +
       'ここで位置と向きを確かめてから作る。</p>' +
       '<div class="panel iso-panel rs-iso">' +
-      isoCellsSvg(rsVisualCells(model, rs), rsSet, "回路だけの立体図", 560, 2) +
+      isoCellsSvg(rsVisualCells(model, rs), rsSet, "回路だけの立体図", 560, 2, model.facing) +
       '<p class="cap">回路だけを立体で見たところ。色のついたものがレッドストーン部品、' +
       '薄いものは支えのブロックとピストンが押す先。</p></div>' +
       '<h3 class="rs-h3">部品と役割</h3>' +

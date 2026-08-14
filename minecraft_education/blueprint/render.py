@@ -82,7 +82,165 @@ def _is_opaque(key):
     return not (b.get("marker") or b.get("transparent"))
 
 
-def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1):
+
+# --------------------------------------------------------------- textures
+#
+# 立体図をMinecraftらしく見せるための「テクスチャ」。
+# 単色の立方体だと積み木にしか見えないので、面ごとに模様を敷く。
+#
+# 仕組み: 16×16の升目の中に、明るさを変えた長方形をいくつか置いたものを
+# SVGの<pattern>にし、アイソメの傾きに合わせて patternTransform で変形する。
+# パターンはブロックの種類ごとに3面ぶん（上・左・右）だけ定義するので、
+# ブロックが何千個あっても図形の数は増えない（＝HTMLが太らない）。
+#
+# 各項目は (x, y, 幅, 高さ, 明るさ倍率)。16×16の升目での位置。
+TEXTURES = {
+    "noise": [  # 石・丸石・土 … ざらざらした感じ
+        (1, 2, 3, 3, 0.86), (9, 1, 4, 3, 1.10), (4, 7, 5, 4, 0.90),
+        (11, 9, 3, 4, 1.08), (2, 12, 4, 3, 1.04),
+    ],
+    "planks": [  # 板材 … 横方向の板の継ぎ目
+        (0, 0, 16, 1, 0.78), (0, 5, 16, 1, 0.78), (0, 10, 16, 1, 0.78),
+        (0, 15, 16, 1, 0.78), (6, 1, 1, 4, 0.88), (11, 6, 1, 4, 0.88),
+        (3, 11, 1, 4, 0.88),
+    ],
+    "bricks": [  # レンガ・石レンガ … 段違いの目地
+        (0, 0, 16, 1, 0.76), (0, 8, 16, 1, 0.76), (7, 1, 1, 7, 0.80),
+        (0, 9, 1, 7, 0.80), (15, 9, 1, 7, 0.80),
+    ],
+    "glass": [  # ガラス … 枠とハイライト
+        (0, 0, 16, 1, 0.72), (0, 15, 16, 1, 0.72), (0, 0, 1, 16, 0.72),
+        (15, 0, 1, 16, 0.72), (3, 3, 3, 3, 1.25), (8, 9, 2, 2, 1.15),
+    ],
+    "leaves": [  # 葉 … まだらな粒
+        (1, 1, 3, 3, 0.84), (6, 2, 4, 3, 1.14), (11, 5, 4, 4, 0.86),
+        (2, 8, 4, 4, 1.10), (8, 11, 5, 4, 0.84), (13, 12, 2, 3, 1.06),
+    ],
+    "log": [  # 原木 … 縦の樹皮
+        (2, 0, 1, 16, 0.84), (6, 0, 2, 16, 0.92), (11, 0, 1, 16, 0.84),
+        (14, 0, 1, 16, 0.94),
+    ],
+    "wool": [  # 羊毛・カーペット … うっすら繊維
+        (2, 3, 2, 2, 0.94), (9, 6, 3, 2, 1.06), (5, 11, 3, 2, 0.95),
+        (12, 12, 2, 2, 1.04),
+    ],
+    "liquid": [  # 溶岩・水 … 大きめのうねり
+        (0, 2, 9, 3, 1.14), (7, 7, 9, 3, 0.88), (1, 11, 8, 3, 1.10),
+    ],
+    "smooth": [  # クォーツ等 … ごく控えめ
+        (0, 0, 16, 1, 0.95), (0, 0, 1, 16, 0.95),
+    ],
+    "device": [  # 機械類 … 枠と中央のくぼみ
+        (0, 0, 16, 1, 0.80), (0, 15, 16, 1, 0.80), (0, 0, 1, 16, 0.80),
+        (15, 0, 1, 16, 0.80), (5, 5, 6, 6, 0.86), (6, 6, 4, 4, 1.10),
+    ],
+}
+
+# ブロックの種類 -> テクスチャ名。書いていないものは "smooth"。
+_TEX_OF = {
+    "grass": "noise", "dirt": "noise", "stone": "noise", "cobblestone": "noise",
+    "cobblestone_stairs": "noise", "cobblestone_wall": "noise", "sandstone": "noise",
+    "stone_bricks": "bricks", "mossy_stone_bricks": "bricks",
+    "chiseled_stone_bricks": "bricks", "brick": "bricks",
+    "stone_brick_stairs": "bricks", "stone_brick_slab": "bricks",
+    "oak_planks": "planks", "spruce_planks": "planks", "oak_stairs": "planks",
+    "oak_slab": "planks", "oak_fence": "planks", "oak_fence_gate": "planks",
+    "oak_trapdoor": "planks", "bookshelf": "planks", "crafting_table": "planks",
+    "sign": "planks", "ladder": "planks", "chest": "planks",
+    "oak_log": "log",
+    "glass": "glass", "glass_pane": "glass", "iron_bars": "glass",
+    "oak_leaves": "leaves",
+    "wool_white": "wool", "wool_red": "wool", "wool_blue": "wool",
+    "wool_yellow": "wool", "wool_green": "wool", "wool_black": "wool",
+    "carpet_red": "wool",
+    "lava": "liquid", "water": "liquid",
+    "hopper": "device", "dispenser": "device", "dropper": "device",
+    "observer": "device", "sticky_piston": "device", "comparator": "device",
+    "repeater": "device", "tnt": "device", "redstone_block": "noise",
+    "glowstone": "noise", "sea_lantern": "smooth", "quartz": "smooth",
+}
+
+
+def _tex_name(key):
+    return _TEX_OF.get(key, "smooth")
+
+
+# 面ごとのパターン変形。16×16の升目をアイソメの面にぴったり載せる。
+#   上面 : +x方向が(13, 6.5)、+z方向が(-13, 6.5)
+#   左面 : +z方向が(-13, 6.5)、下方向が(0, 13)
+#   右面 : +x方向が(13, 6.5)、下方向が(0, 13)
+_FACE_MATRIX = {
+    "t": (13 / 16, 6.5 / 16, -13 / 16, 6.5 / 16),
+    "l": (-13 / 16, 6.5 / 16, 0, 13 / 16),
+    "r": (13 / 16, 6.5 / 16, 0, 13 / 16),
+}
+_FACE_SHADE = {"t": 1.14, "l": 0.68, "r": 0.88}
+
+
+def _tex_defs(keys):
+    """使われているブロックのぶんだけ<pattern>を作る。"""
+    out = []
+    for key in keys:
+        color = block(key)["color"]
+        spec = TEXTURES[_tex_name(key)]
+        for face, mat in _FACE_MATRIX.items():
+            base = shade(color, _FACE_SHADE[face])
+            rects = "".join(
+                f'<rect x="{rx}" y="{ry}" width="{rw}" height="{rh}" '
+                f'fill="{shade(base, f)}"/>'
+                for rx, ry, rw, rh, f in spec
+            )
+            out.append(
+                f'<pattern id="t{face}_{key}" width="16" height="16" '
+                f'patternUnits="userSpaceOnUse" '
+                f'patternTransform="matrix({_n(mat[0])},{_n(mat[1])},'
+                f'{_n(mat[2])},{_n(mat[3])},0,0)">'
+                f'<rect width="16" height="16" fill="{base}"/>{rects}</pattern>'
+            )
+    return "<defs>" + "".join(out) + "</defs>"
+
+
+
+def _iso_box(cx, cy, offx, offz, ax, az, top_frac, hgt, key, faint_ok=True):
+    """立方体の一部を描く（階段のように「箱を2つ重ねた形」を作るため）。
+
+    cx, cy    … そのマスの上面の手前かどの位置（従来の基準点）
+    offx,offz … マスの中心からのずれ（マス単位。0.25なら4分の1マス）
+    ax, az    … 半分の大きさ（0.5でマスいっぱい、0.25で半分の幅）
+    top_frac  … 上面の高さ（1.0でマスの天井、0.5で半分の高さ）
+    hgt       … 箱の高さ（マス単位）
+    """
+    hw, hh, hz = 13, 6.5, 13
+    b = block(key)
+    c = b["color"]
+    # 箱の上面の中心
+    ccx = cx + (offx - offz) * hw
+    ccy = cy + (1 - top_frac) * hz - hh + (offx + offz) * hh
+    uxx, uxy = ax * hw, ax * hh
+    uzx, uzy = -az * hw, az * hh
+    bot = (ccx + uxx + uzx, ccy + uxy + uzy)
+    lft = (ccx - uxx + uzx, ccy - uxy + uzy)
+    top = (ccx - uxx - uzx, ccy - uxy - uzy)
+    rgt = (ccx + uxx - uzx, ccy + uxy - uzy)
+    h = hgt * hz
+
+    def poly(pts, fill):
+        d = " ".join(f"{_n(a)},{_n(b2)}" for a, b2 in pts)
+        return (f'<polygon points="{d}" fill="{fill}" '
+                f'stroke="{shade(c, 0.5)}" stroke-width="0.5"/>')
+
+    full = ax == 0.5 and az == 0.5 and hgt == 1.0
+    fl = f"url(#tl_{key})" if full else shade(c, 0.68)
+    fr = f"url(#tr_{key})" if full else shade(c, 0.88)
+    ft = f"url(#tt_{key})" if full else shade(c, 1.14)
+    return (
+        poly([lft, bot, (bot[0], bot[1] + h), (lft[0], lft[1] + h)], fl)
+        + poly([rgt, bot, (bot[0], bot[1] + h), (rgt[0], rgt[1] + h)], fr)
+        + poly([bot, lft, top, rgt], ft)
+    )
+
+
+def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1, facings=None):
     """ブロックの集まりを立体図(アイソメトリック)で描く。
 
     cells     … {(x,y,z): ブロックキー}
@@ -90,6 +248,7 @@ def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1):
                 指定した場合、それ以外は薄く描いて主役を目立たせる。
     """
     hw, hh, hz = 13, 6.5, 13  # 半幅 / 上面の半高 / ブロックの高さ
+    facings = facings or {}
     pts = []
     cubes = []
     for (x, y, z), key in cells.items():
@@ -105,7 +264,8 @@ def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1):
             continue
         cx = (x - z) * hw
         cy = (x + z) * hh - y * hz
-        cubes.append((x + z, y, cx, cy, key, highlight is None or (x, y, z) in highlight))
+        cubes.append((x + z, y, cx, cy, key,
+                      highlight is None or (x, y, z) in highlight, (x, y, z)))
         pts += [(cx - hw, cy - 2 * hh), (cx + hw, cy + hz)]
     if not cubes:
         return ""
@@ -116,37 +276,38 @@ def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1):
           (max(xs) - min(xs)) + pad * 2, (max(ys) - min(ys)) + pad * 2)
 
     faces = []
-    for depth, y, cx, cy, key, main in sorted(cubes, key=lambda c: (c[0], c[1])):
+    for depth, y, cx, cy, key, main, key_pos in sorted(cubes, key=lambda c: (c[0], c[1])):
         b = block(key)
         c = b["color"]
         # 形ごとに描き分ける。立方体でないブロック（階段・ハーフ・柵など）を
         # 立方体として描くと、立体図がのっぺりして細部が伝わらない。
         sw, sh, drop = _shape_scale(b)
-        w, h2, z2 = hw * sw, hh * sw, hz * sh
-        cy = cy + drop * hz  # 床に接するものは高さのぶんだけ下げる
-        top = (f"{_n(cx)},{_n(cy)} {_n(cx - w)},{_n(cy - h2)} "
-               f"{_n(cx)},{_n(cy - 2 * h2)} {_n(cx + w)},{_n(cy - h2)}")
-        left = (f"{_n(cx - w)},{_n(cy - h2)} {_n(cx)},{_n(cy)} "
-                f"{_n(cx)},{_n(cy + z2)} {_n(cx - w)},{_n(cy - h2 + z2)}")
-        right = (f"{_n(cx + w)},{_n(cy - h2)} {_n(cx)},{_n(cy)} "
-                 f"{_n(cx)},{_n(cy + z2)} {_n(cx + w)},{_n(cy - h2 + z2)}")
-        body = (
-            f'<polygon points="{left}" fill="{shade(c, 0.68)}"/>'
-            f'<polygon points="{right}" fill="{shade(c, 0.88)}"/>'
-            f'<polygon points="{top}" fill="{shade(c, 1.14)}" '
-            f'stroke="{shade(c, 0.55)}" stroke-width="0.6"/>'
-        )
+        if b.get("shape") == "stairs" and facings.get(key_pos):
+            # 階段は「下半分の箱」＋「奥半分の背の高い箱」の2つで描く。
+            # 立方体で描くと屋根が板を重ねただけに見えてしまう。
+            # 背の高い側は矢印の向きの側。屋根なら矢印を棟へ向けると
+            # 段が棟に向かって上がっていく（逆にすると谷に見える）。
+            d = DIR_VEC[facings[key_pos]]
+            body = _iso_box(cx, cy, 0, 0, 0.5, 0.5, 0.5, 0.5, key)
+            if d[0]:  # 東西向き
+                body += _iso_box(cx, cy, d[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5, key)
+            else:     # 南北向き
+                body += _iso_box(cx, cy, 0, d[2] * 0.25, 0.5, 0.25, 1.0, 0.5, key)
+        else:
+            body = _iso_box(cx, cy, 0, 0, sw / 2, sw / 2, 1 - drop, sh, key)
         faces.append(body if main else f'<g class="faint">{body}</g>')
+    used = sorted({c[4] for c in cubes})
     return (
         f'<svg viewBox="{vb[0]:.0f} {vb[1]:.0f} {vb[2]:.0f} {vb[3]:.0f}" '
         f'role="img" aria-label="{label}" '
-        f'style="max-width:{min(max_w, vb[2] * scale):.0f}px">' + "".join(faces) + "</svg>"
+        f'style="max-width:{min(max_w, vb[2] * scale):.0f}px">'
+        + _tex_defs(used) + "".join(faces) + "</svg>"
     )
 
 
 def _iso_svg(model):
     """完成イメージのアイソメトリック図。"""
-    return _iso_cells_svg(model.blocks, None, "完成イメージ")
+    return _iso_cells_svg(model.blocks, None, "完成イメージ", facings=model.facing)
 
 
 def _facing_arrow(px, py, facing, color):
@@ -458,7 +619,8 @@ def _circuit_section(model):
         '<p class="hint">仕掛けの部分だけを切り出した図。全体の設計図とは別に、'
         'ここで位置と向きを確かめてから作る。</p>'
         '<div class="panel iso-panel rs-iso">'
-        + _iso_cells_svg(_rs_visual_cells(model, rs), set(rs), "回路だけの立体図", 560, 2)
+        + _iso_cells_svg(_rs_visual_cells(model, rs), set(rs), "回路だけの立体図", 560, 2,
+                         model.facing)
         + '<p class="cap">回路だけを立体で見たところ。色のついたものがレッドストーン部品、'
           '薄いものは支えのブロックとピストンが押す先。</p></div>'
         '<h3 class="rs-h3">部品と役割</h3>'
