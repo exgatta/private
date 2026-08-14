@@ -38,6 +38,7 @@ Claudeは `designs/house.py` を見本に新しい設計ファイルを書き、
 ```
 minecraft_education/
 ├── README.md          ← このファイル
+├── BUILD_PROMPT.md    ← このツールを作り直す／引き継ぐためのプロンプト
 ├── LEARNING.md        ← Minecraft Education の学習メモ（座標系・Code Builder等）
 ├── generate.py        ← CLI（設計名を渡すと3点セットを出力）
 ├── blueprint/         ← ジェネレーター本体
