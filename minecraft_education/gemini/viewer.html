@@ -459,6 +459,67 @@ var DESIGN = null;
     return "<defs>" + out.join("") + "</defs>";
   }
 
+  /* 立体図での「そのブロックの形」を箱のリストで返す。Python版 _iso_parts と同じ。
+   * 各要素は [ずれx, ずれz, 半分の幅x, 半分の幅z, 上面の高さ, 箱の高さ]（マス単位）。
+   * レッドストーン部品を小さな立方体で描くとMinecraftと別物になるので、
+   * ダスト=床の線 / トーチ=棒＋先端 / リピーター=薄い板＋灯 / ホッパー=漏斗
+   * のように実物の形で描く。 */
+  function isoParts(key, b, facing) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0] };
+    var d = (facing && DV[facing]) || [0, 0, 0];
+    var shape = b.shape;
+
+    if (key === "redstone_wire") return [[0, 0, 0.5, 0.5, 0.0625, 0.0625]];
+    if (key === "stone_pressure_plate") return [[0, 0, 0.44, 0.44, 0.0625, 0.0625]];
+    if (key === "redstone_torch" || key === "torch") {
+      return [[0, 0, 0.09, 0.09, 0.62, 0.62], [0, 0, 0.15, 0.15, 0.78, 0.16]];
+    }
+    if (key === "lever") {
+      return [[0, 0, 0.19, 0.19, 0.19, 0.19], [0, 0, 0.07, 0.07, 0.56, 0.37]];
+    }
+    if (key === "comparator" || key === "repeater") {
+      var ox = d[0] * 0.26, oz = d[2] * 0.26;
+      return [[0, 0, 0.5, 0.5, 0.125, 0.125],
+              [-ox, -oz, 0.06, 0.06, 0.34, 0.21],
+              [ox * 0.6, oz * 0.6, 0.06, 0.06, 0.34, 0.21]];
+    }
+    if (key === "hopper") {
+      return [[0, 0, 0.5, 0.5, 1.0, 0.375], [0, 0, 0.19, 0.19, 0.625, 0.3125]];
+    }
+    if (key === "lantern") return [[0, 0, 0.19, 0.19, 0.94, 0.38]];
+    if (key === "flower_poppy" || key === "flower_dandelion") {
+      return [[0, 0, 0.05, 0.05, 0.55, 0.55], [0, 0, 0.17, 0.17, 0.68, 0.16]];
+    }
+    if (key === "chest") return [[0, 0, 0.44, 0.44, 0.875, 0.875]];
+    if (key === "ladder") {
+      return d[0] ? [[d[0] * 0.44, 0, 0.06, 0.5, 1.0, 1.0]]
+                  : [[0, d[2] * 0.44, 0.5, 0.06, 1.0, 1.0]];
+    }
+    if (key === "door") {
+      return d[0] ? [[d[0] * 0.42, 0, 0.08, 0.5, 1.0, 1.0]]
+                  : [[0, d[2] * 0.42, 0.5, 0.08, 1.0, 1.0]];
+    }
+    if (key === "oak_trapdoor") return [[0, 0, 0.5, 0.5, 0.19, 0.19]];
+    if (key === "oak_fence_gate") {
+      return d[0] ? [[0, 0, 0.09, 0.5, 1.0, 0.75]] : [[0, 0, 0.5, 0.09, 1.0, 0.75]];
+    }
+    if (key === "sign") {
+      return [[0, 0, 0.06, 0.06, 0.5, 0.5], [0, 0, 0.44, 0.06, 1.0, 0.44]];
+    }
+
+    if (shape === "stairs" && facing) {
+      return d[0]
+        ? [[0, 0, 0.5, 0.5, 0.5, 0.5], [d[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5]]
+        : [[0, 0, 0.5, 0.5, 0.5, 0.5], [0, d[2] * 0.25, 0.5, 0.25, 1.0, 0.5]];
+    }
+    if (shape === "slab") return [[0, 0, 0.5, 0.5, 0.5, 0.5]];
+    if (shape === "flat") return [[0, 0, 0.5, 0.5, 0.0625, 0.0625]];
+    if (shape === "thin") return [[0, 0, 0.12, 0.12, 1.0, 1.0]];
+    if (shape === "stairs") return [[0, 0, 0.5, 0.5, 0.9, 0.9]];
+    return [[0, 0, 0.5, 0.5, 1.0, 1.0]];
+  }
+
   /* 立方体の一部を描く（階段のように箱を2つ重ねた形を作るため）。Python版 _iso_box と同じ。 */
   function isoBox(cx, cy, offx, offz, ax, az, topFrac, hgt, key) {
     var hw = 13, hh = 6.5, hz = 13;
@@ -526,22 +587,9 @@ var DESIGN = null;
     for (var i2 = 0; i2 < cubes.length; i2++) {
       var cx2 = cubes[i2][2], cy2 = cubes[i2][3], k2 = cubes[i2][4];
       var b = block(k2);
-      var sc = shapeScale(b);
-      var body;
-      var f2 = facings.get(cubes[i2][6]);
-      if (b.shape === "stairs" && f2) {
-        // 階段は「下半分の箱」＋「奥半分の背の高い箱」で描く。
-        // 背の高い側は矢印の向きの側（屋根なら矢印を棟へ向けると段が上がる）。
-        var d3 = DIRV3[f2];
-        body = isoBox(cx2, cy2, 0, 0, 0.5, 0.5, 0.5, 0.5, k2);
-        if (d3[0]) {
-          body += isoBox(cx2, cy2, d3[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5, k2);
-        } else {
-          body += isoBox(cx2, cy2, 0, d3[2] * 0.25, 0.5, 0.25, 1.0, 0.5, k2);
-        }
-      } else {
-        body = isoBox(cx2, cy2, 0, 0, sc[0] / 2, sc[0] / 2, 1 - sc[2], sc[1], k2);
-      }
+      var body = isoParts(k2, b, facings.get(cubes[i2][6])).map(function (q) {
+        return isoBox(cx2, cy2, q[0], q[1], q[2], q[3], q[4], q[5], k2);
+      }).join("");
       faces.push(cubes[i2][5] ? body : '<g class="faint">' + body + "</g>");
     }
     var usedKeys = [];

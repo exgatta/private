@@ -201,6 +201,86 @@ def _tex_defs(keys):
 
 
 
+
+def _iso_parts(key, b, facing):
+    """立体図での「そのブロックの形」を、箱のリストで返す。
+
+    各要素は (中心のずれx, 中心のずれz, 半分の幅x, 半分の幅z, 上面の高さ, 箱の高さ)。
+    すべてマス単位（0.5でマスいっぱい、1.0が天井の高さ）。
+
+    レッドストーン部品を小さな立方体で描いていたときは、Minecraftの見た目と
+    まるで別物になっていた。実物は
+      ダスト＝床に貼りついた線 / トーチ＝細い棒＋先端 /
+      リピーター・コンパレーター＝薄い板＋小さな灯 / ホッパー＝漏斗 /
+      感圧板＝薄い板 / ピストン・ディスペンサー＝ふつうの立方体
+    なので、それぞれの形で描く。
+    """
+    d = DIR_VEC.get(facing or "", (0, 0, 0))
+    shape = b.get("shape")
+
+    if key in ("redstone_wire",):
+        # 床に貼りついた線。マスいっぱいに薄く広がる
+        return [(0, 0, 0.5, 0.5, 0.0625, 0.0625)]
+    if key == "stone_pressure_plate":
+        return [(0, 0, 0.44, 0.44, 0.0625, 0.0625)]
+    if key in ("redstone_torch", "torch"):
+        # 細い棒＋先端の火
+        return [(0, 0, 0.09, 0.09, 0.62, 0.62), (0, 0, 0.15, 0.15, 0.78, 0.16)]
+    if key == "lever":
+        return [(0, 0, 0.19, 0.19, 0.19, 0.19), (0, 0, 0.07, 0.07, 0.56, 0.37)]
+    if key in ("comparator", "repeater"):
+        # 薄い板の上に小さな灯が2つ（向きの軸に沿って前後に並ぶ）
+        ox, oz = d[0] * 0.26, d[2] * 0.26
+        return [
+            (0, 0, 0.5, 0.5, 0.125, 0.125),
+            (-ox, -oz, 0.06, 0.06, 0.34, 0.21),
+            (ox * 0.6, oz * 0.6, 0.06, 0.06, 0.34, 0.21),
+        ]
+    if key == "hopper":
+        # 上の受け口＋下の細い出口
+        return [(0, 0, 0.5, 0.5, 1.0, 0.375), (0, 0, 0.19, 0.19, 0.625, 0.3125)]
+    if key == "lantern":
+        return [(0, 0, 0.19, 0.19, 0.94, 0.38)]
+    if key in ("flower_poppy", "flower_dandelion"):
+        return [(0, 0, 0.05, 0.05, 0.55, 0.55), (0, 0, 0.17, 0.17, 0.68, 0.16)]
+    if key == "chest":
+        return [(0, 0, 0.44, 0.44, 0.875, 0.875)]
+    if key == "ladder":
+        # 壁に貼りつく薄い板。向いている面の側に寄せる
+        if d[0]:
+            return [(d[0] * 0.44, 0, 0.06, 0.5, 1.0, 1.0)]
+        return [(0, d[2] * 0.44, 0.5, 0.06, 1.0, 1.0)]
+    if key == "door":
+        if d[0]:
+            return [(d[0] * 0.42, 0, 0.08, 0.5, 1.0, 1.0)]
+        return [(0, d[2] * 0.42, 0.5, 0.08, 1.0, 1.0)]
+    if key == "oak_trapdoor":
+        return [(0, 0, 0.5, 0.5, 0.19, 0.19)]
+    if key == "oak_fence_gate":
+        if d[0]:
+            return [(0, 0, 0.09, 0.5, 1.0, 0.75)]
+        return [(0, 0, 0.5, 0.09, 1.0, 0.75)]
+    if key == "sign":
+        return [(0, 0, 0.06, 0.06, 0.5, 0.5), (0, 0, 0.44, 0.06, 1.0, 0.44)]
+
+    if shape == "stairs" and facing:
+        # 下半分の箱＋矢印側の背の高い箱（矢印の方が高い＝屋根なら棟へ向ける）
+        if d[0]:
+            return [(0, 0, 0.5, 0.5, 0.5, 0.5),
+                    (d[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5)]
+        return [(0, 0, 0.5, 0.5, 0.5, 0.5),
+                (0, d[2] * 0.25, 0.5, 0.25, 1.0, 0.5)]
+    if shape == "slab":
+        return [(0, 0, 0.5, 0.5, 0.5, 0.5)]
+    if shape == "flat":  # カーペット
+        return [(0, 0, 0.5, 0.5, 0.0625, 0.0625)]
+    if shape == "thin":  # 柵・板ガラス・鉄格子・塀
+        return [(0, 0, 0.12, 0.12, 1.0, 1.0)]
+    if shape == "stairs":
+        return [(0, 0, 0.5, 0.5, 0.9, 0.9)]  # 向き未指定のとき
+    return [(0, 0, 0.5, 0.5, 1.0, 1.0)]
+
+
 def _iso_box(cx, cy, offx, offz, ax, az, top_frac, hgt, key, faint_ok=True):
     """立方体の一部を描く（階段のように「箱を2つ重ねた形」を作るため）。
 
@@ -281,20 +361,10 @@ def _iso_cells_svg(cells, highlight, label, max_w=640, scale=1, facings=None):
         c = b["color"]
         # 形ごとに描き分ける。立方体でないブロック（階段・ハーフ・柵など）を
         # 立方体として描くと、立体図がのっぺりして細部が伝わらない。
-        sw, sh, drop = _shape_scale(b)
-        if b.get("shape") == "stairs" and facings.get(key_pos):
-            # 階段は「下半分の箱」＋「奥半分の背の高い箱」の2つで描く。
-            # 立方体で描くと屋根が板を重ねただけに見えてしまう。
-            # 背の高い側は矢印の向きの側。屋根なら矢印を棟へ向けると
-            # 段が棟に向かって上がっていく（逆にすると谷に見える）。
-            d = DIR_VEC[facings[key_pos]]
-            body = _iso_box(cx, cy, 0, 0, 0.5, 0.5, 0.5, 0.5, key)
-            if d[0]:  # 東西向き
-                body += _iso_box(cx, cy, d[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5, key)
-            else:     # 南北向き
-                body += _iso_box(cx, cy, 0, d[2] * 0.25, 0.5, 0.25, 1.0, 0.5, key)
-        else:
-            body = _iso_box(cx, cy, 0, 0, sw / 2, sw / 2, 1 - drop, sh, key)
+        body = "".join(
+            _iso_box(cx, cy, *part, key)
+            for part in _iso_parts(key, b, facings.get(key_pos))
+        )
         faces.append(body if main else f'<g class="faint">{body}</g>')
     used = sorted({c[4] for c in cubes})
     return (

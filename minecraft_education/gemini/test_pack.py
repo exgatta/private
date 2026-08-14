@@ -384,6 +384,42 @@ class TestPack(unittest.TestCase):
         self.assertFalse([t for t in issues(ok) if "向きの指定" in t],
                          "ホッパーの下向きは正しいのにエラーになった")
 
+    def test_redstone_parts_are_not_plain_cubes(self):
+        """レッドストーン部品が小さな立方体で描かれていないこと。
+
+        （実際に起きた不具合: ダストもトーチもリピーターも一律に
+        0.62倍の小さな立方体で描いていて、Minecraftの見た目と別物だった。
+        実物は ダスト=床の線 / トーチ=棒 / リピーター=薄い板 / ホッパー=漏斗。）
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.render import _iso_parts  # noqa: E402
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        def parts(key, facing=None):
+            return _iso_parts(key, BLOCKS[key], facing)
+
+        # ダストと感圧板はぺったんこ（高さが0.1未満）
+        for key in ("redstone_wire", "stone_pressure_plate"):
+            self.assertLess(parts(key)[0][5], 0.1, f"{key} が平たくない")
+        # トーチは細い（幅が0.2未満）棒＋先端の2つ
+        t = parts("redstone_torch")
+        self.assertEqual(len(t), 2, "トーチが棒＋先端になっていない")
+        self.assertLess(t[0][2], 0.2, "トーチの棒が太い")
+        # リピーターは薄い板＋灯
+        r = parts("repeater", "south")
+        self.assertLess(r[0][5], 0.2, "リピーターが薄い板でない")
+        self.assertGreaterEqual(len(r), 2, "リピーターに灯が無い")
+        # ホッパーは上の受け口＋下の細い出口
+        h = parts("hopper", "down")
+        self.assertEqual(len(h), 2, "ホッパーが漏斗の形でない")
+        self.assertEqual(h[0][2], 0.5, "ホッパーの受け口がマス幅でない")
+        self.assertLess(h[1][2], 0.3, "ホッパーの出口が細くない")
+        # ピストン・ディスペンサーはふつうの立方体
+        for key in ("sticky_piston", "dispenser"):
+            q = parts(key, "north")
+            self.assertEqual(q, [(0, 0, 0.5, 0.5, 1.0, 1.0)],
+                             f"{key} が立方体で描かれていない")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))
