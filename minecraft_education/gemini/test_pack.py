@@ -474,6 +474,48 @@ class TestPack(unittest.TestCase):
         self.assertIn('class="wire"', html, "配線の線が描かれていない")
         self.assertIn('class="wire-bg"', html, "ダストのマスの下地が無い")
 
+    def test_textures_match_python(self):
+        """JS版のテクスチャ定義が Python版と一致すること。
+
+        手で写すとズレて、PythonとJSで見た目が変わってしまう。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.render import TEXTURES, _TEX_OF  # noqa: E402
+
+        for name in TEXTURES:
+            self.assertIn(f'"{name}":', self.renderer, f"模様 {name} が JS に無い")
+        for key, name in _TEX_OF.items():
+            self.assertIn(f'"{key}": "{name}"', self.renderer,
+                          f"{key} の模様の割り当てが JS に無い")
+
+    def test_partial_shapes_are_textured(self):
+        """ハーフ・トラップドア・階段にもテクスチャが乗ること。
+
+        （実際に起きた不具合: マスいっぱいの箱にしか模様を敷いていなかったため、
+        トラップドアも階段もハーフも単色の板きれに見えていた。）
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.model import VoxelModel  # noqa: E402
+        from blueprint.render import render_html  # noqa: E402
+
+        m = VoxelModel("t", "")
+        m.fill(0, 0, 0, 2, 0, 0, "stone")
+        m.set(0, 1, 0, "oak_trapdoor", "south")
+        m.set(1, 1, 0, "oak_slab")
+        m.set(2, 1, 0, "oak_stairs", "east")
+        html = render_html(m)
+        for key in ("oak_trapdoor", "oak_slab", "oak_stairs"):
+            self.assertIn(f"url(#tt_{key})", html, f"{key} が単色のまま")
+
+    def test_grass_has_dirt_sides(self):
+        """草ブロックの側面が土色になること（Minecraftの見た目）。"""
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.render import _tex_base  # noqa: E402
+
+        self.assertNotEqual(_tex_base("grass", "t"), _tex_base("grass", "l"))
+        self.assertEqual(_tex_base("dirt", "l"), _tex_base("grass", "l"),
+                         "草の側面が土と同じ色になっていない")
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))

@@ -130,6 +130,63 @@ TEXTURES = {
     "smooth": [  # クォーツ等 … ごく控えめ
         (0, 0, 16, 1, 0.95), (0, 0, 1, 16, 0.95),
     ],
+    "grass": {  # 草ブロック … 上は草、側面は土＋上ふちの草
+        "top": [(1, 2, 3, 3, 0.90), (9, 1, 4, 3, 1.10), (4, 7, 5, 4, 0.94),
+                (11, 9, 3, 4, 1.07), (2, 12, 4, 3, 1.03)],
+        "side": [(0, 0, 16, 3, 1.0), (0, 3, 16, 1, 0.86), (2, 5, 3, 3, 0.90),
+                 (9, 7, 4, 3, 1.08), (5, 11, 4, 3, 0.92)],
+    },
+    "trapdoor": [  # トラップドア … 横板3枚＋金具
+        (0, 0, 16, 1, 0.70), (0, 15, 16, 1, 0.70), (0, 5, 16, 1, 0.74),
+        (0, 10, 16, 1, 0.74), (1, 1, 2, 14, 0.66), (13, 1, 2, 14, 0.66),
+        (2, 2, 1, 1, 1.25), (13, 12, 1, 1, 1.25),
+    ],
+    "door_tex": [  # ドア … 縦の板＋取っ手
+        (0, 0, 1, 16, 0.72), (15, 0, 1, 16, 0.72), (0, 0, 16, 1, 0.72),
+        (7, 0, 1, 16, 0.80), (12, 7, 2, 2, 1.30),
+    ],
+    "crafting": [  # 作業台 … 上は格子、側面は道具
+        (0, 0, 16, 1, 0.74), (0, 15, 16, 1, 0.74), (0, 7, 16, 1, 0.78),
+        (7, 0, 1, 16, 0.78), (2, 2, 3, 3, 1.15), (10, 10, 3, 3, 0.88),
+    ],
+    "books": [  # 本棚 … 縦に並んだ本
+        (0, 0, 16, 3, 0.80), (0, 13, 16, 3, 0.80), (1, 4, 2, 8, 1.30),
+        (4, 4, 1, 8, 0.72), (6, 4, 2, 8, 1.12), (9, 4, 1, 8, 0.78),
+        (11, 4, 2, 8, 1.24), (14, 4, 1, 8, 0.84),
+    ],
+    "chest_tex": [  # チェスト … 上下の仕切りと留め金
+        (0, 0, 16, 1, 0.72), (0, 15, 16, 1, 0.72), (0, 5, 16, 2, 0.70),
+        (7, 5, 3, 4, 0.55), (8, 6, 1, 2, 1.40),
+    ],
+    "hopper_tex": [  # ホッパー … 上のふちが明るく、中が暗い
+        (0, 0, 16, 3, 1.25), (0, 3, 16, 1, 0.70), (3, 5, 10, 9, 0.72),
+        (5, 7, 6, 5, 0.60),
+    ],
+    "piston_tex": [  # ピストン … 木の面と金具
+        (0, 0, 16, 1, 0.72), (0, 15, 16, 1, 0.72), (0, 0, 1, 16, 0.72),
+        (15, 0, 1, 16, 0.72), (2, 2, 12, 12, 1.15), (3, 3, 10, 2, 0.85),
+        (3, 11, 10, 2, 0.85),
+    ],
+    "glow": [  # グロウストーン・シーランタン … 光る粒
+        (2, 2, 4, 4, 1.20), (9, 1, 5, 5, 1.12), (1, 9, 5, 5, 1.15),
+        (8, 8, 6, 6, 1.22), (6, 6, 3, 3, 0.88),
+    ],
+    "sandy": [  # 砂岩 … 横のしま
+        (0, 0, 16, 1, 0.82), (0, 4, 16, 1, 0.88), (0, 9, 16, 1, 0.86),
+        (0, 14, 16, 1, 0.88), (3, 1, 4, 2, 1.06), (9, 10, 5, 3, 1.05),
+    ],
+    "tnt_tex": [  # TNT … 白い帯と文字の代わりの黒い箱
+        (0, 4, 16, 4, 1.45), (0, 3, 16, 1, 0.70), (0, 8, 16, 1, 0.70),
+        (5, 5, 6, 2, 0.35), (0, 0, 16, 1, 0.80), (0, 15, 16, 1, 0.80),
+    ],
+    "cage": [  # ランタン … 金属のかご
+        (0, 0, 16, 2, 0.70), (0, 14, 16, 2, 0.70), (3, 2, 10, 12, 1.30),
+        (5, 4, 6, 8, 1.45), (7, 0, 2, 3, 0.75),
+    ],
+    "redstone_ore": [  # レッドストーンブロック … 粒がぎっしり
+        (1, 1, 3, 3, 1.30), (7, 2, 4, 3, 0.80), (11, 6, 4, 4, 1.25),
+        (2, 7, 4, 4, 0.82), (6, 11, 5, 4, 1.28), (12, 12, 3, 3, 0.84),
+    ],
     "device": [  # 機械類 … 枠と中央のくぼみ
         (0, 0, 16, 1, 0.80), (0, 15, 16, 1, 0.80), (0, 0, 1, 16, 0.80),
         (15, 0, 1, 16, 0.80), (5, 5, 6, 6, 0.86), (6, 6, 4, 4, 1.10),
@@ -145,19 +202,21 @@ _TEX_OF = {
     "stone_brick_stairs": "bricks", "stone_brick_slab": "bricks",
     "oak_planks": "planks", "spruce_planks": "planks", "oak_stairs": "planks",
     "oak_slab": "planks", "oak_fence": "planks", "oak_fence_gate": "planks",
-    "oak_trapdoor": "planks", "bookshelf": "planks", "crafting_table": "planks",
-    "sign": "planks", "ladder": "planks", "chest": "planks",
+    "oak_trapdoor": "trapdoor", "bookshelf": "books", "crafting_table": "crafting",
+    "sign": "planks", "ladder": "planks", "chest": "chest_tex", "door": "door_tex",
     "oak_log": "log",
+    "grass": "grass", "sandstone": "sandy",
     "glass": "glass", "glass_pane": "glass", "iron_bars": "glass",
     "oak_leaves": "leaves",
     "wool_white": "wool", "wool_red": "wool", "wool_blue": "wool",
     "wool_yellow": "wool", "wool_green": "wool", "wool_black": "wool",
     "carpet_red": "wool",
     "lava": "liquid", "water": "liquid",
-    "hopper": "device", "dispenser": "device", "dropper": "device",
-    "observer": "device", "sticky_piston": "device", "comparator": "device",
-    "repeater": "device", "tnt": "device", "redstone_block": "noise",
-    "glowstone": "noise", "sea_lantern": "smooth", "quartz": "smooth",
+    "hopper": "hopper_tex", "dispenser": "device", "dropper": "device",
+    "observer": "device", "sticky_piston": "piston_tex", "comparator": "device",
+    "repeater": "device", "tnt": "tnt_tex", "redstone_block": "redstone_ore",
+    "glowstone": "glow", "sea_lantern": "glow", "quartz": "smooth",
+    "lantern": "cage",
 }
 
 
@@ -177,14 +236,30 @@ _FACE_MATRIX = {
 _FACE_SHADE = {"t": 1.14, "l": 0.68, "r": 0.88}
 
 
+def _tex_spec(key, face):
+    """その面に使う模様。上面と側面で違うもの（草・原木など）に対応する。"""
+    t = TEXTURES[_tex_name(key)]
+    if isinstance(t, dict):
+        return t["top"] if face == "t" else t["side"]
+    return t
+
+
+def _tex_base(key, face):
+    """その面の下地の色。草ブロックの側面＝土のように、面で色が違うものに対応。"""
+    b = block(key)
+    color = b["color"]
+    if face != "t" and b.get("side_color"):
+        color = b["side_color"]
+    return shade(color, _FACE_SHADE[face])
+
+
 def _tex_defs(keys):
     """使われているブロックのぶんだけ<pattern>を作る。"""
     out = []
     for key in keys:
-        color = block(key)["color"]
-        spec = TEXTURES[_tex_name(key)]
         for face, mat in _FACE_MATRIX.items():
-            base = shade(color, _FACE_SHADE[face])
+            spec = _tex_spec(key, face)
+            base = _tex_base(key, face)
             rects = "".join(
                 f'<rect x="{rx}" y="{ry}" width="{rw}" height="{rh}" '
                 f'fill="{shade(base, f)}"/>'
@@ -377,10 +452,12 @@ def _iso_box(cx, cy, offx, offz, ax, az, top_frac, hgt, key, faint_ok=True):
         return (f'<polygon points="{d}" fill="{fill}" '
                 f'stroke="{shade(c, 0.5)}" stroke-width="0.5"/>')
 
-    full = ax == 0.5 and az == 0.5 and hgt == 1.0
-    fl = f"url(#tl_{key})" if full else shade(c, 0.68)
-    fr = f"url(#tr_{key})" if full else shade(c, 0.88)
-    ft = f"url(#tt_{key})" if full else shade(c, 1.14)
+    # 箱の大きさに関わらずテクスチャを敷く。パターンはマスの格子に合わせて
+    # 敷き詰めてあるので、半分の箱には模様の半分がそのまま出る（ハーフブロックや
+    # トラップドアも素材の質感が出る）。単色だと板きれにしか見えない。
+    fl = f"url(#tl_{key})"
+    fr = f"url(#tr_{key})"
+    ft = f"url(#tt_{key})"
     return (
         poly([lft, bot, (bot[0], bot[1] + h), (lft[0], lft[1] + h)], fl)
         + poly([rgt, bot, (bot[0], bot[1] + h), (rgt[0], rgt[1] + h)], fr)

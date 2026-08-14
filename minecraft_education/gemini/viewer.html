@@ -46,14 +46,14 @@ var DESIGN = null;
    * palette.py の BLOCKS と完全に同じ（色・記号・日本語名・Bedrock ID・MakeCode名）
    */
   var BLOCKS = {
-    grass: { name_ja: "草ブロック", bedrock_id: "grass_block", makecode: "GRASS", color: "#6FA83C", symbol: "草" },
+    grass: { name_ja: "草ブロック", bedrock_id: "grass_block", makecode: "GRASS", color: "#6FA83C", symbol: "草", side_color: "#8A5A33" },
     dirt: { name_ja: "土", bedrock_id: "dirt", makecode: "DIRT", color: "#8A5A33", symbol: "土" },
     stone: { name_ja: "石", bedrock_id: "stone", makecode: "STONE", color: "#8F8F8F", symbol: "石" },
     cobblestone: { name_ja: "丸石", bedrock_id: "cobblestone", makecode: "COBBLESTONE", color: "#767B76", symbol: "丸" },
     stone_bricks: { name_ja: "石レンガ", bedrock_id: "stone_bricks", makecode: "STONE_BRICKS", color: "#A2A6A2", symbol: "煉" },
     oak_planks: { name_ja: "オークの板材", bedrock_id: "oak_planks", makecode: "PLANKS_OAK", color: "#BC9458", symbol: "板" },
     spruce_planks: { name_ja: "トウヒの板材", bedrock_id: "spruce_planks", makecode: "PLANKS_SPRUCE", color: "#7A5732", symbol: "ト" },
-    oak_log: { name_ja: "オークの原木", bedrock_id: "oak_log", makecode: "LOG_OAK", color: "#66492A", symbol: "原" },
+    oak_log: { name_ja: "オークの原木", bedrock_id: "oak_log", makecode: "LOG_OAK", color: "#B0895A", symbol: "原", side_color: "#66492A" },
     glass: { name_ja: "ガラス", bedrock_id: "glass", makecode: "GLASS", color: "#C4E4EA", symbol: "ガ", transparent: true },
     brick: { name_ja: "レンガ", bedrock_id: "brick_block", makecode: "BRICKS", color: "#9E4F3B", symbol: "赤" },
     sandstone: { name_ja: "砂岩", bedrock_id: "sandstone", makecode: "SANDSTONE", color: "#DECFA0", symbol: "砂" },
@@ -419,9 +419,22 @@ var DESIGN = null;
     "wool": [[2,3,2,2,0.94], [9,6,3,2,1.06], [5,11,3,2,0.95], [12,12,2,2,1.04]],
     "liquid": [[0,2,9,3,1.14], [7,7,9,3,0.88], [1,11,8,3,1.1]],
     "smooth": [[0,0,16,1,0.95], [0,0,1,16,0.95]],
+    "grass": { top: [[1,2,3,3,0.9], [9,1,4,3,1.1], [4,7,5,4,0.94], [11,9,3,4,1.07], [2,12,4,3,1.03]], side: [[0,0,16,3,1.0], [0,3,16,1,0.86], [2,5,3,3,0.9], [9,7,4,3,1.08], [5,11,4,3,0.92]] },
+    "trapdoor": [[0,0,16,1,0.7], [0,15,16,1,0.7], [0,5,16,1,0.74], [0,10,16,1,0.74], [1,1,2,14,0.66], [13,1,2,14,0.66], [2,2,1,1,1.25], [13,12,1,1,1.25]],
+    "door_tex": [[0,0,1,16,0.72], [15,0,1,16,0.72], [0,0,16,1,0.72], [7,0,1,16,0.8], [12,7,2,2,1.3]],
+    "crafting": [[0,0,16,1,0.74], [0,15,16,1,0.74], [0,7,16,1,0.78], [7,0,1,16,0.78], [2,2,3,3,1.15], [10,10,3,3,0.88]],
+    "books": [[0,0,16,3,0.8], [0,13,16,3,0.8], [1,4,2,8,1.3], [4,4,1,8,0.72], [6,4,2,8,1.12], [9,4,1,8,0.78], [11,4,2,8,1.24], [14,4,1,8,0.84]],
+    "chest_tex": [[0,0,16,1,0.72], [0,15,16,1,0.72], [0,5,16,2,0.7], [7,5,3,4,0.55], [8,6,1,2,1.4]],
+    "hopper_tex": [[0,0,16,3,1.25], [0,3,16,1,0.7], [3,5,10,9,0.72], [5,7,6,5,0.6]],
+    "piston_tex": [[0,0,16,1,0.72], [0,15,16,1,0.72], [0,0,1,16,0.72], [15,0,1,16,0.72], [2,2,12,12,1.15], [3,3,10,2,0.85], [3,11,10,2,0.85]],
+    "glow": [[2,2,4,4,1.2], [9,1,5,5,1.12], [1,9,5,5,1.15], [8,8,6,6,1.22], [6,6,3,3,0.88]],
+    "sandy": [[0,0,16,1,0.82], [0,4,16,1,0.88], [0,9,16,1,0.86], [0,14,16,1,0.88], [3,1,4,2,1.06], [9,10,5,3,1.05]],
+    "tnt_tex": [[0,4,16,4,1.45], [0,3,16,1,0.7], [0,8,16,1,0.7], [5,5,6,2,0.35], [0,0,16,1,0.8], [0,15,16,1,0.8]],
+    "cage": [[0,0,16,2,0.7], [0,14,16,2,0.7], [3,2,10,12,1.3], [5,4,6,8,1.45], [7,0,2,3,0.75]],
+    "redstone_ore": [[1,1,3,3,1.3], [7,2,4,3,0.8], [11,6,4,4,1.25], [2,7,4,4,0.82], [6,11,5,4,1.28], [12,12,3,3,0.84]],
     "device": [[0,0,16,1,0.8], [0,15,16,1,0.8], [0,0,1,16,0.8], [15,0,1,16,0.8], [5,5,6,6,0.86], [6,6,4,4,1.1]]
   };
-  var TEX_OF = { "grass": "noise", "dirt": "noise", "stone": "noise", "cobblestone": "noise", "cobblestone_stairs": "noise", "cobblestone_wall": "noise", "sandstone": "noise", "stone_bricks": "bricks", "mossy_stone_bricks": "bricks", "chiseled_stone_bricks": "bricks", "brick": "bricks", "stone_brick_stairs": "bricks", "stone_brick_slab": "bricks", "oak_planks": "planks", "spruce_planks": "planks", "oak_stairs": "planks", "oak_slab": "planks", "oak_fence": "planks", "oak_fence_gate": "planks", "oak_trapdoor": "planks", "bookshelf": "planks", "crafting_table": "planks", "sign": "planks", "ladder": "planks", "chest": "planks", "oak_log": "log", "glass": "glass", "glass_pane": "glass", "iron_bars": "glass", "oak_leaves": "leaves", "wool_white": "wool", "wool_red": "wool", "wool_blue": "wool", "wool_yellow": "wool", "wool_green": "wool", "wool_black": "wool", "carpet_red": "wool", "lava": "liquid", "water": "liquid", "hopper": "device", "dispenser": "device", "dropper": "device", "observer": "device", "sticky_piston": "device", "comparator": "device", "repeater": "device", "tnt": "device", "redstone_block": "noise", "glowstone": "noise", "sea_lantern": "smooth", "quartz": "smooth" };
+  var TEX_OF = { "grass": "grass", "dirt": "noise", "stone": "noise", "cobblestone": "noise", "cobblestone_stairs": "noise", "cobblestone_wall": "noise", "sandstone": "sandy", "stone_bricks": "bricks", "mossy_stone_bricks": "bricks", "chiseled_stone_bricks": "bricks", "brick": "bricks", "stone_brick_stairs": "bricks", "stone_brick_slab": "bricks", "oak_planks": "planks", "spruce_planks": "planks", "oak_stairs": "planks", "oak_slab": "planks", "oak_fence": "planks", "oak_fence_gate": "planks", "oak_trapdoor": "trapdoor", "bookshelf": "books", "crafting_table": "crafting", "sign": "planks", "ladder": "planks", "chest": "chest_tex", "door": "door_tex", "oak_log": "log", "glass": "glass", "glass_pane": "glass", "iron_bars": "glass", "oak_leaves": "leaves", "wool_white": "wool", "wool_red": "wool", "wool_blue": "wool", "wool_yellow": "wool", "wool_green": "wool", "wool_black": "wool", "carpet_red": "wool", "lava": "liquid", "water": "liquid", "hopper": "hopper_tex", "dispenser": "device", "dropper": "device", "observer": "device", "sticky_piston": "piston_tex", "comparator": "device", "repeater": "device", "tnt": "tnt_tex", "redstone_block": "redstone_ore", "glowstone": "glow", "sea_lantern": "glow", "quartz": "smooth", "lantern": "cage" };
 
   /* 立体図のテクスチャ。単色の立方体だと積み木にしか見えないので、
    * 16×16の升目の模様を<pattern>にして面ごとに敷く。
@@ -437,14 +450,26 @@ var DESIGN = null;
     return Object.prototype.hasOwnProperty.call(TEX_OF, key) ? TEX_OF[key] : "smooth";
   }
 
+  function texSpec(key, face) {
+    var t = TEXTURES[texName(key)];
+    if (!Array.isArray(t)) return face === "t" ? t.top : t.side;
+    return t;
+  }
+
+  function texBase(key, face) {
+    var b = block(key);
+    var color = b.color;
+    if (face !== "t" && b.side_color) color = b.side_color;
+    return shade(color, FACE_SHADE[face]);
+  }
+
   function texDefs(keys) {
     var out = [];
     keys.forEach(function (key) {
-      var color = block(key).color;
-      var spec = TEXTURES[texName(key)];
       ["t", "l", "r"].forEach(function (face) {
         var mat = FACE_MATRIX[face];
-        var base = shade(color, FACE_SHADE[face]);
+        var spec = texSpec(key, face);
+        var base = texBase(key, face);
         var rects = spec.map(function (r) {
           return '<rect x="' + r[0] + '" y="' + r[1] + '" width="' + r[2] +
             '" height="' + r[3] + '" fill="' + shade(base, r[4]) + '"/>';
@@ -617,10 +642,11 @@ var DESIGN = null;
       return '<polygon points="' + d + '" fill="' + fill + '" ' +
         'stroke="' + stroke + '" stroke-width="0.5"/>';
     };
-    var full = ax === 0.5 && az === 0.5 && hgt === 1.0;
-    var fl = full ? "url(#tl_" + key + ")" : shade(c, 0.68);
-    var fr = full ? "url(#tr_" + key + ")" : shade(c, 0.88);
-    var ft = full ? "url(#tt_" + key + ")" : shade(c, 1.14);
+    // 箱の大きさに関わらずテクスチャを敷く。ハーフやトラップドアにも
+    // 素材の質感が出る（単色だと板きれにしか見えない）
+    var fl = "url(#tl_" + key + ")";
+    var fr = "url(#tr_" + key + ")";
+    var ft = "url(#tt_" + key + ")";
     return poly([lft, bot, [bot[0], bot[1] + h], [lft[0], lft[1] + h]], fl) +
       poly([rgt, bot, [bot[0], bot[1] + h], [rgt[0], rgt[1] + h]], fr) +
       poly([bot, lft, top, rgt], ft);

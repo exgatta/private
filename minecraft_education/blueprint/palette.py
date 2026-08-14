@@ -23,6 +23,7 @@ BLOCKS = {
     "grass": {
         "name_ja": "草ブロック", "bedrock_id": "grass_block",
         "makecode": "GRASS", "color": "#6FA83C", "symbol": "草",
+        "side_color": "#8A5A33",
     },
     "dirt": {
         "name_ja": "土", "bedrock_id": "dirt",
@@ -50,7 +51,8 @@ BLOCKS = {
     },
     "oak_log": {
         "name_ja": "オークの原木", "bedrock_id": "oak_log",
-        "makecode": "LOG_OAK", "color": "#66492A", "symbol": "原",
+        "makecode": "LOG_OAK", "color": "#B0895A", "symbol": "原",
+        "side_color": "#66492A",
     },
     "glass": {
         "name_ja": "ガラス", "bedrock_id": "glass",
