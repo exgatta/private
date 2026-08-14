@@ -125,8 +125,8 @@ viewer.html を開くのも面倒、という場合はこちらです。
 | 「JSON が見つかりません」と出る | `{` から `}` までを貼れているか確認。説明文が混ざっていても大丈夫です |
 | 「JSON の形が正しくありません」と出る | Gemini に「JSONだけをもう一度出して」と頼む。途中で切れていることが多いです |
 | 設計図が真っ白になる | viewer.html をもう一度開き直してから貼り直す |
-| ⚠ が何度も消えない | 作りたいものを小さくする（20×20マス以内）と成功しやすいです |
-| 大きすぎると言われる | 上限は 32×32マス・24段・1200ブロックです |
+| ⚠ が何度も消えない | 作りたいものを小さくする（32×32マス以内）と成功しやすいです |
+| 大きすぎると言われる | 上限は 64×64マス・48段・20000ブロックです。「大きめ」の参考表示なら、そのまま作って大丈夫 |
 | Gemini が図を描こうとする | 「図はいらない。JSONだけ出して」と伝える |
 
 ---
@@ -147,12 +147,14 @@ viewer.html を開くのも面倒、という場合はこちらです。
 
 ```bash
 cd minecraft_education/gemini
+python3 sync_palette.py   # palette.py のブロックを renderer.js へ転記
 python3 build_pack.py     # PROMPT.md と viewer.html を作り直す
-python3 compare.py        # Python版と図が一致するか検証
+python3 compare.py        # Python版と図が一致するか検証（回路詳細図も含む）
 node test_validate.js     # 検品ロジックの検証
+python3 test_pack.py      # 回帰テスト
 ```
 
 `PROMPT.md` と `viewer.html` は**自動生成物なので直接編集しないでください**。
 直接編集すると renderer.js とズレて、設計図の品質が静かに下がります。
-（パレット表もプロンプトに自動で埋め込まれるので、ブロックを増やすときは
-`renderer.js` の `BLOCKS` と `blueprint/palette.py` の両方に足してから `build_pack.py` を実行します）
+ブロックを増やすときは **`blueprint/palette.py` だけ**に足し、`sync_palette.py` を実行してください。
+`renderer.js` のパレットとプロンプトのブロック表は、そこから自動で作られます。
