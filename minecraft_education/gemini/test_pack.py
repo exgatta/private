@@ -516,6 +516,29 @@ class TestPack(unittest.TestCase):
         self.assertEqual(_tex_base("dirt", "l"), _tex_base("grass", "l"),
                          "草の側面が土と同じ色になっていない")
 
+    def test_build_prompt_documents_all_ops(self):
+        """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。
+
+        再構築プロンプトに ops の仕様が欠けていると、作り直したツールが
+        利用者向けプロンプトと違う形の JSON を期待して噛み合わなくなる。
+        """
+        doc = (HERE.parent / "BUILD_PROMPT.md").read_text(encoding="utf-8")
+        start = doc.index("## 【ここから】")
+        end = doc.index("## 【ここまで】")
+        body = doc[start:end]
+
+        for op in ("fill", "box", "set", "clear"):
+            self.assertIn(f"`{op}`", body, f"命令 {op} の説明が無い")
+        for key in ('"op": "fill"', '"op": "box"', '"op": "set"', '"op": "clear"',
+                    '"ops"', '"notes"', '"layer_notes"', '"facing"'):
+            self.assertIn(key, body, f"JSON例に {key} が無い")
+        for facing in ("north", "south", "east", "west"):
+            self.assertIn(f"`{facing}`", body, f"向き {facing} の説明が無い")
+
+        # layer_notes のキーの数え方（PROMPT.md と同じ説明であること）
+        self.assertIn('`"0"` が1段目', body)
+        self.assertIn('`"0"` が1段目', self.prompt)
+
     def test_generated_files_not_hand_edited(self):
         """生成物に「編集するな」の注意が入っていること。"""
         self.assertIn("build_pack.py", (HERE / "README.md").read_text(encoding="utf-8"))
