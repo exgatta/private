@@ -653,6 +653,28 @@ class TestPack(unittest.TestCase):
                          {k: dict(v) for k, v in AUX_RULES.items()},
                          "AUX_RULES が黄金コピーとズレている")
 
+    def test_lava_fire_rule_everywhere(self):
+        """溶岩の延焼ルールが検品と両プロンプトに入っていること。
+
+        （実際に起きた不具合: 溶岩の近くに木材を置く設計が素通りし、
+        利用者の作品が燃えた。）
+        """
+        self.assertIn("溶岩のそばに燃える素材", self.renderer, "検品ルールが無い")
+        self.assertIn("のそばに燃える素材を置かない", self.prompt.replace("**", ""),
+                      "設計図用プロンプトにルールが無い")
+        self.assertIn("のそばに燃える素材を置かない", self.agent.replace("**", ""),
+                      "エージェント用プロンプトにルールが無い")
+        # flammable フラグが JS へ転記されていること（redstone フラグ欠落の再発防止）
+        self.assertRegex(self.renderer, r"oak_planks: \{[^}]*flammable: true")
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        for key in ("oak_planks", "wool_red", "oak_leaves", "tnt"):
+            self.assertTrue(BLOCKS[key].get("flammable"), f"{key} が flammable でない")
+        for key in ("door", "oak_trapdoor", "sign", "ladder", "crafting_table"):
+            self.assertFalse(BLOCKS[key].get("flammable"),
+                             f"{key} は延焼しないブロック（実機仕様）")
+
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。
 

@@ -79,6 +79,32 @@ cases.push(["⑥b 大きめ（上限内なので合格）", {
   ops: [{ op: "fill", x1: 0, y1: 0, z1: 0, x2: 39, y2: 0, z2: 39, block: "stone" }]
 }, { expectOk: true }]);
 
+// ⑧ 溶岩の延焼（実際に利用者の作品が燃えた）
+//    溶岩は直接ふれていなくても、横1マス・上2段の燃える素材に火をつける。
+cases.push(["⑧ 溶岩のそばの燃える素材", {
+  name: "燃える家", description: "", notes: [], layer_notes: {},
+  ops: [
+    { op: "fill", x1: 0, y1: 0, z1: 0, x2: 5, y2: 0, z2: 5, block: "stone" },
+    { op: "set", x: 2, y: 1, z: 2, block: "lava" },
+    // 溶岩の横どなり（燃える）
+    { op: "set", x: 3, y: 1, z: 2, block: "oak_planks" },
+    // 溶岩の2段上のななめ（燃える）
+    { op: "set", x: 3, y: 3, z: 2, block: "wool_red" },
+    { op: "set", x: 3, y: 2, z: 2, block: "oak_log" }
+  ]
+}]);
+
+cases.push(["⑧b 石で囲った溶岩（合格）", {
+  name: "溶岩だんろ", description: "", notes: [], layer_notes: {},
+  ops: [
+    { op: "fill", x1: 0, y1: 0, z1: 0, x2: 4, y2: 0, z2: 4, block: "stone" },
+    { op: "box", x1: 1, y1: 1, z1: 1, x2: 3, y2: 1, z2: 3, block: "cobblestone" },
+    { op: "set", x: 2, y: 1, z: 2, block: "lava" },
+    // 2マス以上はなれた木材は安全
+    { op: "set", x: 0, y: 1, z: 0, block: "oak_planks" }
+  ]
+}, { expectOk: true }]);
+
 // ⑦ 正常な設計（合格するはず）
 cases.push(["⑦ 問題なしの設計", {
   name: "小屋", description: "", layer_notes: {},

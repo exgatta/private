@@ -8,6 +8,9 @@
 - color     : 設計図・立体図で使う代表色 (hex)
 - symbol    : レイヤー図のマスに表示する1文字記号
 - marker    : True なら「置き物」(たいまつ・ドア等)。自動建築コードでは手動設置扱い
+- flammable : True なら溶岩・火で燃え移る素材（木材・羊毛・葉・TNT等）。
+              検品が「溶岩のそば」を警告するのに使う。ドア・トラップドア・看板・
+              はしご・作業台は木でも延焼しないため付けない
 
 bedrock_id は Mojang 公式の Bedrock ブロック定義（Mojang/bedrock-samples の
 mojang-blocks.json）と照合して確定させている。
@@ -44,15 +47,18 @@ BLOCKS = {
     "oak_planks": {
         "name_ja": "オークの板材", "bedrock_id": "oak_planks",
         "makecode": "PLANKS_OAK", "color": "#BC9458", "symbol": "板",
+        "flammable": True,
     },
     "spruce_planks": {
         "name_ja": "トウヒの板材", "bedrock_id": "spruce_planks",
         "makecode": "PLANKS_SPRUCE", "color": "#7A5732", "symbol": "ト",
+        "flammable": True,
     },
     "oak_log": {
         "name_ja": "オークの原木", "bedrock_id": "oak_log",
         "makecode": "LOG_OAK", "color": "#B0895A", "symbol": "原",
         "side_color": "#66492A",
+        "flammable": True,
     },
     "glass": {
         "name_ja": "ガラス", "bedrock_id": "glass",
@@ -74,14 +80,17 @@ BLOCKS = {
     "wool_white": {
         "name_ja": "白の羊毛", "bedrock_id": "white_wool",
         "makecode": "WOOL", "color": "#F2F2F2", "symbol": "毛",
+        "flammable": True,
     },
     "wool_red": {
         "name_ja": "赤の羊毛", "bedrock_id": "red_wool",
         "makecode": "RED_WOOL", "color": "#C43B3B", "symbol": "紅",
+        "flammable": True,
     },
     "wool_blue": {
         "name_ja": "青の羊毛", "bedrock_id": "blue_wool",
         "makecode": "BLUE_WOOL", "color": "#3B58C4", "symbol": "青",
+        "flammable": True,
     },
     "glowstone": {
         "name_ja": "グロウストーン", "bedrock_id": "glowstone",
@@ -114,6 +123,7 @@ BLOCKS = {
         "name_ja": "オークの階段", "bedrock_id": "oak_stairs",
         "makecode": "OAK_STAIRS", "color": "#B08A50", "symbol": "階",
         "transparent": True, "orientable": True, "shape": "stairs",
+        "flammable": True,
     },
     "stone_brick_stairs": {
         "name_ja": "石レンガの階段", "bedrock_id": "stone_brick_stairs",
@@ -129,6 +139,7 @@ BLOCKS = {
         "name_ja": "オークのハーフブロック", "bedrock_id": "oak_slab",
         "makecode": "OAK_SLAB", "color": "#C69C60", "symbol": "半",
         "transparent": True, "shape": "slab",
+        "flammable": True,
     },
     "stone_brick_slab": {
         "name_ja": "石レンガのハーフブロック", "bedrock_id": "stone_brick_slab",
@@ -139,11 +150,13 @@ BLOCKS = {
         "name_ja": "オークのフェンス", "bedrock_id": "oak_fence",
         "makecode": "OAK_FENCE", "color": "#A17C46", "symbol": "柵",
         "transparent": True, "shape": "thin",
+        "flammable": True,
     },
     "oak_fence_gate": {
         "name_ja": "オークのフェンスゲート", "bedrock_id": "fence_gate",
         "makecode": "OAK_FENCE_GATE", "color": "#B98E4F", "symbol": "門",
         "transparent": True, "orientable": True, "shape": "thin", "marker": True,
+        "flammable": True,
     },
     "oak_trapdoor": {
         "name_ja": "オークのトラップドア", "bedrock_id": "trapdoor",
@@ -175,6 +188,7 @@ BLOCKS = {
         "name_ja": "赤いカーペット", "bedrock_id": "red_carpet",
         "makecode": "RED_CARPET", "color": "#B03A3A", "symbol": "絨",
         "transparent": True, "shape": "flat",
+        "flammable": True,
     },
     "lantern": {
         "name_ja": "ランタン", "bedrock_id": "lantern",
@@ -188,6 +202,7 @@ BLOCKS = {
     "bookshelf": {
         "name_ja": "本棚", "bedrock_id": "bookshelf",
         "makecode": "BOOKSHELF", "color": "#8A6A3E", "symbol": "本",
+        "flammable": True,
     },
     "crafting_table": {
         "name_ja": "作業台", "bedrock_id": "crafting_table",
@@ -202,32 +217,39 @@ BLOCKS = {
         "name_ja": "オークの葉", "bedrock_id": "oak_leaves",
         "makecode": "LEAVES_OAK", "color": "#4E8B3A", "symbol": "葉",
         "transparent": True,
+        "flammable": True,
     },
     "flower_poppy": {
         "name_ja": "ポピー（赤い花）", "bedrock_id": "poppy",
         "makecode": "POPPY", "color": "#CE4040", "symbol": "花",
         "transparent": True, "shape": "flat", "marker": True,
+        "flammable": True,
     },
     "flower_dandelion": {
         "name_ja": "タンポポ（黄色い花）", "bedrock_id": "dandelion",
         "makecode": "DANDELION", "color": "#E3C93F", "symbol": "菊",
         "transparent": True, "shape": "flat", "marker": True,
+        "flammable": True,
     },
     "wool_yellow": {
         "name_ja": "黄色の羊毛", "bedrock_id": "yellow_wool",
         "makecode": "YELLOW_WOOL", "color": "#D8C13A", "symbol": "黄",
+        "flammable": True,
     },
     "wool_green": {
         "name_ja": "緑の羊毛", "bedrock_id": "green_wool",
         "makecode": "GREEN_WOOL", "color": "#4E7A32", "symbol": "緑",
+        "flammable": True,
     },
     "wool_black": {
         "name_ja": "黒の羊毛", "bedrock_id": "black_wool",
         "makecode": "BLACK_WOOL", "color": "#2B2B2E", "symbol": "黒",
+        "flammable": True,
     },
     "tnt": {
         "name_ja": "TNT", "bedrock_id": "tnt",
         "makecode": "TNT", "color": "#D9472B", "symbol": "爆",
+        "flammable": True,
     },
     "redstone_block": {
         "name_ja": "レッドストーンブロック", "bedrock_id": "redstone_block",

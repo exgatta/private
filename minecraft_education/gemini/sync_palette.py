@@ -22,7 +22,8 @@ from blueprint.palette import BLOCKS  # noqa: E402
 
 # JSに書き出す属性と順序（Python版の属性名をそのまま使う）
 FIELDS = ("name_ja", "bedrock_id", "makecode", "color", "symbol",
-          "transparent", "orientable", "shape", "marker", "piston", "redstone", "updown", "side_color")
+          "transparent", "orientable", "shape", "marker", "piston", "redstone", "updown",
+          "flammable", "side_color")
 
 
 def js_literal():
