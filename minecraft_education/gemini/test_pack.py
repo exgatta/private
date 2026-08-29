@@ -571,6 +571,7 @@ class TestPack(unittest.TestCase):
         self.assertIn("`WATER` と `LAVA` も `LAYERS` に入れない", body)
         self.assertIn("「置き物」印のブロックは `LAYERS` に入れない", body)
         self.assertIn("1文字も変えないで", body)
+        self.assertIn("全角の記号・空白", body)
 
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。
