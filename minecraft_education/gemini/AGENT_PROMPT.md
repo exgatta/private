@@ -166,8 +166,8 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 | 粘着ピストン | 南向き | `sticky_piston 2` |
 | 粘着ピストン | 東向き | `sticky_piston 4` |
 | 粘着ピストン | 西向き | `sticky_piston 5` |
-| 粘着ピストン | 下向き | `sticky_piston 1` |
-| 粘着ピストン | 上向き | `sticky_piston 0` |
+| 粘着ピストン | 下向き | `sticky_piston 0` |
+| 粘着ピストン | 上向き | `sticky_piston 1` |
 | レッドストーンダスト | ー | `redstone_wire` |
 | レッドストーントーチ | ー | `redstone_torch` |
 | 石の感圧板 | ー | `stone_pressure_plate` |

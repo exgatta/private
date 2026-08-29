@@ -63,7 +63,9 @@ def _trapdoor(facing):
 
 
 def _facing_direction_opp(facing):
-    """ピストン用: 実効方向（押す向き）は格納値の正反対（Nukkit・実機で確認）。"""
+    """ピストン用: 水平は格納値の正反対、上下はそのまま（実機で確認）。"""
+    if facing in ("down", "up"):
+        return f'"facing_direction"={_FACE_INDEX[facing]}'
     return f'"facing_direction"={_FACE_INDEX[_OPP[facing]]}'
 
 
@@ -172,8 +174,13 @@ AUX_RULES = {
     "oak_fence_gate": _DIRECTION_SWNE,
     "ladder": {f: i for f, i in _FACE_INDEX.items() if i >= 2},
     "chest": {f: i for f, i in _FACE_INDEX.items() if i >= 2},
-    # ピストンは「押す向き」を指定 → 格納値はその反対（上下も逆）
-    "sticky_piston": {f: _FACE_INDEX[_OPP[f]] for f in _FACE_INDEX},
+    # ピストンは「押す向き」を指定 → 水平は反対を格納、上下はそのまま
+    # （実機 Education 1.21.133 で確認: 北向き=3 が北へ伸び、1 が上へ伸びた。
+    #   水平だけ反転という非対称仕様。Nukkit の getOpposite() は水平にだけ正しい）
+    "sticky_piston": {
+        **{f: _FACE_INDEX[_OPP[f]] for f in ("north", "south", "east", "west")},
+        "down": 0, "up": 1,
+    },
     "hopper": {f: i for f, i in _FACE_INDEX.items() if f != "up"},
     "dispenser": _FACE_INDEX,
     "dropper": _FACE_INDEX,

@@ -85,8 +85,8 @@ def muki():
     player.execute("setblock ~2 ~0 ~16 sticky_piston 2")  # 南向き
     player.execute("setblock ~4 ~0 ~16 sticky_piston 4")  # 東向き
     player.execute("setblock ~6 ~0 ~16 sticky_piston 5")  # 西向き
-    player.execute("setblock ~8 ~0 ~16 sticky_piston 1")  # 下向き
-    player.execute("setblock ~10 ~0 ~16 sticky_piston 0")  # 上向き
+    player.execute("setblock ~8 ~0 ~16 sticky_piston 0")  # 下向き
+    player.execute("setblock ~10 ~0 ~16 sticky_piston 1")  # 上向き
     # ホッパー（18マス南の列）
     player.execute("setblock ~0 ~0 ~18 hopper 2")  # 北向き
     player.execute("setblock ~2 ~0 ~18 hopper 3")  # 南向き

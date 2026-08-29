@@ -639,7 +639,7 @@ class TestPack(unittest.TestCase):
             ("oak_fence_gate", "south"): 0, ("oak_fence_gate", "north"): 2,
             ("oak_trapdoor", "east"): 0, ("oak_trapdoor", "north"): 3,
             ("oak_stairs", "east"): 0, ("oak_stairs", "north"): 3,
-            ("sticky_piston", "down"): 1, ("sticky_piston", "up"): 0,
+            ("sticky_piston", "down"): 0, ("sticky_piston", "up"): 1,
             ("sticky_piston", "east"): 4, ("sticky_piston", "north"): 3,
             ("hopper", "down"): 0, ("hopper", "west"): 4,
             ("sign", "south"): 0, ("sign", "north"): 8,

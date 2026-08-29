@@ -2,13 +2,11 @@
  "_comment": [
   "Minecraft Education 用のデータ値（aux）対応表の黄金コピー（キーは見た目の向き）。",
   "blueprint/blockstate.py の AUX_RULES と一致していることを test_pack.py が検査する。",
-  "出所（推測ではない）:",
-  " - pmmp/BedrockBlockUpgradeSchema id_meta_to_nbt/1.12.0.bin（データ値→状態の公式変換データ）",
-  " - CloudburstMC/Nukkit の設置・動作コード（格納値と見た目の向きの対応）",
-  " - 実機 Education 1.21.133 での向き確認（check_muki.txt）",
-  "要注意の反転（実機で『逆』と発覚し修正済み）:",
-  " - sticky_piston: 押す向きの正反対を格納（上下も逆）",
-  " - repeater / comparator: 矢印（出力）の正反対＝入力側を格納"
+  "出所: pmmp/BedrockBlockUpgradeSchema・Nukkit・実機（Education 1.21.133, check_muki.txt）。",
+  "実機で確定した非対称仕様（2026-08-29 の色分けテスト）:",
+  " - sticky_piston: 水平は押す向きの反対を格納（北=3 南=2 東=4 西=5）、上下はそのまま（下=0 上=1）",
+  " - repeater / comparator: 矢印（出力）の反対＝入力側を格納（北=0 東=1 南=2 西=3）",
+  "他のブロックは格納値がそのまま見た目の向き。"
  ],
  "aux": {
   "chest": {
@@ -97,12 +95,12 @@
    "east": 12
   },
   "sticky_piston": {
-   "down": 1,
-   "up": 0,
    "north": 3,
    "south": 2,
+   "east": 4,
    "west": 5,
-   "east": 4
+   "down": 0,
+   "up": 1
   },
   "stone_brick_stairs": {
    "east": 0,
