@@ -1,0 +1,37 @@
+# 定数名の絞り込みコード（MakeCode Python） — さっき見つかった6件の正しい名前を特定する
+#
+# さっきのチェックで、この6つの定数が実機に無いと分かりました:
+#   OAK_STAIRS / OAK_SLAB / STONE_BRICK_SLAB / OAK_TRAPDOOR / LANTERN / DANDELION
+#
+# 下の各行は「正しいかもしれない候補」です。使い方:
+#  1. Code Builder (MakeCode Python) に全部貼る
+#  2. 「問題」リストに出た行 = その候補はハズレ。出なかった行 = 正解
+#  3. 問題リストの写真を送ってください（実行はしなくてOK）
+#
+# もうひとつだけお願い:
+#  エディタで blocks.place( と打つと出る一覧（入力補完）で
+#  「ランタン」「タンポポ」に見えるものがあるか、あれば英語名を教えてください。
+
+def kouho():
+    # --- オークの階段の候補 ---
+    blocks.place(OAK_WOOD_STAIRS, pos(0, 0, 2))
+    blocks.place(WOODEN_STAIRS, pos(1, 0, 2))
+    blocks.place(STAIRS_OAK, pos(2, 0, 2))
+    # --- オークのハーフブロックの候補 ---
+    blocks.place(WOODEN_SLAB, pos(4, 0, 2))
+    blocks.place(OAK_WOOD_SLAB, pos(5, 0, 2))
+    blocks.place(SLAB_OAK, pos(6, 0, 2))
+    blocks.place(WOOD_SLAB, pos(7, 0, 2))
+    # --- 石レンガのハーフブロックの候補 ---
+    blocks.place(STONE_SLAB, pos(9, 0, 2))
+    blocks.place(SMOOTH_STONE_SLAB, pos(10, 0, 2))
+    blocks.place(SLAB_STONE_BRICK, pos(11, 0, 2))
+    # --- オークのトラップドアの候補 ---
+    blocks.place(TRAPDOOR, pos(13, 0, 2))
+    blocks.place(WOODEN_TRAPDOOR, pos(14, 0, 2))
+    # --- タンポポの候補 ---
+    blocks.place(YELLOW_FLOWER, pos(16, 0, 2))
+    # --- ランタンの候補（無ければ入力補完で探してください） ---
+    blocks.place(LANTERN_BLOCK, pos(18, 0, 2))
+
+player.on_chat("kouho", kouho)

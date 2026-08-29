@@ -214,8 +214,8 @@ def check_files():
 
     1. check_makecode.txt … MakeCode定数60種が実在するか（未検証の最大の穴）。
        貼ってエラーが出た行の定数名が間違い。実行すると全ブロックが並ぶ
-    2. check_commands.txt … 向きのデータ値が実機の向きと合っているか。
-       北/南/東/西の順で並ぶので、矢印や注ぎ口の向きを目で確かめる
+    2. check_muki.txt … 向きのデータ値が実機の向きと合っているか。
+       貼って muki と打つと北/南/東/西の順で並ぶので、向きを目で確かめる
     """
     sys.path.insert(0, str(HERE.parent))
     from blueprint.blockstate import AUX_RULES, command_suffix  # noqa: E402
@@ -249,32 +249,39 @@ def check_files():
     # はしごは支えが無いと壊れるので、向きの反対側に石を先に置く
     support = {"north": (0, 1), "south": (0, -1), "east": (-1, 0), "west": (1, 0)}
     cmd = [
-        "# 向き（データ値）確認用コマンド集 — 1回だけ実行して確かめる",
+        "# 向き（データ値）確認用コード（MakeCode Python） — 1回だけ実行して確かめる",
         "# 目的: ブロック名の後ろの数字（データ値）が、実機で正しい向きになるか。",
-        "# 使い方: 広い平地に立ち、動かずに上から順にチャットへ貼る。",
+        "# 使い方:",
+        "#  1. Cキー → Code Builder → MakeCode(Python) に全部貼って実行",
+        "#  2. 広い平地に立って、チャットに muki と打つ（動かずに待つ）",
+        "#  3. 各ブロックが 北/南/東/西（/下/上）の順で東向きに並ぶ。",
+        "#     設計図の矢印と同じ向きになっていればOK",
+        "#     （ピストンは押す面、ホッパーは注ぎ口、階段は高い側で確認）",
         "# 列の意味: 0マス東=北向き / 2=南向き / 4=東向き / 6=西向き / 8=下向き / 10=上向き",
-        "#（設計図の矢印と同じ向きになっていればOK。ピストンは押す面、",
-        "#  ホッパーは注ぎ口、階段は高い側で確認）",
         "",
+        "def muki():",
     ]
     z = 2
     for key, facings in AUX_RULES.items():
         b = BLOCKS[key]
-        cmd.append(f"# {b['name_ja']}")
+        cmd.append(f"    # {b['name_ja']}（{z}マス南の列）")
         for f in ("north", "south", "east", "west", "down", "up"):
             if f not in facings:
                 continue
             x = dir_col[f]
             if key == "ladder":
                 sx, sz = support[f]
-                cmd.append(f"/setblock ~{x + sx} ~0 ~{z + sz} stone")
-            cmd.append(f"/setblock ~{x} ~0 ~{z} {b['bedrock_id']}{command_suffix(key, f)}"
-                       f"   # {_DIR_JA[f]}")
+                cmd.append(f'    player.execute("setblock ~{x + sx} ~0 ~{z + sz} stone")')
+            cmd.append(f'    player.execute("setblock ~{x} ~0 ~{z} '
+                       f'{b["bedrock_id"]}{command_suffix(key, f)}")  # {_DIR_JA[f]}')
         z += 2
     cmd += [
-        "# オークのドア（上下2マスで1つ。セットで置く）",
-        f"/setblock ~0 ~0 ~{z} wooden_door",
-        f"/setblock ~0 ~1 ~{z} wooden_door 8   # 上半分",
+        "    # オークのドア（上下2マスで1つ。セットで置く）",
+        f'    player.execute("setblock ~0 ~0 ~{z} wooden_door")',
+        f'    player.execute("setblock ~0 ~1 ~{z} wooden_door 8")  # 上半分',
+        '    player.say("むき確認ブロックを置きました")',
+        "",
+        'player.on_chat("muki", muki)',
         "",
     ]
     return "\n".join(mc), "\n".join(cmd)
@@ -321,7 +328,7 @@ def main():
     (HERE / "viewer.html").write_text(viewer, encoding="utf-8")
     (HERE / "AGENT_PROMPT.md").write_text(agent_prompt, encoding="utf-8")
     (HERE / "check_makecode.txt").write_text(check_mc, encoding="utf-8")
-    (HERE / "check_commands.txt").write_text(check_cmd, encoding="utf-8")
+    (HERE / "check_muki.txt").write_text(check_cmd, encoding="utf-8")
 
     kb = lambda s: f"{len(s.encode('utf-8')) / 1024:.1f} KB"
     print(f"パレット {count} 種類を renderer.js から取り込みました")

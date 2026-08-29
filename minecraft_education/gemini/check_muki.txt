@@ -1,0 +1,105 @@
+# 向き（データ値）確認用コード（MakeCode Python） — 1回だけ実行して確かめる
+# 目的: ブロック名の後ろの数字（データ値）が、実機で正しい向きになるか。
+# 使い方:
+#  1. Cキー → Code Builder → MakeCode(Python) に全部貼って実行
+#  2. 広い平地に立って、チャットに muki と打つ（動かずに待つ）
+#  3. 各ブロックが 北/南/東/西（/下/上）の順で東向きに並ぶ。
+#     設計図の矢印と同じ向きになっていればOK
+#     （ピストンは押す面、ホッパーは注ぎ口、階段は高い側で確認）
+# 列の意味: 0マス東=北向き / 2=南向き / 4=東向き / 6=西向き / 8=下向き / 10=上向き
+
+def muki():
+    # オークの階段（2マス南の列）
+    player.execute("setblock ~0 ~0 ~2 oak_stairs 3")  # 北向き
+    player.execute("setblock ~2 ~0 ~2 oak_stairs 2")  # 南向き
+    player.execute("setblock ~4 ~0 ~2 oak_stairs 0")  # 東向き
+    player.execute("setblock ~6 ~0 ~2 oak_stairs 1")  # 西向き
+    # 石レンガの階段（4マス南の列）
+    player.execute("setblock ~0 ~0 ~4 stone_brick_stairs 3")  # 北向き
+    player.execute("setblock ~2 ~0 ~4 stone_brick_stairs 2")  # 南向き
+    player.execute("setblock ~4 ~0 ~4 stone_brick_stairs 0")  # 東向き
+    player.execute("setblock ~6 ~0 ~4 stone_brick_stairs 1")  # 西向き
+    # 丸石の階段（6マス南の列）
+    player.execute("setblock ~0 ~0 ~6 stone_stairs 3")  # 北向き
+    player.execute("setblock ~2 ~0 ~6 stone_stairs 2")  # 南向き
+    player.execute("setblock ~4 ~0 ~6 stone_stairs 0")  # 東向き
+    player.execute("setblock ~6 ~0 ~6 stone_stairs 1")  # 西向き
+    # オークのトラップドア（8マス南の列）
+    player.execute("setblock ~0 ~0 ~8 trapdoor 3")  # 北向き
+    player.execute("setblock ~2 ~0 ~8 trapdoor 2")  # 南向き
+    player.execute("setblock ~4 ~0 ~8 trapdoor 0")  # 東向き
+    player.execute("setblock ~6 ~0 ~8 trapdoor 1")  # 西向き
+    # オークのフェンスゲート（10マス南の列）
+    player.execute("setblock ~0 ~0 ~10 fence_gate 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~10 fence_gate 0")  # 南向き
+    player.execute("setblock ~4 ~0 ~10 fence_gate 3")  # 東向き
+    player.execute("setblock ~6 ~0 ~10 fence_gate 1")  # 西向き
+    # はしご（12マス南の列）
+    player.execute("setblock ~0 ~0 ~13 stone")
+    player.execute("setblock ~0 ~0 ~12 ladder 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~11 stone")
+    player.execute("setblock ~2 ~0 ~12 ladder 3")  # 南向き
+    player.execute("setblock ~3 ~0 ~12 stone")
+    player.execute("setblock ~4 ~0 ~12 ladder 5")  # 東向き
+    player.execute("setblock ~7 ~0 ~12 stone")
+    player.execute("setblock ~6 ~0 ~12 ladder 4")  # 西向き
+    # チェスト（14マス南の列）
+    player.execute("setblock ~0 ~0 ~14 chest 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~14 chest 3")  # 南向き
+    player.execute("setblock ~4 ~0 ~14 chest 5")  # 東向き
+    player.execute("setblock ~6 ~0 ~14 chest 4")  # 西向き
+    # 粘着ピストン（16マス南の列）
+    player.execute("setblock ~0 ~0 ~16 sticky_piston 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~16 sticky_piston 3")  # 南向き
+    player.execute("setblock ~4 ~0 ~16 sticky_piston 5")  # 東向き
+    player.execute("setblock ~6 ~0 ~16 sticky_piston 4")  # 西向き
+    player.execute("setblock ~8 ~0 ~16 sticky_piston 0")  # 下向き
+    player.execute("setblock ~10 ~0 ~16 sticky_piston 1")  # 上向き
+    # ホッパー（18マス南の列）
+    player.execute("setblock ~0 ~0 ~18 hopper 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~18 hopper 3")  # 南向き
+    player.execute("setblock ~4 ~0 ~18 hopper 5")  # 東向き
+    player.execute("setblock ~6 ~0 ~18 hopper 4")  # 西向き
+    player.execute("setblock ~8 ~0 ~18 hopper 0")  # 下向き
+    # ディスペンサー（発射装置）（20マス南の列）
+    player.execute("setblock ~0 ~0 ~20 dispenser 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~20 dispenser 3")  # 南向き
+    player.execute("setblock ~4 ~0 ~20 dispenser 5")  # 東向き
+    player.execute("setblock ~6 ~0 ~20 dispenser 4")  # 西向き
+    player.execute("setblock ~8 ~0 ~20 dispenser 0")  # 下向き
+    player.execute("setblock ~10 ~0 ~20 dispenser 1")  # 上向き
+    # ドロッパー（22マス南の列）
+    player.execute("setblock ~0 ~0 ~22 dropper 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~22 dropper 3")  # 南向き
+    player.execute("setblock ~4 ~0 ~22 dropper 5")  # 東向き
+    player.execute("setblock ~6 ~0 ~22 dropper 4")  # 西向き
+    player.execute("setblock ~8 ~0 ~22 dropper 0")  # 下向き
+    player.execute("setblock ~10 ~0 ~22 dropper 1")  # 上向き
+    # レッドストーンコンパレーター（24マス南の列）
+    player.execute("setblock ~0 ~0 ~24 unpowered_comparator 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~24 unpowered_comparator 0")  # 南向き
+    player.execute("setblock ~4 ~0 ~24 unpowered_comparator 3")  # 東向き
+    player.execute("setblock ~6 ~0 ~24 unpowered_comparator 1")  # 西向き
+    # レッドストーンリピーター（反復装置）（26マス南の列）
+    player.execute("setblock ~0 ~0 ~26 unpowered_repeater 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~26 unpowered_repeater 0")  # 南向き
+    player.execute("setblock ~4 ~0 ~26 unpowered_repeater 3")  # 東向き
+    player.execute("setblock ~6 ~0 ~26 unpowered_repeater 1")  # 西向き
+    # オブザーバー（観察者）（28マス南の列）
+    player.execute("setblock ~0 ~0 ~28 observer 2")  # 北向き
+    player.execute("setblock ~2 ~0 ~28 observer 3")  # 南向き
+    player.execute("setblock ~4 ~0 ~28 observer 5")  # 東向き
+    player.execute("setblock ~6 ~0 ~28 observer 4")  # 西向き
+    player.execute("setblock ~8 ~0 ~28 observer 0")  # 下向き
+    player.execute("setblock ~10 ~0 ~28 observer 1")  # 上向き
+    # 看板（30マス南の列）
+    player.execute("setblock ~0 ~0 ~30 standing_sign 8")  # 北向き
+    player.execute("setblock ~2 ~0 ~30 standing_sign 0")  # 南向き
+    player.execute("setblock ~4 ~0 ~30 standing_sign 12")  # 東向き
+    player.execute("setblock ~6 ~0 ~30 standing_sign 4")  # 西向き
+    # オークのドア（上下2マスで1つ。セットで置く）
+    player.execute("setblock ~0 ~0 ~32 wooden_door")
+    player.execute("setblock ~0 ~1 ~32 wooden_door 8")  # 上半分
+    player.say("むき確認ブロックを置きました")
+
+player.on_chat("muki", muki)

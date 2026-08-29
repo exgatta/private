@@ -704,17 +704,18 @@ class TestPack(unittest.TestCase):
         from blueprint.palette import BLOCKS  # noqa: E402
 
         mc = (HERE / "check_makecode.txt").read_text(encoding="utf-8")
-        cmd = (HERE / "check_commands.txt").read_text(encoding="utf-8")
+        cmd = (HERE / "check_muki.txt").read_text(encoding="utf-8")
         for key, b in BLOCKS.items():
             self.assertIn(f"blocks.place({b['makecode']}, ", mc,
                           f"{key} の定数チェックが無い")
         for key, facings in AUX_RULES.items():
             for f in facings:
-                self.assertIn(f"{BLOCKS[key]['bedrock_id']}{command_suffix(key, f)}   #",
-                              cmd, f"{key} {f} の向きチェックが無い")
-        for ln in cmd.splitlines():
-            if ln.startswith("/"):
-                self.assertNotIn('["', ln, "Educationで通らない構文が混ざっている")
+                self.assertIn(
+                    f"{BLOCKS[key]['bedrock_id']}{command_suffix(key, f)}\")",
+                    cmd, f"{key} {f} の向きチェックが無い")
+        self.assertIn('player.on_chat("muki", muki)', cmd)
+        self.assertNotIn('["', cmd, "Educationで通らない構文が混ざっている")
+        compile(re.sub(r"^# .*$", "", cmd, flags=re.M), "check_muki", "exec")
 
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。
