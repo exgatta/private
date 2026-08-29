@@ -7,8 +7,8 @@
 > ドア・階段・レッドストーンなどの仕掛けは、向きを検証済みのコマンドで自動配置します。
 >
 > **注意**:
-> - MakeCode のブロック定数名（`GRASS` など）は公式データで未検証です。
->   実行時に定数のエラーが出たら、Code Builder の入力補完で近い名前に直してください
+> - MakeCode のブロック定数名と向きの数値は、実機の Code Builder
+>   （Education 1.21.133）で検証済みです
 > - 仕掛け（EXTRAS）はコマンドで置くため、**コマンドが使える世界**で実行してください
 >   （世界の設定で「チートの実行」がオン。うまく置けないときはここを確認）
 
@@ -66,27 +66,27 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 | `CHISELED_STONE_BRICKS` | 模様入りの石レンガ |  |
 | `LAVA` | 溶岩 |  |
 | `WATER` | 水 |  |
-| `OAK_STAIRS` | オークの階段 |  |
+| `OAK_WOOD_STAIRS` | オークの階段 |  |
 | `STONE_BRICK_STAIRS` | 石レンガの階段 |  |
 | `COBBLESTONE_STAIRS` | 丸石の階段 |  |
-| `OAK_SLAB` | オークのハーフブロック |  |
-| `STONE_BRICK_SLAB` | 石レンガのハーフブロック |  |
+| `OAK_WOOD_SLAB` | オークのハーフブロック |  |
+| `STONE_SLAB` | 石レンガのハーフブロック（MakeCodeに無いため近い見た目で代用） |  |
 | `OAK_FENCE` | オークのフェンス |  |
 | `OAK_FENCE_GATE` | オークのフェンスゲート | **置き物（LAYERS禁止・EXTRASで置く）** |
-| `OAK_TRAPDOOR` | オークのトラップドア | **置き物（LAYERS禁止・EXTRASで置く）** |
+| `WOODEN_TRAPDOOR` | オークのトラップドア | **置き物（LAYERS禁止・EXTRASで置く）** |
 | `IRON_BARS` | 鉄格子 |  |
 | `GLASS_PANE` | 板ガラス |  |
 | `COBBLESTONE_WALL` | 丸石の塀 |  |
 | `LADDER` | はしご | **置き物（LAYERS禁止・EXTRASで置く）** |
 | `RED_CARPET` | 赤いカーペット |  |
-| `LANTERN` | ランタン | **置き物（LAYERS禁止・EXTRASで置く）** |
+| `TORCH` | ランタン（MakeCodeに無いため近い見た目で代用） | **置き物（LAYERS禁止・EXTRASで置く）** |
 | `SEA_LANTERN` | シーランタン |  |
 | `BOOKSHELF` | 本棚 |  |
 | `CRAFTING_TABLE` | 作業台 |  |
 | `CHEST` | チェスト | **置き物（LAYERS禁止・EXTRASで置く）** |
 | `LEAVES_OAK` | オークの葉 |  |
 | `POPPY` | ポピー（赤い花） | **置き物（LAYERS禁止・EXTRASで置く）** |
-| `DANDELION` | タンポポ（黄色い花） | **置き物（LAYERS禁止・EXTRASで置く）** |
+| `YELLOW_FLOWER` | タンポポ（黄色い花） | **置き物（LAYERS禁止・EXTRASで置く）** |
 | `YELLOW_WOOL` | 黄色の羊毛 |  |
 | `GREEN_WOOL` | 緑の羊毛 |  |
 | `BLACK_WOOL` | 黒の羊毛 |  |

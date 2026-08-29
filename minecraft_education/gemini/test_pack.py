@@ -697,6 +697,34 @@ class TestPack(unittest.TestCase):
         self.assertIn("`wooden_door 8`", self.agent)
         self.assertIn("ドアは上下2マスで1つ", self.agent.replace("**", ""))
 
+    def test_makecode_constants_are_the_verified_ones(self):
+        """実機で確定したMakeCode定数から巻き戻っていないこと。
+
+        2026-08-29 に Education 1.21.133 の Code Builder へチェック用コードを
+        貼って照合した結果（check_makecode.txt / check_candidates の実機実行）:
+        - 正: OAK_WOOD_STAIRS / OAK_WOOD_SLAB / WOODEN_TRAPDOOR / YELLOW_FLOWER
+        - 実機に無い: OAK_STAIRS / OAK_SLAB / STONE_BRICK_SLAB / OAK_TRAPDOOR /
+          LANTERN / DANDELION（ランタン・石レンガ半は代用、makecode_approx）
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        self.assertEqual(BLOCKS["oak_stairs"]["makecode"], "OAK_WOOD_STAIRS")
+        self.assertEqual(BLOCKS["oak_slab"]["makecode"], "OAK_WOOD_SLAB")
+        self.assertEqual(BLOCKS["oak_trapdoor"]["makecode"], "WOODEN_TRAPDOOR")
+        self.assertEqual(BLOCKS["flower_dandelion"]["makecode"], "YELLOW_FLOWER")
+        self.assertTrue(BLOCKS["stone_brick_slab"].get("makecode_approx"))
+        self.assertTrue(BLOCKS["lantern"].get("makecode_approx"))
+        # 実機に存在しないと確定した定数がどこにも残っていないこと
+        for bad in ("OAK_STAIRS", "OAK_SLAB", "STONE_BRICK_SLAB",
+                    "OAK_TRAPDOOR", "LANTERN", "DANDELION"):
+            self.assertNotIn(f'makecode: "{bad}"', self.renderer,
+                             f"実機に無い定数 {bad} が残っている")
+            for b in BLOCKS.values():
+                self.assertNotEqual(b["makecode"], bad)
+        # 代用ブロックはプロンプトの表で代用と明示されること
+        self.assertIn("近い見た目で代用", self.agent)
+
     def test_check_files_cover_palette(self):
         """実機確認用のチェックファイルがパレット全体をカバーしていること。
 

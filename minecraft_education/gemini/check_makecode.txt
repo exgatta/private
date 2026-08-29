@@ -29,27 +29,27 @@ def check():
     blocks.place(CHISELED_STONE_BRICKS, pos(17, 0, 2))  # 17 模様入りの石レンガ
     blocks.place(LAVA, pos(18, -1, 8))  # 18 溶岩（地面の中）
     blocks.place(WATER, pos(19, -1, 8))  # 19 水（地面の中）
-    blocks.place(OAK_STAIRS, pos(20, 0, 2))  # 20 オークの階段
+    blocks.place(OAK_WOOD_STAIRS, pos(20, 0, 2))  # 20 オークの階段
     blocks.place(STONE_BRICK_STAIRS, pos(21, 0, 2))  # 21 石レンガの階段
     blocks.place(COBBLESTONE_STAIRS, pos(22, 0, 2))  # 22 丸石の階段
-    blocks.place(OAK_SLAB, pos(23, 0, 2))  # 23 オークのハーフブロック
-    blocks.place(STONE_BRICK_SLAB, pos(24, 0, 2))  # 24 石レンガのハーフブロック
+    blocks.place(OAK_WOOD_SLAB, pos(23, 0, 2))  # 23 オークのハーフブロック
+    blocks.place(STONE_SLAB, pos(24, 0, 2))  # 24 石レンガのハーフブロック
     blocks.place(OAK_FENCE, pos(25, 0, 2))  # 25 オークのフェンス
     blocks.place(OAK_FENCE_GATE, pos(26, 0, 2))  # 26 オークのフェンスゲート
-    blocks.place(OAK_TRAPDOOR, pos(27, 0, 2))  # 27 オークのトラップドア
+    blocks.place(WOODEN_TRAPDOOR, pos(27, 0, 2))  # 27 オークのトラップドア
     blocks.place(IRON_BARS, pos(28, 0, 2))  # 28 鉄格子
     blocks.place(GLASS_PANE, pos(29, 0, 2))  # 29 板ガラス
     blocks.place(COBBLESTONE_WALL, pos(30, 0, 2))  # 30 丸石の塀
     blocks.place(LADDER, pos(31, 0, 2))  # 31 はしご
     blocks.place(RED_CARPET, pos(32, 0, 2))  # 32 赤いカーペット
-    blocks.place(LANTERN, pos(33, 0, 2))  # 33 ランタン
+    blocks.place(TORCH, pos(33, 0, 2))  # 33 ランタン
     blocks.place(SEA_LANTERN, pos(34, 0, 2))  # 34 シーランタン
     blocks.place(BOOKSHELF, pos(35, 0, 2))  # 35 本棚
     blocks.place(CRAFTING_TABLE, pos(36, 0, 2))  # 36 作業台
     blocks.place(CHEST, pos(37, 0, 2))  # 37 チェスト
     blocks.place(LEAVES_OAK, pos(38, 0, 2))  # 38 オークの葉
     blocks.place(POPPY, pos(39, 0, 2))  # 39 ポピー（赤い花）
-    blocks.place(DANDELION, pos(40, 0, 2))  # 40 タンポポ（黄色い花）
+    blocks.place(YELLOW_FLOWER, pos(40, 0, 2))  # 40 タンポポ（黄色い花）
     blocks.place(YELLOW_WOOL, pos(41, 0, 2))  # 41 黄色の羊毛
     blocks.place(GREEN_WOOL, pos(42, 0, 2))  # 42 緑の羊毛
     blocks.place(BLACK_WOOL, pos(43, 0, 2))  # 43 黒の羊毛

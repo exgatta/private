@@ -121,7 +121,7 @@ BLOCKS = {
     # ------------------------------------------------------------------
     "oak_stairs": {
         "name_ja": "オークの階段", "bedrock_id": "oak_stairs",
-        "makecode": "OAK_STAIRS", "color": "#B08A50", "symbol": "階",
+        "makecode": "OAK_WOOD_STAIRS", "color": "#B08A50", "symbol": "階",
         "transparent": True, "orientable": True, "shape": "stairs",
         "flammable": True,
     },
@@ -137,13 +137,13 @@ BLOCKS = {
     },
     "oak_slab": {
         "name_ja": "オークのハーフブロック", "bedrock_id": "oak_slab",
-        "makecode": "OAK_SLAB", "color": "#C69C60", "symbol": "半",
+        "makecode": "OAK_WOOD_SLAB", "color": "#C69C60", "symbol": "半",
         "transparent": True, "shape": "slab",
         "flammable": True,
     },
     "stone_brick_slab": {
         "name_ja": "石レンガのハーフブロック", "bedrock_id": "stone_brick_slab",
-        "makecode": "STONE_BRICK_SLAB", "color": "#ACB0AC", "symbol": "平",
+        "makecode": "STONE_SLAB", "makecode_approx": True, "color": "#ACB0AC", "symbol": "平",
         "transparent": True, "shape": "slab",
     },
     "oak_fence": {
@@ -160,7 +160,7 @@ BLOCKS = {
     },
     "oak_trapdoor": {
         "name_ja": "オークのトラップドア", "bedrock_id": "trapdoor",
-        "makecode": "OAK_TRAPDOOR", "color": "#A8813F", "symbol": "蓋",
+        "makecode": "WOODEN_TRAPDOOR", "color": "#A8813F", "symbol": "蓋",
         "transparent": True, "orientable": True, "shape": "thin", "marker": True,
     },
     "iron_bars": {
@@ -192,7 +192,7 @@ BLOCKS = {
     },
     "lantern": {
         "name_ja": "ランタン", "bedrock_id": "lantern",
-        "makecode": "LANTERN", "color": "#E8A93C", "symbol": "提",
+        "makecode": "TORCH", "makecode_approx": True, "color": "#E8A93C", "symbol": "提",
         "transparent": True, "shape": "thin", "marker": True,
     },
     "sea_lantern": {
@@ -227,7 +227,7 @@ BLOCKS = {
     },
     "flower_dandelion": {
         "name_ja": "タンポポ（黄色い花）", "bedrock_id": "dandelion",
-        "makecode": "DANDELION", "color": "#E3C93F", "symbol": "菊",
+        "makecode": "YELLOW_FLOWER", "color": "#E3C93F", "symbol": "菊",
         "transparent": True, "shape": "flat", "marker": True,
         "flammable": True,
     },

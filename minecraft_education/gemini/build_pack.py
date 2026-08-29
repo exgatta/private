@@ -156,10 +156,13 @@ def agent_palette_table():
         name = re.search(r'name_ja:\s*"([^"]*)"', attrs)
         mc = re.search(r'makecode:\s*"([^"]*)"', attrs)
         marker = "marker: true" in attrs or "marker:true" in attrs
+        approx = "makecode_approx: true" in attrs
         if not (name and mc):
             continue
         rows.append(
-            f"| `{mc.group(1)}` | {name.group(1)} | "
+            f"| `{mc.group(1)}` | {name.group(1)}"
+            + ("（MakeCodeに無いため近い見た目で代用）" if approx else "")
+            + " | "
             + ("**置き物（LAYERS禁止・EXTRASで置く）**" if marker else "")
             + " |"
         )

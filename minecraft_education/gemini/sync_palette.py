@@ -21,7 +21,7 @@ sys.path.insert(0, str(HERE.parent))
 from blueprint.palette import BLOCKS  # noqa: E402
 
 # JSに書き出す属性と順序（Python版の属性名をそのまま使う）
-FIELDS = ("name_ja", "bedrock_id", "makecode", "color", "symbol",
+FIELDS = ("name_ja", "bedrock_id", "makecode", "makecode_approx", "color", "symbol",
           "transparent", "orientable", "shape", "marker", "piston", "redstone", "updown",
           "flammable", "side_color")
 

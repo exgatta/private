@@ -322,6 +322,10 @@ python3 gemini/test_pack.py         # 回帰テスト
   > 変更後は上の6コマンドをすべて通してください。
 
 - **未確認のまま残っていること**（引き継ぐ人へ）:
-  - MakeCode（Code Builder）のブロック定数名は未検証。
-    定義ファイルが入手できなかった。`commands.txt` の方は公式データで検証済み
+  - ~~MakeCodeのブロック定数名は未検証~~ → **実機で検証済み**（2026-08, Education 1.21.133）。
+    定義ファイルは入手不能で、実機に貼る「チェック用コード」（gemini/check_makecode.txt）で
+    60種を照合した。60種中6種が推測と違った:
+    `OAK_WOOD_STAIRS` / `OAK_WOOD_SLAB` / `WOODEN_TRAPDOOR` / `YELLOW_FLOWER` が正、
+    ランタンと石レンガのハーフはMakeCodeに存在しない（`makecode_approx` で代用を明示）。
+    **MakeCodeの定数名にも規則性は無い。実機照合以外に確かめる方法は無い**
   - 溶岩の当たり判定の高さ（看板で溶岩を支えてヒナだけ助ける仕組み）は実機確認が必要
