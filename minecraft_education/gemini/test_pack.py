@@ -675,6 +675,47 @@ class TestPack(unittest.TestCase):
             self.assertFalse(BLOCKS[key].get("flammable"),
                              f"{key} は延焼しないブロック（実機仕様）")
 
+    def test_door_places_both_halves(self):
+        """ドアが上下2マスセットで出力されること。
+
+        Bedrockのドアは2マスで1つ。下半分だけ setblock すると壊れたドアになる。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.makecode import export_commands  # noqa: E402
+        from blueprint.model import VoxelModel  # noqa: E402
+
+        m = VoxelModel("t", "")
+        m.fill(0, 0, 0, 2, 0, 2, "stone")
+        m.set(1, 1, 0, "door")
+        out = export_commands(m)
+        self.assertIn("/setblock ~1 ~1 ~0 wooden_door", out)
+        self.assertIn("/setblock ~1 ~2 ~0 wooden_door 8", out, "上半分が無い")
+        # エージェント用プロンプトにも2行セットのルールと表の行があること
+        self.assertIn("`wooden_door 8`", self.agent)
+        self.assertIn("ドアは上下2マスで1つ", self.agent.replace("**", ""))
+
+    def test_check_files_cover_palette(self):
+        """実機確認用のチェックファイルがパレット全体をカバーしていること。
+
+        MakeCode定数は未検証の最大の穴。1つでも欠けると実機で確かめられない。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.blockstate import AUX_RULES, command_suffix  # noqa: E402
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        mc = (HERE / "check_makecode.txt").read_text(encoding="utf-8")
+        cmd = (HERE / "check_commands.txt").read_text(encoding="utf-8")
+        for key, b in BLOCKS.items():
+            self.assertIn(f"blocks.place({b['makecode']}, ", mc,
+                          f"{key} の定数チェックが無い")
+        for key, facings in AUX_RULES.items():
+            for f in facings:
+                self.assertIn(f"{BLOCKS[key]['bedrock_id']}{command_suffix(key, f)}   #",
+                              cmd, f"{key} {f} の向きチェックが無い")
+        for ln in cmd.splitlines():
+            if ln.startswith("/"):
+                self.assertNotIn('["', ln, "Educationで通らない構文が混ざっている")
+
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。
 

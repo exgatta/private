@@ -124,6 +124,9 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 階段のように「置き物」印が無くても向きの要るブロックは、向きが大事なマスだけ
 `EXTRAS` で置いてください（`LAYERS` に書くと全部おなじ既定の向きになります）。
 
+**ドアは上下2マスで1つ**です。必ず2行セットで書きます（下半分だけだと壊れたドアになる）:
+同じ x・z で、`y` に `wooden_door`、`y+1` に `wooden_door 8`（上半分）。
+
 | ブロック | 向き | EXTRAS_BLOCK に書く文字列 |
 |---|---|---|
 | 溶岩（あふれ注意・囲いの中だけ） | ー | `lava` |
@@ -206,6 +209,7 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 | 看板 | 西向き | `standing_sign 4` |
 | たいまつ | ー | `torch` |
 | オークのドア | ー | `wooden_door` |
+| オークのドアの**上半分** | ー | `wooden_door 8` |
 
 ## 出力するコード
 

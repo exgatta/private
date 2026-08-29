@@ -93,3 +93,4 @@
 /setblock ~1 ~1 ~5 torch
 /setblock ~7 ~1 ~5 torch
 /setblock ~4 ~1 ~6 wooden_door
+/setblock ~4 ~2 ~6 wooden_door 8   # ドアの上半分（セットで置く）

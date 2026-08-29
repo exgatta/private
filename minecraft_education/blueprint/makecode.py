@@ -111,4 +111,11 @@ def export_commands(model):
             lines.append(
                 f"/setblock ~{x} ~{y} ~{z} {block(key)['bedrock_id']}{st}{d}"
             )
+            if key == "door":
+                # ドアは上下2マスで1つ。下半分だけ setblock すると壊れたドアになる。
+                # データ値8 = 上半分（upper_block_bit）。
+                lines.append(
+                    f"/setblock ~{x} ~{y + 1} ~{z} {block(key)['bedrock_id']} 8"
+                    "   # ドアの上半分（セットで置く）"
+                )
     return "\n".join(lines) + "\n"

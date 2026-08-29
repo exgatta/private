@@ -201,9 +201,83 @@ def extras_table():
                 rows.append(f"| {b['name_ja']} | {_DIR_JA[f]} | `{b['bedrock_id']}{suf}` |")
         else:
             rows.append(f"| {b['name_ja']}{note} | ー | `{b['bedrock_id']}` |")
+        if key == "door":
+            # ドアは上下2マスで1つ。データ値8が上半分（upper_block_bit）。
+            rows.append(f"| {b['name_ja']}の**上半分** | ー | `{b['bedrock_id']} 8` |")
     if len(rows) < 20:
         raise SystemExit(f"EXTRAS表の生成に失敗しました（{len(rows)}行しかありません）")
     return "\n".join(rows), len(rows)
+
+
+def check_files():
+    """実機でしか確認できないことを一発で確かめるチェックファイル2つを作る。
+
+    1. check_makecode.txt … MakeCode定数60種が実在するか（未検証の最大の穴）。
+       貼ってエラーが出た行の定数名が間違い。実行すると全ブロックが並ぶ
+    2. check_commands.txt … 向きのデータ値が実機の向きと合っているか。
+       北/南/東/西の順で並ぶので、矢印や注ぎ口の向きを目で確かめる
+    """
+    sys.path.insert(0, str(HERE.parent))
+    from blueprint.blockstate import AUX_RULES, command_suffix  # noqa: E402
+    from blueprint.palette import BLOCKS  # noqa: E402
+
+    mc = [
+        "# パレット確認用コード（MakeCode Python） — 1回だけ実行して確かめる",
+        "# 目的: このツールが使うMakeCode定数60種が、実機のCode Builderに存在するか。",
+        "# 使い方:",
+        "#  1. Cキー → Code Builder → MakeCode(Python) に全部貼る",
+        "#  2. エラーになった行があれば、その行の定数名がこの環境に無い",
+        "#     → エラー行の写真かエラー名を報告してください。パレットを直します",
+        "#  3. 実行できたら広い平地でチャットに check → ブロックが東向きに並ぶ",
+        "#     （i番目 = プレイヤーの iマス東・2マス南。行のコメントと見比べる）",
+        "# 溶岩と水は流れるので、地面の中（1段下・8マス南）に置いて確認します。",
+        "",
+        "def check():",
+    ]
+    i = 0
+    for key, b in BLOCKS.items():
+        if key in ("lava", "water"):
+            mc.append(f"    blocks.place({b['makecode']}, pos({i}, -1, 8))"
+                      f"  # {i} {b['name_ja']}（地面の中）")
+        else:
+            mc.append(f"    blocks.place({b['makecode']}, pos({i}, 0, 2))"
+                      f"  # {i} {b['name_ja']}")
+        i += 1
+    mc += ["", 'player.on_chat("check", check)', ""]
+
+    dir_col = {"north": 0, "south": 2, "east": 4, "west": 6, "down": 8, "up": 10}
+    # はしごは支えが無いと壊れるので、向きの反対側に石を先に置く
+    support = {"north": (0, 1), "south": (0, -1), "east": (-1, 0), "west": (1, 0)}
+    cmd = [
+        "# 向き（データ値）確認用コマンド集 — 1回だけ実行して確かめる",
+        "# 目的: ブロック名の後ろの数字（データ値）が、実機で正しい向きになるか。",
+        "# 使い方: 広い平地に立ち、動かずに上から順にチャットへ貼る。",
+        "# 列の意味: 0マス東=北向き / 2=南向き / 4=東向き / 6=西向き / 8=下向き / 10=上向き",
+        "#（設計図の矢印と同じ向きになっていればOK。ピストンは押す面、",
+        "#  ホッパーは注ぎ口、階段は高い側で確認）",
+        "",
+    ]
+    z = 2
+    for key, facings in AUX_RULES.items():
+        b = BLOCKS[key]
+        cmd.append(f"# {b['name_ja']}")
+        for f in ("north", "south", "east", "west", "down", "up"):
+            if f not in facings:
+                continue
+            x = dir_col[f]
+            if key == "ladder":
+                sx, sz = support[f]
+                cmd.append(f"/setblock ~{x + sx} ~0 ~{z + sz} stone")
+            cmd.append(f"/setblock ~{x} ~0 ~{z} {b['bedrock_id']}{command_suffix(key, f)}"
+                       f"   # {_DIR_JA[f]}")
+        z += 2
+    cmd += [
+        "# オークのドア（上下2マスで1つ。セットで置く）",
+        f"/setblock ~0 ~0 ~{z} wooden_door",
+        f"/setblock ~0 ~1 ~{z} wooden_door 8   # 上半分",
+        "",
+    ]
+    return "\n".join(mc), "\n".join(cmd)
 
 
 def main():
@@ -241,9 +315,13 @@ def main():
             f"パレット表の件数が食い違っています（設計図用 {count} / エージェント用 {agent_count}）"
         )
 
+    check_mc, check_cmd = check_files()
+
     (HERE / "PROMPT.md").write_text(prompt, encoding="utf-8")
     (HERE / "viewer.html").write_text(viewer, encoding="utf-8")
     (HERE / "AGENT_PROMPT.md").write_text(agent_prompt, encoding="utf-8")
+    (HERE / "check_makecode.txt").write_text(check_mc, encoding="utf-8")
+    (HERE / "check_commands.txt").write_text(check_cmd, encoding="utf-8")
 
     kb = lambda s: f"{len(s.encode('utf-8')) / 1024:.1f} KB"
     print(f"パレット {count} 種類を renderer.js から取り込みました")
