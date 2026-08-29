@@ -549,6 +549,7 @@ class TestPack(unittest.TestCase):
         # エンジンの根幹（これが消えたら建たない）
         for must in ("agent.teleport_to_player()", "agent.set_item(",
                      "agent.set_slot(", "agent.place(DOWN)",
+                     "player.execute(", "place_extras()",
                      'player.on_chat("build", build)', "変更禁止"):
             self.assertIn(must, code + self.agent, f"エンジンに {must} が無い")
 
@@ -562,16 +563,45 @@ class TestPack(unittest.TestCase):
             self.assertIn(const, legal, f"例の {const} がパレットに無い")
 
     def test_agent_prompt_forbids_liquids_and_markers(self):
-        """水・溶岩と置き物を LAYERS に入れない指示があること。
+        """置き物・液体は LAYERS でなく EXTRAS で置く指示があること。
 
-        エージェントは向きを付けて置けず、液体はあふれて事故になる。
+        エージェントは向きを付けて置けないので、向き物はコマンド（EXTRAS）で置く。
         """
         # 冒頭の使い方説明にも【ここから】の文字があるため、行として立っている方を使う
         body = self.agent[self.agent.index("\n【ここから】\n"):self.agent.index("\n【ここまで】")]
         self.assertIn("`WATER` と `LAVA` も `LAYERS` に入れない", body)
         self.assertIn("「置き物」印のブロックは `LAYERS` に入れない", body)
+        self.assertIn("一字一句そのままコピー", body)
+        self.assertIn("ピストンは EXTRAS のいちばん最後", body)
+        self.assertIn("前2マスは空けて", body)
         self.assertIn("1文字も変えないで", body)
         self.assertIn("全角の記号・空白", body)
+
+    def test_agent_extras_table_matches_blockstate(self):
+        """EXTRAS表の文字列が blockstate.py の出力と一致すること。
+
+        表はGeminiが一字一句コピーする正本。commands.txt と同じ経路
+        （bedrock_id + state_suffix、公式データと照合済み）とズレたら、
+        エージェント版だけ向きの壊れたブロックが置かれてしまう。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.blockstate import STATE_RULES, state_suffix  # noqa: E402
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        for key, b in BLOCKS.items():
+            if key in STATE_RULES:
+                for f in ("north", "south", "east", "west"):
+                    suf = state_suffix(key, f)
+                    if suf:
+                        self.assertIn(f"`{b['bedrock_id']}{suf}`", self.agent,
+                                      f"{key} の {f} 向きが表に無い")
+            elif b.get("marker") or key in ("water", "lava"):
+                self.assertIn(f"`{b['bedrock_id']}`", self.agent,
+                              f"{key} の行が表に無い")
+        # 実機に無い状態値を教えないこと（ホッパー上向き・はしご上下）
+        self.assertNotIn('`hopper ["facing_direction"=1]`', self.agent)
+        self.assertNotIn('`ladder ["facing_direction"=0]`', self.agent)
+        self.assertNotIn('`ladder ["facing_direction"=1]`', self.agent)
 
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。

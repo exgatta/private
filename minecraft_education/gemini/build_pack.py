@@ -160,11 +160,60 @@ def agent_palette_table():
             continue
         rows.append(
             f"| `{mc.group(1)}` | {name.group(1)} | "
-            + ("**置き物（LAYERS禁止・手置き案内）**" if marker else "")
+            + ("**置き物（LAYERS禁止・EXTRASで置く）**" if marker else "")
             + " |"
         )
     if len(rows) < 10:
         raise SystemExit(f"パレット抽出に失敗しました（{len(rows)}件しか取れていません）")
+    return "\n".join(rows), len(rows)
+
+
+# EXTRAS表で上下向きの行を出すブロックと、その許される向き。
+# palette の updown フラグより厳しい実機準拠（例: ホッパーに「上」は無い、
+# はしごは横4方向のみ）。表はGeminiが一字一句コピーする正本なので、
+# ゲームに存在しない状態値を載せない。
+_EXTRAS_UPDOWN = {
+    "sticky_piston": ("down", "up"),
+    "dispenser": ("down", "up"),
+    "dropper": ("down", "up"),
+    "observer": ("down", "up"),
+    "hopper": ("down",),
+}
+
+_DIR_JA = {"north": "北向き", "south": "南向き", "east": "東向き",
+           "west": "西向き", "down": "下向き", "up": "上向き"}
+
+
+def extras_table():
+    """置き物・向き付きブロック用の「EXTRASに書く文字列」表を作る。
+
+    文字列の本体（bedrock_id + ブロック状態）は blueprint/blockstate.py の
+    state_suffix() で組む。ここは commands.txt と同じ経路で、Mojang公式データと
+    tools/verify_block_ids.py が突き合わせている。手書きすると必ず間違えるので、
+    プロンプトに載る文字列はすべてここから生成する。
+    """
+    sys.path.insert(0, str(HERE.parent))
+    from blueprint.blockstate import STATE_RULES, state_suffix  # noqa: E402
+    from blueprint.palette import BLOCKS  # noqa: E402
+
+    rows = []
+    for key, b in BLOCKS.items():
+        # 置き物・向きの決まるブロック（階段など）・液体だけが EXTRAS の対象
+        if not (b.get("marker") or key in STATE_RULES or key in ("water", "lava")):
+            continue
+        note = "（あふれ注意・囲いの中だけ）" if key in ("water", "lava") else ""
+        if key in STATE_RULES:
+            facings = ["north", "south", "east", "west"]
+            facings += list(_EXTRAS_UPDOWN.get(key, ()))
+            for f in facings:
+                suf = state_suffix(key, f)
+                if not suf:
+                    continue
+                rows.append(f"| {b['name_ja']} | {_DIR_JA[f]} | `{b['bedrock_id']}{suf}` |")
+        else:
+            rows.append(f"| {b['name_ja']}{note} | ー | `{b['bedrock_id']}` |")
+    if len(rows) < 20:
+        raise SystemExit(f"EXTRAS表の生成に失敗しました（{len(rows)}行しかありません）")
     return "\n".join(rows), len(rows)
 
 
@@ -192,8 +241,11 @@ def main():
             "renderer.js 内の </script> がエスケープされていません。"
         )
 
-    agent_prompt = read("templates/AGENT_PROMPT.template.md").replace(
-        "<<AGENT_PALETTE>>", agent_table
+    ex_table, ex_count = extras_table()
+    agent_prompt = (
+        read("templates/AGENT_PROMPT.template.md")
+        .replace("<<AGENT_PALETTE>>", agent_table)
+        .replace("<<EXTRAS_TABLE>>", ex_table)
     )
     if agent_count != count:
         raise SystemExit(
@@ -208,7 +260,8 @@ def main():
     print(f"パレット {count} 種類を renderer.js から取り込みました")
     print(f"PROMPT.md    {kb(prompt)}\t… Geminiに貼り付けるプロンプト")
     print(f"viewer.html  {kb(viewer)}\t… 単体で動く設計図ビューア")
-    print(f"AGENT_PROMPT.md {kb(agent_prompt)}\t… エージェント建築コード用プロンプト")
+    print(f"AGENT_PROMPT.md {kb(agent_prompt)}\t… エージェント建築コード用プロンプト"
+          f"（EXTRAS表 {ex_count} 行）")
     return 0
 
 
