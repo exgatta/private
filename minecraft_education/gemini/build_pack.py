@@ -138,10 +138,41 @@ def palette_table():
     return "\n".join(rows), len(rows)
 
 
+def agent_palette_table():
+    """renderer.js の BLOCKS から、エージェント建築プロンプト用の定数表を作る。
+
+    Geminiに書かせるのは MakeCode 定数（GRASS 等）なので、その一覧を載せる。
+    置き物（marker）は向きが要るためエージェントでは置けず、その旨を印にする。
+    """
+    src = read("renderer.js")
+    body = re.search(r"var BLOCKS = \{(.*?)\n  \};", src, re.S)
+    if not body:
+        raise SystemExit("renderer.js から BLOCKS を読み取れませんでした")
+    rows = []
+    for m in re.finditer(
+        r'"?(\w+)"?:\s*\{(.*?)\}', body.group(1).replace("\n", " "), re.S
+    ):
+        attrs = m.group(2)
+        name = re.search(r'name_ja:\s*"([^"]*)"', attrs)
+        mc = re.search(r'makecode:\s*"([^"]*)"', attrs)
+        marker = "marker: true" in attrs or "marker:true" in attrs
+        if not (name and mc):
+            continue
+        rows.append(
+            f"| `{mc.group(1)}` | {name.group(1)} | "
+            + ("**置き物（LAYERS禁止・手置き案内）**" if marker else "")
+            + " |"
+        )
+    if len(rows) < 10:
+        raise SystemExit(f"パレット抽出に失敗しました（{len(rows)}件しか取れていません）")
+    return "\n".join(rows), len(rows)
+
+
 def main():
     renderer = read("renderer.js")
     compact = compact_js(renderer)
     table, count = palette_table()
+    agent_table, agent_count = agent_palette_table()
 
     prompt = (
         read("templates/PROMPT.template.md")
@@ -161,13 +192,23 @@ def main():
             "renderer.js 内の </script> がエスケープされていません。"
         )
 
+    agent_prompt = read("templates/AGENT_PROMPT.template.md").replace(
+        "<<AGENT_PALETTE>>", agent_table
+    )
+    if agent_count != count:
+        raise SystemExit(
+            f"パレット表の件数が食い違っています（設計図用 {count} / エージェント用 {agent_count}）"
+        )
+
     (HERE / "PROMPT.md").write_text(prompt, encoding="utf-8")
     (HERE / "viewer.html").write_text(viewer, encoding="utf-8")
+    (HERE / "AGENT_PROMPT.md").write_text(agent_prompt, encoding="utf-8")
 
     kb = lambda s: f"{len(s.encode('utf-8')) / 1024:.1f} KB"
     print(f"パレット {count} 種類を renderer.js から取り込みました")
     print(f"PROMPT.md    {kb(prompt)}\t… Geminiに貼り付けるプロンプト")
     print(f"viewer.html  {kb(viewer)}\t… 単体で動く設計図ビューア")
+    print(f"AGENT_PROMPT.md {kb(agent_prompt)}\t… エージェント建築コード用プロンプト")
     return 0
 
 

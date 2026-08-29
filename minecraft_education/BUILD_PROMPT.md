@@ -265,6 +265,7 @@ minecraft_education/
 │   ├── templates/      プロンプトとビューアのひな型
 │   ├── PROMPT.md       ← 生成物（Geminiに貼る）
 │   ├── viewer.html     ← 生成物（単体で動くビューア）
+│   ├── AGENT_PROMPT.md ← 生成物（エージェント建築コードをGeminiに書かせる）
 │   ├── sync_palette.py palette.py → renderer.js の転記
 │   ├── build_pack.py   renderer.js → PROMPT.md / viewer.html の生成
 │   ├── compare.py      Python版とJS版の一致検証

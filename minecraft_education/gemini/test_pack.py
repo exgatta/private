@@ -30,6 +30,7 @@ class TestPack(unittest.TestCase):
         cls.renderer = (HERE / "renderer.js").read_text(encoding="utf-8")
         cls.prompt = (HERE / "PROMPT.md").read_text(encoding="utf-8")
         cls.viewer = (HERE / "viewer.html").read_text(encoding="utf-8")
+        cls.agent = (HERE / "AGENT_PROMPT.md").read_text(encoding="utf-8")
 
     def test_viewer_script_tags_intact(self):
         """renderer.js のコメント内の </script> でスクリプトが途切れないこと。
@@ -515,6 +516,61 @@ class TestPack(unittest.TestCase):
         self.assertNotEqual(_tex_base("grass", "t"), _tex_base("grass", "l"))
         self.assertEqual(_tex_base("dirt", "l"), _tex_base("grass", "l"),
                          "草の側面が土と同じ色になっていない")
+
+    def test_agent_prompt_covers_palette(self):
+        """エージェント用プロンプトの定数表が palette.py と一致すること。
+
+        ズレると Gemini が存在しない MakeCode 定数を使い、コードが動かない。
+        置き物は向きが要りエージェントでは置けないので、禁止の印が必要。
+        """
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        for key, b in BLOCKS.items():
+            mc = b["makecode"]
+            self.assertIn(f"`{mc}`", self.agent, f"{key} の定数 {mc} が表に無い")
+            if b.get("marker"):
+                self.assertRegex(
+                    self.agent, rf"`{mc}` \|[^|]*\| \*\*置き物",
+                    f"置き物 {key} に LAYERS 禁止の印が無い",
+                )
+
+    def test_agent_prompt_engine_is_valid_python(self):
+        """エージェント用プロンプトの建築エンジンが構文的に正しいこと。
+
+        Gemini はエンジンを「そのまま写す」だけなので、ここが壊れていると
+        全員のコードが動かない。文法だけでも機械検査しておく。
+        """
+        m = re.search(r"```python\n(.*?)```", self.agent, re.S)
+        self.assertIsNotNone(m, "Pythonコードブロックが無い")
+        code = m.group(1)
+        compile(code, "AGENT_PROMPT", "exec")  # 構文エラーならここで落ちる
+
+        # エンジンの根幹（これが消えたら建たない）
+        for must in ("agent.teleport_to_player()", "agent.set_item(",
+                     "agent.set_slot(", "agent.place(DOWN)",
+                     'player.on_chat("build", build)', "変更禁止"):
+            self.assertIn(must, code + self.agent, f"エンジンに {must} が無い")
+
+        # 例の設計データが表にある定数だけを使っていること
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.palette import BLOCKS  # noqa: E402
+
+        legal = {b["makecode"] for b in BLOCKS.values()}
+        legend = re.search(r"LEGEND_BLOCKS = \[(.*?)\]", code)
+        for const in re.findall(r"[A-Z][A-Z_]+", legend.group(1)):
+            self.assertIn(const, legal, f"例の {const} がパレットに無い")
+
+    def test_agent_prompt_forbids_liquids_and_markers(self):
+        """水・溶岩と置き物を LAYERS に入れない指示があること。
+
+        エージェントは向きを付けて置けず、液体はあふれて事故になる。
+        """
+        # 冒頭の使い方説明にも【ここから】の文字があるため、行として立っている方を使う
+        body = self.agent[self.agent.index("\n【ここから】\n"):self.agent.index("\n【ここまで】")]
+        self.assertIn("`WATER` と `LAVA` も `LAYERS` に入れない", body)
+        self.assertIn("「置き物」印のブロックは `LAYERS` に入れない", body)
+        self.assertIn("1文字も変えないで", body)
 
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。
