@@ -168,18 +168,9 @@ def agent_palette_table():
     return "\n".join(rows), len(rows)
 
 
-# EXTRAS表で上下向きの行を出すブロックと、その許される向き。
-# palette の updown フラグより厳しい実機準拠（例: ホッパーに「上」は無い、
-# はしごは横4方向のみ）。表はGeminiが一字一句コピーする正本なので、
-# ゲームに存在しない状態値を載せない。
-_EXTRAS_UPDOWN = {
-    "sticky_piston": ("down", "up"),
-    "dispenser": ("down", "up"),
-    "dropper": ("down", "up"),
-    "observer": ("down", "up"),
-    "hopper": ("down",),
-}
-
+# 許される向きは blockstate.py の AUX_RULES が正本（実機準拠: ホッパーに「上」は
+# 無い、はしご・チェストは横4方向のみ）。表はGeminiが一字一句コピーするので、
+# ゲームに存在しない値を載せない。
 _DIR_JA = {"north": "北向き", "south": "南向き", "east": "東向き",
            "west": "西向き", "down": "下向き", "up": "上向き"}
 
@@ -187,26 +178,24 @@ _DIR_JA = {"north": "北向き", "south": "南向き", "east": "東向き",
 def extras_table():
     """置き物・向き付きブロック用の「EXTRASに書く文字列」表を作る。
 
-    文字列の本体（bedrock_id + ブロック状態）は blueprint/blockstate.py の
-    state_suffix() で組む。ここは commands.txt と同じ経路で、Mojang公式データと
-    tools/verify_block_ids.py が突き合わせている。手書きすると必ず間違えるので、
-    プロンプトに載る文字列はすべてここから生成する。
+    向きは blueprint/blockstate.py の command_suffix()（データ値方式）で組む。
+    Education のコマンドはブロック状態構文 ["~"=n] を構文エラーにするため
+    （1.21.133 実機確認）、旧世代のデータ値を使う。対応表の出所は blockstate.py 参照。
+    手書きすると必ず間違えるので、プロンプトに載る文字列はすべてここから生成する。
     """
     sys.path.insert(0, str(HERE.parent))
-    from blueprint.blockstate import STATE_RULES, state_suffix  # noqa: E402
+    from blueprint.blockstate import AUX_RULES, command_suffix  # noqa: E402
     from blueprint.palette import BLOCKS  # noqa: E402
 
     rows = []
     for key, b in BLOCKS.items():
         # 置き物・向きの決まるブロック（階段など）・液体だけが EXTRAS の対象
-        if not (b.get("marker") or key in STATE_RULES or key in ("water", "lava")):
+        if not (b.get("marker") or key in AUX_RULES or key in ("water", "lava")):
             continue
         note = "（あふれ注意・囲いの中だけ）" if key in ("water", "lava") else ""
-        if key in STATE_RULES:
-            facings = ["north", "south", "east", "west"]
-            facings += list(_EXTRAS_UPDOWN.get(key, ()))
-            for f in facings:
-                suf = state_suffix(key, f)
+        if key in AUX_RULES:
+            for f in ("north", "south", "east", "west", "down", "up"):
+                suf = command_suffix(key, f)
                 if not suf:
                     continue
                 rows.append(f"| {b['name_ja']} | {_DIR_JA[f]} | `{b['bedrock_id']}{suf}` |")

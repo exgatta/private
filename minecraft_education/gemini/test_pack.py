@@ -327,9 +327,14 @@ class TestPack(unittest.TestCase):
         m.set(1, 1, 0, "hopper", "down")
         m.set(2, 1, 0, "comparator", "south")
         out = export_commands(m)
-        self.assertIn('oak_stairs ["weirdo_direction"=3]', out)
-        self.assertIn('hopper ["facing_direction"=0]', out)
-        self.assertIn('unpowered_comparator ["minecraft:cardinal_direction"="south"]', out)
+        # データ値方式（Education のコマンドはブロック状態構文を受け付けない）
+        self.assertIn("oak_stairs 3", out)
+        self.assertIn("hopper 0", out)
+        self.assertIn("unpowered_comparator 0", out)
+        for ln in out.splitlines():
+            if ln.startswith("/"):
+                self.assertNotIn(
+                    '["', ln, "ブロック状態構文が混ざっている（Educationで構文エラー）")
 
     def test_runs_do_not_merge_different_facings(self):
         """向きの違うブロックが1つのコマンドにまとめられないこと。
@@ -346,8 +351,8 @@ class TestPack(unittest.TestCase):
         m.set(1, 1, 0, "oak_stairs", "north")
         m.set(2, 1, 0, "oak_stairs", "south")
         out = export_commands(m)
-        self.assertIn('/fill ~0 ~1 ~0 ~1 ~1 ~0 oak_stairs ["weirdo_direction"=3]', out)
-        self.assertIn('/setblock ~2 ~1 ~0 oak_stairs ["weirdo_direction"=2]', out)
+        self.assertIn("/fill ~0 ~1 ~0 ~1 ~1 ~0 oak_stairs 3", out)
+        self.assertIn("/setblock ~2 ~1 ~0 oak_stairs 2", out)
 
     def test_impossible_facing_is_detected(self):
         """そのブロックに指定できない向きをエラーにすること。
@@ -581,27 +586,72 @@ class TestPack(unittest.TestCase):
         """EXTRAS表の文字列が blockstate.py の出力と一致すること。
 
         表はGeminiが一字一句コピーする正本。commands.txt と同じ経路
-        （bedrock_id + state_suffix、公式データと照合済み）とズレたら、
+        （bedrock_id + command_suffix のデータ値方式）とズレたら、
         エージェント版だけ向きの壊れたブロックが置かれてしまう。
         """
         sys.path.insert(0, str(HERE.parent))
-        from blueprint.blockstate import STATE_RULES, state_suffix  # noqa: E402
+        from blueprint.blockstate import AUX_RULES, command_suffix  # noqa: E402
         from blueprint.palette import BLOCKS  # noqa: E402
 
         for key, b in BLOCKS.items():
-            if key in STATE_RULES:
-                for f in ("north", "south", "east", "west"):
-                    suf = state_suffix(key, f)
-                    if suf:
-                        self.assertIn(f"`{b['bedrock_id']}{suf}`", self.agent,
-                                      f"{key} の {f} 向きが表に無い")
+            if key in AUX_RULES:
+                for f in AUX_RULES[key]:
+                    suf = command_suffix(key, f)
+                    self.assertIn(f"`{b['bedrock_id']}{suf}`", self.agent,
+                                  f"{key} の {f} 向きが表に無い")
             elif b.get("marker") or key in ("water", "lava"):
                 self.assertIn(f"`{b['bedrock_id']}`", self.agent,
                               f"{key} の行が表に無い")
-        # 実機に無い状態値を教えないこと（ホッパー上向き・はしご上下）
-        self.assertNotIn('`hopper ["facing_direction"=1]`', self.agent)
-        self.assertNotIn('`ladder ["facing_direction"=0]`', self.agent)
-        self.assertNotIn('`ladder ["facing_direction"=1]`', self.agent)
+        # Education が構文エラーにするブロック状態構文を表に出さないこと
+        # （実機 1.21.133 で 構文エラー: "=" は無効です を確認）
+        self.assertNotIn('"facing_direction"', self.agent)
+        self.assertNotIn('"minecraft:cardinal_direction"', self.agent)
+        # 実機に無いデータ値を教えないこと（ホッパー上向き・はしご/チェスト上下）
+        self.assertNotIn("`hopper 1`", self.agent)
+        self.assertNotIn("`ladder 0`", self.agent)
+        self.assertNotIn("`ladder 1`", self.agent)
+        self.assertNotIn("`chest 0`", self.agent)
+
+    def test_aux_values_match_primary_sources(self):
+        """データ値の対応が一次資料どおりで、黄金コピーともズレていないこと。
+
+        個別の値は取得した一次資料から書き起こしたもの:
+        - repeater/comparator: 公式変換スキーマ 0221 の direction_00 表
+        - chest: 同 0231 の facing_direction_00 表
+        - fence_gate / trapdoor: Nukkit（旧世代Bedrockサーバー実装）の実装
+        - 階段: weirdo_direction はデータ値と同値（1.12.0.bin で確認）
+        - ピストン等: facing_direction はデータ値と同値（同上）
+        """
+        import json as _json
+
+        sys.path.insert(0, str(HERE.parent))
+        from blueprint.blockstate import AUX_RULES, aux_value  # noqa: E402
+
+        expect = {
+            ("repeater", "south"): 0, ("repeater", "west"): 1,
+            ("repeater", "north"): 2, ("repeater", "east"): 3,
+            ("comparator", "north"): 2,
+            ("chest", "north"): 2, ("chest", "south"): 3,
+            ("chest", "west"): 4, ("chest", "east"): 5,
+            ("oak_fence_gate", "south"): 0, ("oak_fence_gate", "north"): 2,
+            ("oak_trapdoor", "east"): 0, ("oak_trapdoor", "north"): 3,
+            ("oak_stairs", "east"): 0, ("oak_stairs", "north"): 3,
+            ("sticky_piston", "down"): 0, ("sticky_piston", "up"): 1,
+            ("sticky_piston", "east"): 5,
+            ("hopper", "down"): 0, ("hopper", "west"): 4,
+            ("sign", "south"): 0, ("sign", "north"): 8,
+        }
+        for (key, f), v in expect.items():
+            self.assertEqual(aux_value(key, f), v, f"{key} {f}")
+        self.assertIsNone(aux_value("hopper", "up"))
+        self.assertIsNone(aux_value("ladder", "down"))
+
+        golden = _json.loads(
+            (HERE.parent / "reference" / "bedrock_legacy_aux.json")
+            .read_text(encoding="utf-8"))
+        self.assertEqual(golden["aux"],
+                         {k: dict(v) for k, v in AUX_RULES.items()},
+                         "AUX_RULES が黄金コピーとズレている")
 
     def test_build_prompt_documents_all_ops(self):
         """BUILD_PROMPT.md の ops 仕様が PROMPT.md とズレないこと。

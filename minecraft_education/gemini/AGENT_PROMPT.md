@@ -38,7 +38,8 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
    - `EXTRAS_X` / `EXTRAS_Y` / `EXTRAS_Z` / `EXTRAS_BLOCK` は**同じ順番・同じ数**の
      4つのリスト。座標の数え方は `LAYERS` と同じ（x=西→東 / y=段 / z=北→南、すべて0起点）
    - `EXTRAS_BLOCK` の文字列は、後述の**「EXTRASに書ける文字列」の表から
-     一字一句そのままコピー**する（`[` や `"` や数字を1文字でも変えると置けません）
+     一字一句そのままコピー**する（ブロック名の後ろの**数字が向き**。1文字でも変えると
+     違う向きになったり置けなくなったりします）
    - `EXTRAS` は `LAYERS` が建ち終わった後に、上から順に置かれる
 
 ## LAYERS で使えるブロック（MakeCode定数。この表以外は使用禁止）
@@ -113,7 +114,9 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 
 ## EXTRAS に書ける文字列（この表からそのままコピー）
 
-向きの指定は Mojang 公式のブロック定義と照合済みです。**表に無い書き方を発明しないこと。**
+ブロック名の後ろの**数字が向きの指定**（データ値）です。Minecraft Education の
+コマンドが確実に受け付ける形式で、公式の変換データと照合済みです。
+**表に無い書き方（`["facing"=1]` のような形式や、表に無い数字）を発明しないこと。**
 階段のように「置き物」印が無くても向きの要るブロックは、向きが大事なマスだけ
 `EXTRAS` で置いてください（`LAYERS` に書くと全部おなじ既定の向きになります）。
 
@@ -121,82 +124,82 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 |---|---|---|
 | 溶岩（あふれ注意・囲いの中だけ） | ー | `lava` |
 | 水（あふれ注意・囲いの中だけ） | ー | `water` |
-| オークの階段 | 北向き | `oak_stairs ["weirdo_direction"=3]` |
-| オークの階段 | 南向き | `oak_stairs ["weirdo_direction"=2]` |
-| オークの階段 | 東向き | `oak_stairs ["weirdo_direction"=0]` |
-| オークの階段 | 西向き | `oak_stairs ["weirdo_direction"=1]` |
-| 石レンガの階段 | 北向き | `stone_brick_stairs ["weirdo_direction"=3]` |
-| 石レンガの階段 | 南向き | `stone_brick_stairs ["weirdo_direction"=2]` |
-| 石レンガの階段 | 東向き | `stone_brick_stairs ["weirdo_direction"=0]` |
-| 石レンガの階段 | 西向き | `stone_brick_stairs ["weirdo_direction"=1]` |
-| 丸石の階段 | 北向き | `stone_stairs ["weirdo_direction"=3]` |
-| 丸石の階段 | 南向き | `stone_stairs ["weirdo_direction"=2]` |
-| 丸石の階段 | 東向き | `stone_stairs ["weirdo_direction"=0]` |
-| 丸石の階段 | 西向き | `stone_stairs ["weirdo_direction"=1]` |
-| オークのフェンスゲート | 北向き | `fence_gate ["minecraft:cardinal_direction"="north"]` |
-| オークのフェンスゲート | 南向き | `fence_gate ["minecraft:cardinal_direction"="south"]` |
-| オークのフェンスゲート | 東向き | `fence_gate ["minecraft:cardinal_direction"="east"]` |
-| オークのフェンスゲート | 西向き | `fence_gate ["minecraft:cardinal_direction"="west"]` |
-| オークのトラップドア | 北向き | `trapdoor ["direction"=3]` |
-| オークのトラップドア | 南向き | `trapdoor ["direction"=2]` |
-| オークのトラップドア | 東向き | `trapdoor ["direction"=0]` |
-| オークのトラップドア | 西向き | `trapdoor ["direction"=1]` |
-| はしご | 北向き | `ladder ["facing_direction"=2]` |
-| はしご | 南向き | `ladder ["facing_direction"=3]` |
-| はしご | 東向き | `ladder ["facing_direction"=5]` |
-| はしご | 西向き | `ladder ["facing_direction"=4]` |
+| オークの階段 | 北向き | `oak_stairs 3` |
+| オークの階段 | 南向き | `oak_stairs 2` |
+| オークの階段 | 東向き | `oak_stairs 0` |
+| オークの階段 | 西向き | `oak_stairs 1` |
+| 石レンガの階段 | 北向き | `stone_brick_stairs 3` |
+| 石レンガの階段 | 南向き | `stone_brick_stairs 2` |
+| 石レンガの階段 | 東向き | `stone_brick_stairs 0` |
+| 石レンガの階段 | 西向き | `stone_brick_stairs 1` |
+| 丸石の階段 | 北向き | `stone_stairs 3` |
+| 丸石の階段 | 南向き | `stone_stairs 2` |
+| 丸石の階段 | 東向き | `stone_stairs 0` |
+| 丸石の階段 | 西向き | `stone_stairs 1` |
+| オークのフェンスゲート | 北向き | `fence_gate 2` |
+| オークのフェンスゲート | 南向き | `fence_gate 0` |
+| オークのフェンスゲート | 東向き | `fence_gate 3` |
+| オークのフェンスゲート | 西向き | `fence_gate 1` |
+| オークのトラップドア | 北向き | `trapdoor 3` |
+| オークのトラップドア | 南向き | `trapdoor 2` |
+| オークのトラップドア | 東向き | `trapdoor 0` |
+| オークのトラップドア | 西向き | `trapdoor 1` |
+| はしご | 北向き | `ladder 2` |
+| はしご | 南向き | `ladder 3` |
+| はしご | 東向き | `ladder 5` |
+| はしご | 西向き | `ladder 4` |
 | ランタン | ー | `lantern` |
-| チェスト | 北向き | `chest ["minecraft:cardinal_direction"="north"]` |
-| チェスト | 南向き | `chest ["minecraft:cardinal_direction"="south"]` |
-| チェスト | 東向き | `chest ["minecraft:cardinal_direction"="east"]` |
-| チェスト | 西向き | `chest ["minecraft:cardinal_direction"="west"]` |
+| チェスト | 北向き | `chest 2` |
+| チェスト | 南向き | `chest 3` |
+| チェスト | 東向き | `chest 5` |
+| チェスト | 西向き | `chest 4` |
 | ポピー（赤い花） | ー | `poppy` |
 | タンポポ（黄色い花） | ー | `dandelion` |
-| 粘着ピストン | 北向き | `sticky_piston ["facing_direction"=2]` |
-| 粘着ピストン | 南向き | `sticky_piston ["facing_direction"=3]` |
-| 粘着ピストン | 東向き | `sticky_piston ["facing_direction"=5]` |
-| 粘着ピストン | 西向き | `sticky_piston ["facing_direction"=4]` |
-| 粘着ピストン | 下向き | `sticky_piston ["facing_direction"=0]` |
-| 粘着ピストン | 上向き | `sticky_piston ["facing_direction"=1]` |
+| 粘着ピストン | 北向き | `sticky_piston 2` |
+| 粘着ピストン | 南向き | `sticky_piston 3` |
+| 粘着ピストン | 東向き | `sticky_piston 5` |
+| 粘着ピストン | 西向き | `sticky_piston 4` |
+| 粘着ピストン | 下向き | `sticky_piston 0` |
+| 粘着ピストン | 上向き | `sticky_piston 1` |
 | レッドストーンダスト | ー | `redstone_wire` |
 | レッドストーントーチ | ー | `redstone_torch` |
 | 石の感圧板 | ー | `stone_pressure_plate` |
 | レバー | ー | `lever` |
-| ホッパー | 北向き | `hopper ["facing_direction"=2]` |
-| ホッパー | 南向き | `hopper ["facing_direction"=3]` |
-| ホッパー | 東向き | `hopper ["facing_direction"=5]` |
-| ホッパー | 西向き | `hopper ["facing_direction"=4]` |
-| ホッパー | 下向き | `hopper ["facing_direction"=0]` |
-| ディスペンサー（発射装置） | 北向き | `dispenser ["facing_direction"=2]` |
-| ディスペンサー（発射装置） | 南向き | `dispenser ["facing_direction"=3]` |
-| ディスペンサー（発射装置） | 東向き | `dispenser ["facing_direction"=5]` |
-| ディスペンサー（発射装置） | 西向き | `dispenser ["facing_direction"=4]` |
-| ディスペンサー（発射装置） | 下向き | `dispenser ["facing_direction"=0]` |
-| ディスペンサー（発射装置） | 上向き | `dispenser ["facing_direction"=1]` |
-| ドロッパー | 北向き | `dropper ["facing_direction"=2]` |
-| ドロッパー | 南向き | `dropper ["facing_direction"=3]` |
-| ドロッパー | 東向き | `dropper ["facing_direction"=5]` |
-| ドロッパー | 西向き | `dropper ["facing_direction"=4]` |
-| ドロッパー | 下向き | `dropper ["facing_direction"=0]` |
-| ドロッパー | 上向き | `dropper ["facing_direction"=1]` |
-| レッドストーンコンパレーター | 北向き | `unpowered_comparator ["minecraft:cardinal_direction"="north"]` |
-| レッドストーンコンパレーター | 南向き | `unpowered_comparator ["minecraft:cardinal_direction"="south"]` |
-| レッドストーンコンパレーター | 東向き | `unpowered_comparator ["minecraft:cardinal_direction"="east"]` |
-| レッドストーンコンパレーター | 西向き | `unpowered_comparator ["minecraft:cardinal_direction"="west"]` |
-| レッドストーンリピーター（反復装置） | 北向き | `unpowered_repeater ["minecraft:cardinal_direction"="north"]` |
-| レッドストーンリピーター（反復装置） | 南向き | `unpowered_repeater ["minecraft:cardinal_direction"="south"]` |
-| レッドストーンリピーター（反復装置） | 東向き | `unpowered_repeater ["minecraft:cardinal_direction"="east"]` |
-| レッドストーンリピーター（反復装置） | 西向き | `unpowered_repeater ["minecraft:cardinal_direction"="west"]` |
-| オブザーバー（観察者） | 北向き | `observer ["minecraft:facing_direction"="north"]` |
-| オブザーバー（観察者） | 南向き | `observer ["minecraft:facing_direction"="south"]` |
-| オブザーバー（観察者） | 東向き | `observer ["minecraft:facing_direction"="east"]` |
-| オブザーバー（観察者） | 西向き | `observer ["minecraft:facing_direction"="west"]` |
-| オブザーバー（観察者） | 下向き | `observer ["minecraft:facing_direction"="down"]` |
-| オブザーバー（観察者） | 上向き | `observer ["minecraft:facing_direction"="up"]` |
-| 看板 | 北向き | `standing_sign ["ground_sign_direction"=8]` |
-| 看板 | 南向き | `standing_sign ["ground_sign_direction"=0]` |
-| 看板 | 東向き | `standing_sign ["ground_sign_direction"=12]` |
-| 看板 | 西向き | `standing_sign ["ground_sign_direction"=4]` |
+| ホッパー | 北向き | `hopper 2` |
+| ホッパー | 南向き | `hopper 3` |
+| ホッパー | 東向き | `hopper 5` |
+| ホッパー | 西向き | `hopper 4` |
+| ホッパー | 下向き | `hopper 0` |
+| ディスペンサー（発射装置） | 北向き | `dispenser 2` |
+| ディスペンサー（発射装置） | 南向き | `dispenser 3` |
+| ディスペンサー（発射装置） | 東向き | `dispenser 5` |
+| ディスペンサー（発射装置） | 西向き | `dispenser 4` |
+| ディスペンサー（発射装置） | 下向き | `dispenser 0` |
+| ディスペンサー（発射装置） | 上向き | `dispenser 1` |
+| ドロッパー | 北向き | `dropper 2` |
+| ドロッパー | 南向き | `dropper 3` |
+| ドロッパー | 東向き | `dropper 5` |
+| ドロッパー | 西向き | `dropper 4` |
+| ドロッパー | 下向き | `dropper 0` |
+| ドロッパー | 上向き | `dropper 1` |
+| レッドストーンコンパレーター | 北向き | `unpowered_comparator 2` |
+| レッドストーンコンパレーター | 南向き | `unpowered_comparator 0` |
+| レッドストーンコンパレーター | 東向き | `unpowered_comparator 3` |
+| レッドストーンコンパレーター | 西向き | `unpowered_comparator 1` |
+| レッドストーンリピーター（反復装置） | 北向き | `unpowered_repeater 2` |
+| レッドストーンリピーター（反復装置） | 南向き | `unpowered_repeater 0` |
+| レッドストーンリピーター（反復装置） | 東向き | `unpowered_repeater 3` |
+| レッドストーンリピーター（反復装置） | 西向き | `unpowered_repeater 1` |
+| オブザーバー（観察者） | 北向き | `observer 2` |
+| オブザーバー（観察者） | 南向き | `observer 3` |
+| オブザーバー（観察者） | 東向き | `observer 5` |
+| オブザーバー（観察者） | 西向き | `observer 4` |
+| オブザーバー（観察者） | 下向き | `observer 0` |
+| オブザーバー（観察者） | 上向き | `observer 1` |
+| 看板 | 北向き | `standing_sign 8` |
+| 看板 | 南向き | `standing_sign 0` |
+| 看板 | 東向き | `standing_sign 12` |
+| 看板 | 西向き | `standing_sign 4` |
 | たいまつ | ー | `torch` |
 | オークのドア | ー | `wooden_door` |
 

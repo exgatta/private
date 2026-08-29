@@ -12,7 +12,7 @@
 _DIR_JA = {"north": "北", "south": "南", "east": "東", "west": "西",
            "down": "下", "up": "上"}
 
-from .blockstate import state_suffix
+from .blockstate import command_suffix
 from .palette import block
 
 
@@ -89,22 +89,24 @@ def export_commands(model):
     runs, markers = _runs(model)
     lines = [
         f"# {model.name} — チャットコマンド版（1行ずつチャットに貼り付け）",
-        "# ブロック名と向きの指定は Mojang 公式のブロック定義と照合済み。",
+        "# ブロック名は Mojang 公式のブロック定義と照合済み。",
+        "# 向きはデータ値方式（ブロック名の後ろの数字）。Minecraft Education の",
+        "# コマンドはブロック状態構文 [\"~\"=n] を受け付けないため（実機確認）。",
         "# 建てたい場所に立って、動かずに順番に実行する（~はプレイヤー相対座標）",
         "",
     ]
     for key, x1, y, z, x2, facing in runs:
         bid = block(key)["bedrock_id"]
-        st = state_suffix(key, facing)
+        st = command_suffix(key, facing)
         if x1 == x2:
             lines.append(f"/setblock ~{x1} ~{y} ~{z} {bid}{st}")
         else:
             lines.append(f"/fill ~{x1} ~{y} ~{z} ~{x2} ~{y} ~{z} {bid}{st}")
     if markers:
         lines.append("")
-        lines.append("# ▼ 置き物は最後に。向きは状態指定で入れてある")
+        lines.append("# ▼ 置き物は最後に。向きはデータ値で入れてある")
         for key, x, y, z, facing in markers:
-            st = state_suffix(key, facing)
+            st = command_suffix(key, facing)
             d = f"   # {_DIR_JA[facing]}向き" if facing else ""
             lines.append(
                 f"/setblock ~{x} ~{y} ~{z} {block(key)['bedrock_id']}{st}{d}"

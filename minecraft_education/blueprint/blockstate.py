@@ -98,6 +98,10 @@ def state_suffix(key, facing):
     """コマンドに付ける状態指定を返す。付けられないときは空文字。
 
     例: state_suffix("hopper", "down") -> ' ["facing_direction"=0]'
+
+    注意: この `["状態"=値]` 構文は Bedrock 1.19.70 以降のコマンドエンジン専用。
+    **Minecraft Education（1.21.133 実機で確認）はこれを構文エラーにする**ため、
+    Education 向けの出力には下の aux_value / command_suffix（データ値方式）を使う。
     """
     if not facing:
         return ""
@@ -106,3 +110,64 @@ def state_suffix(key, facing):
         return ""
     s = rule[1](facing)
     return f" [{s}]" if s else ""
+
+
+# ---------------------------------------------------------------------------
+# データ値（aux）方式 — Minecraft Education 用
+#
+# Education のコマンドエンジンは 1.19.70 より古い世代で、ブロック状態構文
+# `["facing_direction"=5]` を「構文エラー: "=" は無効です」と拒否する（実機確認）。
+# 旧世代の書き方はデータ値: `/setblock ~ ~ ~ sticky_piston 5`。
+#
+# 対応表の出所（推測ではない）:
+#   - pmmp/BedrockBlockUpgradeSchema id_meta_to_nbt/1.12.0.bin
+#     … 公式ワールド変換用の「データ値 → ブロック状態」対応。ここから
+#       「データ値の下位ビット = 向きの状態値そのまま」であることを確認
+#   - 同 nbt_upgrade_schema 0221(1.20.30): repeater/comparator の direction は
+#     0=south, 1=west, 2=north, 3=east（direction_00 表）
+#   - 同 0231(1.20.40): chest の facing_direction は 2=north 3=south 4=west 5=east
+#   - CloudburstMC/Nukkit（旧世代Bedrockサーバー実装）:
+#     fence_gate は 0=south 1=west 2=north 3=east、
+#     trapdoor は 0=east 1=west 2=south 3=north（階段の weirdo と同じ）
+# ---------------------------------------------------------------------------
+
+# repeater / comparator / fence_gate の direction（0=south 1=west 2=north 3=east）
+_DIRECTION_SWNE = {"south": 0, "west": 1, "north": 2, "east": 3}
+
+# 看板 ground_sign_direction は新旧共通（0=南、時計回り）
+_SIGN_DIR = {"south": 0, "west": 4, "north": 8, "east": 12}
+
+# ブロックキー -> facing -> データ値
+AUX_RULES = {
+    "oak_stairs": _WEIRDO,
+    "stone_brick_stairs": _WEIRDO,
+    "cobblestone_stairs": _WEIRDO,
+    "oak_trapdoor": _WEIRDO,          # 閉・下付き（上位ビット0）
+    "oak_fence_gate": _DIRECTION_SWNE,
+    "ladder": {f: i for f, i in _FACE_INDEX.items() if i >= 2},
+    "chest": {f: i for f, i in _FACE_INDEX.items() if i >= 2},
+    "sticky_piston": _FACE_INDEX,
+    "hopper": {f: i for f, i in _FACE_INDEX.items() if f != "up"},
+    "dispenser": _FACE_INDEX,
+    "dropper": _FACE_INDEX,
+    "comparator": _DIRECTION_SWNE,
+    "repeater": _DIRECTION_SWNE,
+    "observer": _FACE_INDEX,
+    "sign": _SIGN_DIR,
+}
+
+
+def aux_value(key, facing):
+    """Education 向けのデータ値を返す。向きが不要・指定不能なら None。"""
+    if not facing:
+        return None
+    return AUX_RULES.get(key, {}).get(facing)
+
+
+def command_suffix(key, facing):
+    """Education のコマンドに付ける向き指定（データ値）。無ければ空文字。
+
+    例: command_suffix("sticky_piston", "east") -> ' 5'
+    """
+    v = aux_value(key, facing)
+    return f" {v}" if v is not None else ""

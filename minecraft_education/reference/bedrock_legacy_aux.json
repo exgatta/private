@@ -1,0 +1,113 @@
+{
+ "_comment": [
+  "Minecraft Education 用のデータ値（aux）対応表の黄金コピー。",
+  "blueprint/blockstate.py の AUX_RULES と一致していることを test_pack.py が検査する。",
+  "出所（推測ではない）:",
+  " - pmmp/BedrockBlockUpgradeSchema id_meta_to_nbt/1.12.0.bin（データ値→状態の公式変換データ）",
+  " - 同 nbt_upgrade_schema 0221: repeater/comparator direction は 0=south 1=west 2=north 3=east",
+  " - 同 0231: chest facing_direction は 2=north 3=south 4=west 5=east",
+  " - CloudburstMC/Nukkit: fence_gate 0=south 1=west 2=north 3=east / trapdoor 0=east 1=west 2=south 3=north / door FACES",
+  "背景: Education 1.21.133 のコマンドはブロック状態構文 [\"~\"=n] を構文エラーにする（実機確認）"
+ ],
+ "aux": {
+  "chest": {
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "cobblestone_stairs": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  },
+  "comparator": {
+   "south": 0,
+   "west": 1,
+   "north": 2,
+   "east": 3
+  },
+  "dispenser": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "dropper": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "hopper": {
+   "down": 0,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "ladder": {
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "oak_fence_gate": {
+   "south": 0,
+   "west": 1,
+   "north": 2,
+   "east": 3
+  },
+  "oak_stairs": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  },
+  "oak_trapdoor": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  },
+  "observer": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "repeater": {
+   "south": 0,
+   "west": 1,
+   "north": 2,
+   "east": 3
+  },
+  "sign": {
+   "south": 0,
+   "west": 4,
+   "north": 8,
+   "east": 12
+  },
+  "sticky_piston": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "stone_brick_stairs": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  }
+ }
+}
