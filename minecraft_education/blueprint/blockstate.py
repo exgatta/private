@@ -62,6 +62,18 @@ def _trapdoor(facing):
     return f'"direction"={_WEIRDO[facing]}'
 
 
+def _facing_direction_opp(facing):
+    """ピストン用: 実効方向（押す向き）は格納値の正反対（Nukkit・実機で確認）。"""
+    return f'"facing_direction"={_FACE_INDEX[_OPP[facing]]}'
+
+
+def _cardinal_opp(facing):
+    """リピーター/コンパレーター用: 格納値は入力側＝矢印の逆（Nukkit・実機で確認）。"""
+    if facing in ("up", "down"):
+        return None
+    return f'"minecraft:cardinal_direction"="{_OPP[facing]}"'
+
+
 def _ground_sign(facing):
     """看板の ground_sign_direction（0〜15の16方向）。
 
@@ -83,12 +95,12 @@ STATE_RULES = {
     "oak_trapdoor": ("direction", _trapdoor),
     "ladder": ("facing_direction", _facing_direction),
     "chest": ("minecraft:cardinal_direction", _cardinal),
-    "sticky_piston": ("facing_direction", _facing_direction),
+    "sticky_piston": ("facing_direction", _facing_direction_opp),
     "hopper": ("facing_direction", _facing_direction),
     "dispenser": ("facing_direction", _facing_direction),
     "dropper": ("facing_direction", _facing_direction),
-    "comparator": ("minecraft:cardinal_direction", _cardinal),
-    "repeater": ("minecraft:cardinal_direction", _cardinal),
+    "comparator": ("minecraft:cardinal_direction", _cardinal_opp),
+    "repeater": ("minecraft:cardinal_direction", _cardinal_opp),
     "observer": ("minecraft:facing_direction", _mc_facing_direction),
     "sign": ("ground_sign_direction", _ground_sign),
 }
@@ -137,7 +149,21 @@ _DIRECTION_SWNE = {"south": 0, "west": 1, "north": 2, "east": 3}
 # 看板 ground_sign_direction は新旧共通（0=南、時計回り）
 _SIGN_DIR = {"south": 0, "west": 4, "north": 8, "east": 12}
 
-# ブロックキー -> facing -> データ値
+_OPP = {"north": "south", "south": "north", "east": "west", "west": "east",
+        "down": "up", "up": "down"}
+
+# 【重要】「格納値の数え方」と「見た目の向き」はブロックごとに別物。
+# 実機テスト（Education 1.21.133）で「ピストンとリピーターが逆」と発覚し、
+# Nukkit（旧世代Bedrockサーバー実装）の設置・動作コードで全ブロックを照合した:
+#   - ピストン: 実効方向（頭・押す向き）は格納値の正反対。
+#     Nukkit BlockPistonBase: getFacing() = fromIndex(damage).getOpposite()
+#   - リピーター/コンパレーター: 格納値は「入力側（矢印の逆）」。
+#     Nukkit BlockRedstoneDiode: 入力を getFacing() 側から読む
+#   - 階段/トラップドア/フェンスゲート/はしご/チェスト(正面)/ホッパー(注ぎ口)/
+#     ディスペンサー・ドロッパー(発射面)/オブザーバー(観察面)/看板(正面) は
+#     格納値がそのまま見た目の向き（照合済み・反転しない）
+
+# ブロックキー -> 見た目の向き -> データ値
 AUX_RULES = {
     "oak_stairs": _WEIRDO,
     "stone_brick_stairs": _WEIRDO,
@@ -146,12 +172,14 @@ AUX_RULES = {
     "oak_fence_gate": _DIRECTION_SWNE,
     "ladder": {f: i for f, i in _FACE_INDEX.items() if i >= 2},
     "chest": {f: i for f, i in _FACE_INDEX.items() if i >= 2},
-    "sticky_piston": _FACE_INDEX,
+    # ピストンは「押す向き」を指定 → 格納値はその反対（上下も逆）
+    "sticky_piston": {f: _FACE_INDEX[_OPP[f]] for f in _FACE_INDEX},
     "hopper": {f: i for f, i in _FACE_INDEX.items() if f != "up"},
     "dispenser": _FACE_INDEX,
     "dropper": _FACE_INDEX,
-    "comparator": _DIRECTION_SWNE,
-    "repeater": _DIRECTION_SWNE,
+    # リピーター/コンパレーターは「矢印（出力）の向き」を指定 → 格納値はその反対
+    "comparator": {f: _DIRECTION_SWNE[_OPP[f]] for f in _DIRECTION_SWNE},
+    "repeater": {f: _DIRECTION_SWNE[_OPP[f]] for f in _DIRECTION_SWNE},
     "observer": _FACE_INDEX,
     "sign": _SIGN_DIR,
 }

@@ -330,7 +330,8 @@ class TestPack(unittest.TestCase):
         # データ値方式（Education のコマンドはブロック状態構文を受け付けない）
         self.assertIn("oak_stairs 3", out)
         self.assertIn("hopper 0", out)
-        self.assertIn("unpowered_comparator 0", out)
+        # コンパレーター南向き（矢印南）= 入力側の北(2)を格納
+        self.assertIn("unpowered_comparator 2", out)
         for ln in out.splitlines():
             if ln.startswith("/"):
                 self.assertNotIn(
@@ -627,17 +628,19 @@ class TestPack(unittest.TestCase):
         sys.path.insert(0, str(HERE.parent))
         from blueprint.blockstate import AUX_RULES, aux_value  # noqa: E402
 
+        # キーは「見た目の向き」。ピストンは押す向きの逆、リピーター/コンパレーターは
+        # 矢印の逆（入力側）を格納する（Nukkit の動作コードと実機確認による）。
         expect = {
-            ("repeater", "south"): 0, ("repeater", "west"): 1,
-            ("repeater", "north"): 2, ("repeater", "east"): 3,
-            ("comparator", "north"): 2,
+            ("repeater", "north"): 0, ("repeater", "east"): 1,
+            ("repeater", "south"): 2, ("repeater", "west"): 3,
+            ("comparator", "north"): 0, ("comparator", "south"): 2,
             ("chest", "north"): 2, ("chest", "south"): 3,
             ("chest", "west"): 4, ("chest", "east"): 5,
             ("oak_fence_gate", "south"): 0, ("oak_fence_gate", "north"): 2,
             ("oak_trapdoor", "east"): 0, ("oak_trapdoor", "north"): 3,
             ("oak_stairs", "east"): 0, ("oak_stairs", "north"): 3,
-            ("sticky_piston", "down"): 0, ("sticky_piston", "up"): 1,
-            ("sticky_piston", "east"): 5,
+            ("sticky_piston", "down"): 1, ("sticky_piston", "up"): 0,
+            ("sticky_piston", "east"): 4, ("sticky_piston", "north"): 3,
             ("hopper", "down"): 0, ("hopper", "west"): 4,
             ("sign", "south"): 0, ("sign", "north"): 8,
         }

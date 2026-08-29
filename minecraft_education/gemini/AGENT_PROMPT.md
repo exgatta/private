@@ -162,12 +162,12 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 | チェスト | 西向き | `chest 4` |
 | ポピー（赤い花） | ー | `poppy` |
 | タンポポ（黄色い花） | ー | `dandelion` |
-| 粘着ピストン | 北向き | `sticky_piston 2` |
-| 粘着ピストン | 南向き | `sticky_piston 3` |
-| 粘着ピストン | 東向き | `sticky_piston 5` |
-| 粘着ピストン | 西向き | `sticky_piston 4` |
-| 粘着ピストン | 下向き | `sticky_piston 0` |
-| 粘着ピストン | 上向き | `sticky_piston 1` |
+| 粘着ピストン | 北向き | `sticky_piston 3` |
+| 粘着ピストン | 南向き | `sticky_piston 2` |
+| 粘着ピストン | 東向き | `sticky_piston 4` |
+| 粘着ピストン | 西向き | `sticky_piston 5` |
+| 粘着ピストン | 下向き | `sticky_piston 1` |
+| 粘着ピストン | 上向き | `sticky_piston 0` |
 | レッドストーンダスト | ー | `redstone_wire` |
 | レッドストーントーチ | ー | `redstone_torch` |
 | 石の感圧板 | ー | `stone_pressure_plate` |
@@ -189,14 +189,14 @@ Minecraft Education の**エージェントが自動で建てる MakeCode Python
 | ドロッパー | 西向き | `dropper 4` |
 | ドロッパー | 下向き | `dropper 0` |
 | ドロッパー | 上向き | `dropper 1` |
-| レッドストーンコンパレーター | 北向き | `unpowered_comparator 2` |
-| レッドストーンコンパレーター | 南向き | `unpowered_comparator 0` |
-| レッドストーンコンパレーター | 東向き | `unpowered_comparator 3` |
-| レッドストーンコンパレーター | 西向き | `unpowered_comparator 1` |
-| レッドストーンリピーター（反復装置） | 北向き | `unpowered_repeater 2` |
-| レッドストーンリピーター（反復装置） | 南向き | `unpowered_repeater 0` |
-| レッドストーンリピーター（反復装置） | 東向き | `unpowered_repeater 3` |
-| レッドストーンリピーター（反復装置） | 西向き | `unpowered_repeater 1` |
+| レッドストーンコンパレーター | 北向き | `unpowered_comparator 0` |
+| レッドストーンコンパレーター | 南向き | `unpowered_comparator 2` |
+| レッドストーンコンパレーター | 東向き | `unpowered_comparator 1` |
+| レッドストーンコンパレーター | 西向き | `unpowered_comparator 3` |
+| レッドストーンリピーター（反復装置） | 北向き | `unpowered_repeater 0` |
+| レッドストーンリピーター（反復装置） | 南向き | `unpowered_repeater 2` |
+| レッドストーンリピーター（反復装置） | 東向き | `unpowered_repeater 1` |
+| レッドストーンリピーター（反復装置） | 西向き | `unpowered_repeater 3` |
 | オブザーバー（観察者） | 北向き | `observer 2` |
 | オブザーバー（観察者） | 南向き | `observer 3` |
 | オブザーバー（観察者） | 東向き | `observer 5` |

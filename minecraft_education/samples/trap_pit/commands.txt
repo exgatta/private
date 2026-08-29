@@ -148,8 +148,8 @@
 # ▼ 置き物は最後に。向きはデータ値で入れてある
 /setblock ~1 ~7 ~4 redstone_torch
 /setblock ~6 ~7 ~4 redstone_torch
-/setblock ~1 ~8 ~4 sticky_piston 5   # 東向き
-/setblock ~6 ~8 ~4 sticky_piston 4   # 西向き
+/setblock ~1 ~8 ~4 sticky_piston 4   # 東向き
+/setblock ~6 ~8 ~4 sticky_piston 5   # 西向き
 /setblock ~2 ~7 ~5 redstone_wire
 /setblock ~3 ~7 ~5 redstone_wire
 /setblock ~4 ~7 ~5 redstone_wire
@@ -160,7 +160,7 @@
 /setblock ~5 ~9 ~5 stone_pressure_plate
 /setblock ~1 ~7 ~6 redstone_torch
 /setblock ~6 ~7 ~6 redstone_torch
-/setblock ~1 ~8 ~6 sticky_piston 5   # 東向き
-/setblock ~6 ~8 ~6 sticky_piston 4   # 西向き
+/setblock ~1 ~8 ~6 sticky_piston 4   # 東向き
+/setblock ~6 ~8 ~6 sticky_piston 5   # 西向き
 /setblock ~1 ~10 ~7 torch
 /setblock ~6 ~10 ~7 torch
