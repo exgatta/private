@@ -10,6 +10,7 @@ import json, html
 BASE = "/tmp/claude-0/-home-user-gmail-manager/eb1b9397-4683-592b-9396-426fb1eb64d7/scratchpad"
 rows = json.load(open(f"{BASE}/data/final.json"))
 strokes = json.load(open(f"{BASE}/data/strokes.json"))
+arrows = json.load(open(f"{BASE}/data/arrows.json"))
 
 INK = "#3a3a3a"
 RED = "#e8535e"
@@ -20,13 +21,19 @@ def guide(size):
             f'<line x1="3" y1="{size/2}" x2="{size-3}" y2="{size/2}" class="gl"/>')
 
 def stroke_svg(k, cls="sod"):
-    """番号付き書き順図SVG"""
+    """番号＋方向矢印付き書き順図SVG（1枠1文字）"""
     d = strokes[k]
     parts = [f'<svg class="{cls}" viewBox="0 0 109 109">']
     parts.append('<rect x="1" y="1" width="107" height="107" rx="8" class="sqbg"/>')
     parts.append(guide(109))
+    # PDFテキスト層・機械照合用の不可視文字
+    parts.append(f'<text x="54.5" y="54.5" class="ghost">{k}</text>')
     for p in d["paths"]:
         parts.append(f'<path d="{p}" class="st"/>')
+    # 各画の終点に運筆方向の矢印（先端を少し先へオフセット）
+    for ex, ey, ang in arrows[k]:
+        parts.append(f'<g transform="translate({ex},{ey}) rotate({ang}) translate(4.6,0)">'
+                     f'<path d="M3.4 0 L-3.2 2.7 L-3.2 -2.7 Z" class="ar"/></g>')
     for x, y, n in d["nums"]:
         parts.append(f'<text x="{x}" y="{y}" class="sn">{n}</text>')
     parts.append("</svg>")
@@ -67,10 +74,8 @@ for i, r in enumerate(rows, 1):
     k = r["kanji"]
     cells.append(f'''<div class="cell{size_class(r)}">
   <div class="idx">{i}</div>
-  <div class="chead">
-    <svg class="big" viewBox="0 0 100 100"><rect x="1" y="1" width="98" height="98" rx="7" class="sqbg"/>{guide(100)}<text x="50" y="50" class="bigk">{k}</text></svg>
-    <div class="sowrap">{stroke_svg(k)}<div class="scount">{r["strokes"]}かく</div></div>
-  </div>
+  <div class="scount">{r["strokes"]}かく</div>
+  <div class="chead">{stroke_svg(k)}</div>
   <div class="reads">
     <div class="rline"><span class="chip con">オン</span><span class="rtx on">{reading_line(r["on"], "on")}</span></div>
     <div class="rline"><span class="chip ckun">くん</span><span class="rtx kun">{reading_line(r["kun"], "kun")}</span></div>
@@ -80,10 +85,8 @@ for i, r in enumerate(rows, 1):
 # 凡例用ミニセル（強: 音2つ・訓に送り仮名・中学読みあり）
 sample = next(r for r in rows if r["kanji"] == "強")
 legend_cell = f'''<div class="cell lg">
-  <div class="chead">
-    <svg class="big" viewBox="0 0 100 100"><rect x="1" y="1" width="98" height="98" rx="7" class="sqbg"/>{guide(100)}<text x="50" y="50" class="bigk">強</text></svg>
-    <div class="sowrap">{stroke_svg("強")}<div class="scount">{sample["strokes"]}かく</div></div>
-  </div>
+  <div class="scount">{sample["strokes"]}かく</div>
+  <div class="chead">{stroke_svg("強")}</div>
   <div class="reads">
     <div class="rline"><span class="chip con">オン</span><span class="rtx on">{reading_line(sample["on"], "on")}</span></div>
     <div class="rline"><span class="chip ckun">くん</span><span class="rtx kun">{reading_line(sample["kun"], "kun")}</span></div>
@@ -133,19 +136,18 @@ body {{ background:#fdf6e6; font-family:"Zen Maru","Klee One",sans-serif; color:
 .cell {{ position:relative; background:#fff; border:0.45mm solid #e8dcc0; border-radius:2.6mm;
          padding:1.6mm 1.8mm 1.4mm; display:flex; flex-direction:column; overflow:hidden; }}
 .idx {{ position:absolute; top:1mm; left:1.6mm; font-size:2.5mm; font-weight:700; color:#c9b98f; }}
-.chead {{ display:flex; justify-content:center; align-items:flex-start; gap:1.8mm; }}
-.big {{ width:24.5mm; height:24.5mm; margin-top:0.4mm; }}
-.bigk {{ font-family:"Klee One"; font-weight:600; font-size:76px; fill:#222;
-         text-anchor:middle; dominant-baseline:central; }}
+.chead {{ display:flex; justify-content:center; }}
 .sqbg {{ fill:#fbf8ef; stroke:#e3d5b2; stroke-width:1.5; }}
 .gl {{ stroke:#dccf9f; stroke-width:1.1; stroke-dasharray:4 4; }}
-.sowrap {{ display:flex; flex-direction:column; align-items:center; }}
-.sod {{ width:21mm; height:21mm; }}
-.st {{ fill:none; stroke:{INK}; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }}
+.sod {{ width:26.5mm; height:26.5mm; }}
+.ghost {{ font-family:"Klee One"; font-size:90px; fill:#000; fill-opacity:0.008;
+          text-anchor:middle; dominant-baseline:central; }}
+.st {{ fill:none; stroke:{INK}; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }}
+.ar {{ fill:{RED}; opacity:0.92; }}
 .sn {{ font-family:"Zen Maru"; font-weight:900; font-size:10.5px; fill:{RED};
        stroke:#ffffff; stroke-width:2.6px; paint-order:stroke fill; }}
-.scount {{ margin-top:0.5mm; font-size:2.9mm; font-weight:700; color:#7a6b47;
-           background:#f5edd8; border-radius:2mm; padding:0 1.8mm; line-height:1.5; }}
+.scount {{ position:absolute; top:1.2mm; right:1.6mm; font-size:2.9mm; font-weight:700;
+           color:#7a6b47; background:#f5edd8; border-radius:2mm; padding:0 1.8mm; line-height:1.5; }}
 
 /* ---------- 読み ---------- */
 .reads {{ margin-top:auto; padding-top:1.1mm; display:flex; flex-direction:column; gap:0.9mm; }}
@@ -167,8 +169,8 @@ body {{ background:#fdf6e6; font-family:"Zen Maru","Klee One",sans-serif; color:
 .cell.xs .rtx {{ font-size:2.75mm; letter-spacing:0; }}
 .cell.xxs .rtx {{ font-size:2.45mm; letter-spacing:0; line-height:1.24; }}
 .cell.xxs .reads {{ gap:0.5mm; padding-top:0.7mm; }}
-.cell.sm .big, .cell.xs .big, .cell.xxs .big {{ width:23.4mm; height:23.4mm; }}
-.cell.sm .sod, .cell.xs .sod, .cell.xxs .sod {{ width:20mm; height:20mm; }}
+.cell.sm .sod {{ width:25.5mm; height:25.5mm; }}
+.cell.xs .sod, .cell.xxs .sod {{ width:24mm; height:24mm; }}
 .cell.lg .rtx {{ font-size:3.4mm; }}
 
 /* ---------- フッター ---------- */
@@ -187,10 +189,10 @@ body {{ background:#fdf6e6; font-family:"Zen Maru","Klee One",sans-serif; color:
       <div class="lgn">
         <div class="lgtitle"><span>この ひょうの みかた</span></div>
         <div class="lgnotes">
-          <span class="r">あかい すうじ</span>は かく じゅんばん（かきじゅん）だよ。<br>
+          <span class="r">あかい すうじ</span>は かく じゅんばん、<span class="r" style="white-space:nowrap">あかい やじるし ▶</span>は かく むきだよ。<br>
           <b class="b">オン</b>＝おんよみ（カタカナ）、<b class="g">くん</b>＝くんよみ（ひらがな）。<br>
           <span class="gy">ほそい じ</span>は おくりがな。<span class="gy">（　）の よみかた</span>は 中学校や 高校で ならうよ。<br>
-          「◯かく」は その かん字を かく かいすう（<b>画すう</b>）だよ。
+          「◯かく」は その かん字の かくすう（<b>画すう</b>）だよ。
         </div>
       </div>
     </div>
