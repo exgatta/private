@@ -70,8 +70,14 @@ class FileEntry:
 
 @dataclass
 class Group:
-    """結合すべき一群 (単独動画も 1 件のグループとして表れる)。"""
+    """結合すべき一群 (単独動画も 1 件のグループとして表れる)。
+
+    reason / confidence / vendor は判定ロジック (split_detect) が埋める。
+    """
     entries: List[FileEntry] = field(default_factory=list)
+    reason: str = ""        # なぜ一群と判定したか (日本語、UI に表示)
+    confidence: str = ""    # "high" | "medium" | "low"
+    vendor: str = ""        # "gopro" | "dji" | "insta360" | "sony" | "generic"
 
     @property
     def is_split(self) -> bool:
