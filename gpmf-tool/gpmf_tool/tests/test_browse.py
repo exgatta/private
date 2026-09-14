@@ -169,9 +169,6 @@ class TestThumbnails(unittest.TestCase):
         self.assertNotIn(video, thumbs._CACHE)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class TestAnalyzeRobustness(unittest.TestCase):
     """付加情報の取得だけ失敗しても「読めません」にならない。"""
@@ -204,3 +201,5 @@ class TestAnalyzeRobustness(unittest.TestCase):
         self.assertIsNone(e.error, "本体は読めているのに読めません扱い")
         self.assertIn("360度判定に失敗", e.warning)
         self.assertEqual(e.resolution_text, "1920 x 1080")
+if __name__ == "__main__":
+    unittest.main()
