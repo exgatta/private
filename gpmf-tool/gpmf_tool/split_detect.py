@@ -507,13 +507,16 @@ def _vendor_group(run: List[_Info],
     first, last = run[0], run[-1]
     vendor = first.name.vendor
     paths = [i.path for i in run]
+    # 隣 (同じ命名系列の前後) を切った理由。単独でもグループでも出す:
+    # 「0006〜0007 は結合されたのに 0008 が入らない」ときに、グループの
+    # 見出しだけで「次の 0008 とは別撮影: …」と分かるようにする
+    notes = []
+    if prev_info is not None and before:
+        notes.append(f"前の {prev_info.name.label} とは別撮影: {before}")
+    if next_info is not None and after:
+        notes.append(f"次の {next_info.name.label} とは別撮影: {after}")
     if len(run) == 1:
         reason = f"単独の動画 ({_vendor_single_label(first)})"
-        notes = []
-        if prev_info is not None and before:
-            notes.append(f"前の {prev_info.name.label} とは別撮影: {before}")
-        if next_info is not None and after:
-            notes.append(f"次の {next_info.name.label} とは別撮影: {after}")
         if notes:
             reason += " / " + " / ".join(notes)
         return DetectedGroup(paths, vendor, "high", reason)
@@ -538,6 +541,8 @@ def _vendor_group(run: List[_Info],
     else:  # insta360
         reason = (f"Insta360 同一撮影 {first.name.extra['shot']} / "
                   f"クリップ {first.name.label}→{last.name.label}")
+    if notes:
+        reason += " / " + " / ".join(notes)
     return DetectedGroup(paths, vendor, confidence, reason)
 
 

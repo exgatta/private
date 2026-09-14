@@ -273,6 +273,11 @@ class TestDJI(_Base):
         self.assertIn("コーデック/解像度が違う", solo_c.reason)
         text = split_detect.describe_groups(groups)
         self.assertIn("別撮影", text)
+        # 結合されたグループ側にも「次の 0013 とは別撮影」の理由が付く
+        # (単独の動画が非表示でも、見出しだけで理由が分かる)
+        merged = [g for g in groups if len(g.files) == 2][0]
+        self.assertIn("次の 0013 とは別撮影", merged.reason)
+        self.assertIn("ファイル名の時刻差 12:00", merged.reason)
 
     def test_diagnose_report(self):
         a = self._make("DJI_20260914145635_0011_D.MP4")
