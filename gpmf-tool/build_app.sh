@@ -10,7 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "==> PyInstaller とドラッグ&ドロップ用ライブラリを確認/インストール"
-python3 -m pip install --quiet --upgrade pyinstaller tkinterdnd2
+python3 -m pip install --quiet --upgrade pyinstaller tkinterdnd2 pillow
 
 echo "==> 旧ビルドを掃除"
 rm -rf build dist

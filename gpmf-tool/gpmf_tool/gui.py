@@ -143,10 +143,10 @@ def run() -> int:
     # 結合ボタン (分割された動画を1本に)
     btns2 = ttk.Frame(frm)
     btns2.pack(fill="x", **pad)
-    join_btn = ttk.Button(btns2, text="分割動画を結合 (DJI等)")
+    join_btn = ttk.Button(btns2, text="フォルダから結合 (分割動画をまとめる)")
     join_btn.pack(side="left")
     ttk.Label(btns2,
-              text="  ← 自動分割されたファイルを画質そのままで1本にまとめます"
+              text="  ← フォルダを精査して一覧から選べます（画質そのまま）"
               ).pack(side="left")
 
     # ドラッグ&ドロップ案内
@@ -298,59 +298,27 @@ def run() -> int:
     # ------------------------------------------------------------------
     # 分割動画の結合
     # ------------------------------------------------------------------
-    def do_join():
-        """分割された動画を自動判定して結合する (GoPro化も同時に可)。"""
+    def _run_join(groups, also_gopro, out_dir):
+        """ブラウザ画面で選ばれた組を結合する。"""
         from . import concat
-        paths = filedialog.askopenfilenames(
-            title="結合したい動画をまとめて選択 (フォルダ内の全部でOK)",
-            filetypes=[("動画", "*.mp4 *.mov *.m4v *.MP4 *.MOV *.360"),
-                       ("すべて", "*.*")])
-        if not paths:
-            return
-        files = collect_videos(list(paths))
-        if not files:
-            messagebox.showinfo("対象なし", "動画が見つかりませんでした")
-            return
-
-        # 強制分割されたひとまとまりを自動判定
-        groups = concat.detect_split_groups(files)
-        joinable = [g for g in groups if len(g) >= 2]
-        log("=== 分割の判定結果 ===")
-        log(concat.describe_groups(groups))
-        if not joinable:
-            messagebox.showinfo(
-                "結合対象なし",
-                "強制分割された動画は見つかりませんでした。\n"
-                "（選んだものはすべて単独の撮影です）")
-            return
-
-        n_files = sum(len(g) for g in joinable)
-        also_gopro = messagebox.askyesno(
-            "結合 + GoPro化",
-            f"{len(joinable)} 本の撮影（計 {n_files} ファイル）を結合します。\n\n"
-            f"結合と同時に GoPro 化（{device.get()}）もしますか？\n"
-            "「いいえ」なら結合のみ行います。")
-
-        out_dir = filedialog.askdirectory(title="出力先フォルダを選択")
-        if not out_dir:
-            return
         set_running(True)
 
         def work():
             made = 0
             try:
-                for gi, group in enumerate(joinable, 1):
-                    stem, ext = os.path.splitext(os.path.basename(group[0]))
+                for gi, g in enumerate(groups, 1):
+                    files = [e.path for e in g.selected_entries]
+                    stem, ext = os.path.splitext(os.path.basename(files[0]))
                     stem = stem.rstrip("0123456789_-") or stem
                     suffix = "_結合_gopro" if also_gopro else "_結合"
                     out = os.path.join(out_dir, f"{stem}{suffix}{ext}")
-                    log(f"--- [{gi}/{len(joinable)}] {len(group)} 本を結合 ---")
+                    log(f"--- [{gi}/{len(groups)}] {len(files)} 個を結合 ---")
                     try:
                         hz = float(rate.get())
                     except ValueError:
                         hz = 10.0
                     stats = concat.concat_files(
-                        group, out, log=log,
+                        files, out, log=log,
                         gopro_device=device.get() if also_gopro else None,
                         gpx=(gpx_path.get().strip() or None) if also_gopro else None,
                         from_video=use_embedded.get() if also_gopro else False,
@@ -374,6 +342,14 @@ def run() -> int:
                 app.after(0, lambda: set_running(False))
 
         threading.Thread(target=work, daemon=True).start()
+
+    def do_join():
+        """フォルダを精査し、結合対象を一覧から選ぶ画面を開く。"""
+        from .browser_ui import BrowserWindow
+        start = os.path.dirname(in_path.get().strip()) or None
+        BrowserWindow(app, tk, ttk, filedialog, messagebox,
+                      on_join=_run_join, default_device=device.get(),
+                      initial_dir=start)
 
     def on_drop(event):
         # tkinterdnd2 は空白入りパスを {..} で囲むので splitlist で正しく分解

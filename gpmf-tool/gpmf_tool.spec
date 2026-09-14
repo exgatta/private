@@ -38,7 +38,8 @@ a = Analysis(
     hookspath=[],
     runtime_hooks=[],
     excludes=[
-        'numpy', 'pandas', 'scipy', 'matplotlib', 'PIL',
+        # PIL(Pillow) はサムネイル表示に使うので除外しない
+        'numpy', 'pandas', 'scipy', 'matplotlib',
         'pytest', 'setuptools', 'pip',
     ],
     noarchive=False,

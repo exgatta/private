@@ -4,7 +4,7 @@ REM PyInstaller はクロスコンパイル不可なので、Windows の .exe �
 cd /d "%~dp0"
 
 echo ==> PyInstaller とドラッグ&ドロップ用ライブラリを確認/インストール
-python -m pip install --quiet --upgrade pyinstaller tkinterdnd2
+python -m pip install --quiet --upgrade pyinstaller tkinterdnd2 pillow
 if errorlevel 1 goto :error
 
 echo ==> 旧ビルドを掃除
