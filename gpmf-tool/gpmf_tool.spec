@@ -17,9 +17,14 @@ IS_MAC = sys.platform == "darwin"
 APP_NAME = "GPMF-GoPro"
 
 # ドラッグ&ドロップ用 tkinterdnd2 を (インストールされていれば) 同梱する
-_datas = [('gpmf_tool/README.md', 'gpmf_tool')]
+# 結合選択画面 (Web UI) の静的ファイルはパッケージと同じ相対位置に置く
+# (server.py が os.path.dirname(__file__)/static で見つける)
+_datas = [
+    ('gpmf_tool/README.md', 'gpmf_tool'),
+    ('gpmf_tool/webui/static', 'gpmf_tool/webui/static'),
+]
 _binaries = []
-_hidden = ['gpmf_tool.gui']
+_hidden = ['gpmf_tool.gui', 'gpmf_tool.webui', 'gpmf_tool.webui.server']
 try:
     from PyInstaller.utils.hooks import collect_all
     _d, _b, _h = collect_all('tkinterdnd2')

@@ -5,6 +5,7 @@
     python -m gpmf_tool extract <in.mp4> [-o raw.bin] [--json out.json] [--gpx out.gpx]
     python -m gpmf_tool inject  <in.mp4> -o out.mp4 [--gpx track.gpx] [--device hero11] ...
     python -m gpmf_tool info    <file.mp4>
+    python -m gpmf_tool ui      [folder]        … ブラウザで結合選択画面を開く
 """
 
 from __future__ import annotations
@@ -487,6 +488,13 @@ def cmd_join(args: argparse.Namespace) -> None:
     print(f"\n結合おわり: {made} 本を作成 / {skipped} 本は単独のため対象外")
 
 
+def cmd_ui(args: argparse.Namespace) -> None:
+    """ブラウザで結合選択画面 (Web UI) を開く。終了までブロックする。"""
+    from .webui.server import serve_blocking
+    serve_blocking(folder=args.folder, port=args.port,
+                   open_browser=not args.no_browser, log=print)
+
+
 def cmd_to_gpx(args: argparse.Namespace) -> None:
     from . import sources
     got = sources.load_video_telemetry(args.file)
@@ -726,6 +734,15 @@ def main(argv=None) -> None:
     p = sub.add_parser("info", help="MP4 の構造と GoPro メタデータ状況を表示")
     p.add_argument("file", help="入力 MP4")
     p.set_defaults(func=cmd_info)
+
+    p = sub.add_parser(
+        "ui", help="ブラウザで結合選択画面を開く (エクスプローラー風の一覧)")
+    p.add_argument("folder", nargs="?", help="最初に開くフォルダ (任意)")
+    p.add_argument("--port", type=int, default=0,
+                   help="待ち受けポート (default: 空きポートを自動選択)")
+    p.add_argument("--no-browser", action="store_true",
+                   help="ブラウザを自動で開かない (URL だけ表示)")
+    p.set_defaults(func=cmd_ui)
 
     args = ap.parse_args(argv)
     try:

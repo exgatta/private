@@ -22,4 +22,8 @@ gpmf = "gpmf_tool.__main__:main"
 gpmf-gui = "gpmf_tool.gui:run"
 
 [tool.setuptools]
-packages = ["gpmf_tool"]
+packages = ["gpmf_tool", "gpmf_tool.webui"]
+
+[tool.setuptools.package-data]
+# 結合選択画面 (Web UI) の静的ファイル
+"gpmf_tool.webui" = ["static/*"]
