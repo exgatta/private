@@ -137,6 +137,13 @@ class BrowserWindow:
         tree.bind("<Button-1>", self._on_click)
         tree.bind("<space>", self._on_space)
         tree.bind("<Double-1>", self._on_double)
+        tree.bind("<<TreeviewSelect>>", self._on_select)
+
+        # 選んだ行の詳細 (読めなかった理由などをここに出す)
+        self.detail = tk.Text(self.win, height=3, wrap="word",
+                              state="disabled", relief="flat",
+                              background="#fafafa")
+        self.detail.pack(fill="x", padx=10, pady=(0, 4))
 
     def _toggle_thumbs(self):
         self._apply_row_height()
@@ -328,6 +335,39 @@ class BrowserWindow:
             if item in self.item_map:
                 self._toggle(item)
         return "break"
+
+    def _set_detail(self, text: str):
+        self.detail.configure(state="normal")
+        self.detail.delete("1.0", "end")
+        self.detail.insert("1.0", text)
+        self.detail.configure(state="disabled")
+
+    def _on_select(self, event=None):
+        sel = self.tree.selection()
+        if not sel:
+            self._set_detail("")
+            return
+        item = sel[0]
+        entry = self.item_map.get(item)
+        if entry is None:
+            g = self.group_map.get(item)
+            if g is not None:
+                self._set_detail(
+                    f"{g.title}\n"
+                    f"チェックを外したファイルは結合に含めません。"
+                    f"グループ行の「結合」欄でまとめて切替できます。")
+            return
+        lines = [entry.path]
+        if entry.error:
+            lines.append(f"⚠ 読めません: {entry.error}")
+        else:
+            info = [entry.codec or "", entry.resolution_text,
+                    f"{entry.fps:.2f} fps" if entry.fps else "",
+                    entry.duration_text, entry.size_text]
+            lines.append(" / ".join(x for x in info if x and x != "-"))
+            if entry.warning:
+                lines.append(f"注意: {entry.warning}")
+        self._set_detail("\n".join(lines))
 
     def _on_double(self, event):
         """ダブルクリックで OS の既定アプリで開く (エクスプローラー風)。"""

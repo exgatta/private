@@ -171,3 +171,36 @@ class TestThumbnails(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAnalyzeRobustness(unittest.TestCase):
+    """付加情報の取得だけ失敗しても「読めません」にならない。"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+
+    def test_error_message_is_japanese_and_specific(self):
+        p = os.path.join(self.dir, "x.mp4")
+        with open(p, "wb") as f:
+            f.write(b"\x00" * 64)
+        e = browse.analyze_file(p)
+        self.assertIsNotNone(e.error)
+        # 生の英語例外ではなく理由が入っている
+        self.assertNotEqual(e.error, "")
+
+    def test_missing_file(self):
+        e = browse.analyze_file(os.path.join(self.dir, "nope.mp4"))
+        self.assertIn("開けません", e.error)
+
+    def test_side_info_failure_is_only_warning(self):
+        from unittest import mock
+        from gpmf_tool import mp4
+        p = os.path.join(self.dir, "ok.mp4")
+        with open(p, "wb") as f:
+            f.write(build_multi_sample_mp4("A", 5))
+        with mock.patch.object(mp4, "detect_spherical",
+                               side_effect=RuntimeError("boom")):
+            e = browse.analyze_file(p)
+        self.assertIsNone(e.error, "本体は読めているのに読めません扱い")
+        self.assertIn("360度判定に失敗", e.warning)
+        self.assertEqual(e.resolution_text, "1920 x 1080")

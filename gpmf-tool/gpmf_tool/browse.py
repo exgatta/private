@@ -28,7 +28,8 @@ class FileEntry:
     has_gpmd: bool = False
     has_gps: bool = False
     is_360: bool = False
-    error: Optional[str] = None
+    error: Optional[str] = None    # MP4 として読めなかった理由
+    warning: Optional[str] = None  # 付加情報の取得だけ失敗した理由
     selected: bool = True          # 取捨選択用
 
     @property
@@ -136,14 +137,29 @@ def format_duration(sec: float) -> str:
 # ---------------------------------------------------------------------------
 
 def analyze_file(path: str) -> FileEntry:
-    """1 ファイルを解析して一覧用の情報にする。"""
+    """1 ファイルを解析して一覧用の情報にする。
+
+    解析は段階ごとに切り分けてあり、付加情報 (GPS/360度など) の取得に
+    失敗しても、動画自体が読めていれば一覧には出す。
+    「読めません」になるのは MP4 として開けなかった場合だけ。
+    """
     entry = FileEntry(path=path)
     try:
         entry.size = os.path.getsize(path)
-    except OSError:
-        pass
+    except OSError as e:
+        entry.error = f"ファイルを開けません: {e}"
+        return entry
+
     try:
-        with open(path, "rb") as f:
+        f = open(path, "rb")
+    except OSError as e:
+        entry.error = f"ファイルを開けません: {e}"
+        return entry
+
+    warnings: List[str] = []
+    try:
+        # --- 1) 基本情報 (これが失敗したら結合対象にできない) ---
+        try:
             m = mp4.media_summary(f)
             entry.duration = m["duration_sec"]
             entry.width = m["width"] or 0
@@ -151,15 +167,38 @@ def analyze_file(path: str) -> FileEntry:
             entry.fps = m["fps"] or 0.0
             entry.codec = m["video_codec"] or ""
             entry.created = m["creation_time"]
+        except Exception as e:
+            entry.error = _explain(e)
+            return entry
+
+        # --- 2) 付加情報 (失敗しても致命的ではない) ---
+        try:
             f.seek(0)
             tele = mp4.detect_telemetry(f)
             entry.has_gpmd = tele["gpmd"]
             entry.has_gps = bool(tele["formats"])
+        except Exception as e:
+            warnings.append(f"GPS情報の判定に失敗: {_explain(e)}")
+
+        try:
             f.seek(0)
             entry.is_360 = mp4.detect_spherical(f)["is_360"]
-    except Exception as e:
-        entry.error = str(e)
+        except Exception as e:
+            warnings.append(f"360度判定に失敗: {_explain(e)}")
+    finally:
+        f.close()
+
+    entry.warning = " / ".join(warnings) if warnings else None
     return entry
+
+
+def _explain(e: Exception) -> str:
+    """例外を短い日本語にする (UI に出す用)。"""
+    try:
+        from .__main__ import humanize_error
+        return humanize_error(e)
+    except Exception:
+        return str(e) or e.__class__.__name__
 
 
 def scan_folder(paths, recursive: bool = True,
