@@ -292,6 +292,12 @@ class TestWebUIServer(unittest.TestCase):
         status, r = self.c.json("GET", "/api/diagnose?job=nope")
         self.assertEqual(status, 404)
         self.assertIn("スキャン", r["error"])
+        # 内部メタデータ付き
+        status, r = self.c.json("GET", f"/api/diagnose?job={job}&meta=1")
+        self.assertEqual(status, 200, r)
+        self.assertIn("== 内部メタデータ", r["text"])
+        self.assertIn("##### a0.mp4", r["text"])
+        self.assertIn("種類=vide", r["text"])
 
     def test_scan_bad_folder(self):
         status, r = self.c.json("POST", "/api/scan",

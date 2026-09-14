@@ -372,8 +372,12 @@ class WebUIApp:
         threading.Thread(target=work, daemon=True, name="webui-scan").start()
         return job_id
 
-    def diagnose(self, job: dict) -> str:
-        """スキャン済みフォルダについて判定の材料を全部書き出す。"""
+    def diagnose(self, job: dict, meta: bool = False) -> str:
+        """スキャン済みフォルダについて判定の材料を全部書き出す。
+
+        meta=True なら動画の内部メタデータ (メーカー独自データの hex) も
+        付ける。映像・音声のデータは含まない。
+        """
         from .. import split_detect
         from ..__main__ import collect_videos
         files = collect_videos([job["path"]],
@@ -382,7 +386,11 @@ class WebUIApp:
                 f"動画: {len(files)} 個", ""]
         if not files:
             return "\n".join(head + ["(動画がありません)"])
-        return "\n".join(head) + split_detect.diagnose(files)
+        text = "\n".join(head) + split_detect.diagnose(files)
+        if meta:
+            from .. import metadump
+            text += "\n\n" + metadump.dump_files(files)
+        return text
 
     # --- 結合 ------------------------------------------------------------
     def start_join(self, req: dict) -> str:
@@ -651,8 +659,9 @@ class _Handler(BaseHTTPRequestHandler):
             job = app.scan_jobs.get((query.get("job") or [""])[0])
             if job is None:
                 return self._error(404, "先にフォルダをスキャンしてください")
+            meta = (query.get("meta") or ["0"])[0] in ("1", "true")
             try:
-                return self._json({"text": app.diagnose(job)})
+                return self._json({"text": app.diagnose(job, meta=meta)})
             except Exception as e:  # noqa: BLE001
                 return self._error(500, _humanize(e))
         self._error(404, "見つかりません")

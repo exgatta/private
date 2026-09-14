@@ -680,7 +680,8 @@ async function showDiagnose() {
   $('#diag-copied').classList.add('hidden');
   $('#diag').classList.remove('hidden');
   try {
-    const { text } = await api('/api/diagnose?job=' + encodeURIComponent(state.scanJob));
+    const meta = $('#diag-meta').checked ? '&meta=1' : '';
+    const { text } = await api('/api/diagnose?job=' + encodeURIComponent(state.scanJob) + meta);
     pre.textContent = text || '(情報がありません)';
   } catch (e) {
     pre.textContent = '取得できません: ' + e.message;
@@ -899,6 +900,7 @@ $('#from-video').addEventListener('change', () => { state.fromVideo = $('#from-v
 $('#btn-progress-close').addEventListener('click', () => $('#progress').classList.add('hidden'));
 $('#btn-diag').addEventListener('click', showDiagnose);
 $('#btn-diag-copy').addEventListener('click', copyDiagnose);
+$('#diag-meta').addEventListener('change', showDiagnose);
 $('#btn-diag-close').addEventListener('click', () => $('#diag').classList.add('hidden'));
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape') $('#diag').classList.add('hidden'); });
 $('#btn-quit').addEventListener('click', async () => {

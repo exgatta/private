@@ -102,6 +102,11 @@ python3 -m gpmf_tool join ./videos --dry-run
 # 隣同士の判断をすべて表示する (GUI の「判定の詳細…」ボタンと同じ内容)
 python3 -m gpmf_tool join ./videos --diagnose
 
+# さらに動画の内部メタデータ (udta・各トラック・メーカー独自データの
+# 先頭/末尾サンプルの hex) も出す。映像・音声のデータは含まないので、
+# そのまま貼り付けて報告できる (GUI では「内部メタデータも含める」)
+python3 -m gpmf_tool join ./videos --diagnose --meta
+
 # 結合と同時に GoPro 化 (一時ファイルを作らないので容量は1本分だけ)
 python3 -m gpmf_tool join ./videos --gopro --device max --output-dir ./out
 

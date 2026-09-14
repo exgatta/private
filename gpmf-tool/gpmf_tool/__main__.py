@@ -437,6 +437,10 @@ def cmd_join(args: argparse.Namespace) -> None:
     if getattr(args, "diagnose", False):
         from . import split_detect
         print(split_detect.diagnose(files))
+        if getattr(args, "meta", False):
+            from . import metadump
+            print()
+            print(metadump.dump_files(files))
         return
 
     if args.no_detect:
@@ -719,6 +723,10 @@ def main(argv=None) -> None:
     p.add_argument("--diagnose", action="store_true",
                    help="判定の材料 (時刻・長さ・構成) と隣同士の判断を"
                         "すべて表示して結合しない (問題報告用)")
+    p.add_argument("--meta", action="store_true",
+                   help="--diagnose 時、動画の内部メタデータ (udta・トラック・"
+                        "メーカー独自データの先頭/末尾サンプル) も hex で表示。"
+                        "映像・音声のデータは含まない")
     p.add_argument("--gopro", action="store_true",
                    help="結合と同時に GoPro 化する (一時ファイルなし)")
     p.add_argument("--device", default=gopro.DEFAULT_PRESET,
