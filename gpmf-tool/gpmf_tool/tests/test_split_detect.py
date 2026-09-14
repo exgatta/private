@@ -179,12 +179,26 @@ class TestDJI(_Base):
         self.assertIn(["DJI_20260914152600_0013_D.MP4",
                        "DJI_20260914152601_0014_D.MP4"], names)
 
-    def test_new_naming_stamp_tolerance_scales_with_duration(self):
-        # 名前の時刻が長さから 5% 以内ずれていても続きとみなす
-        # (1.0 秒のファイルなので許容は tol=120s が効く。ここでは gap=2s)
+    def test_new_naming_stamp_tolerance_is_three_seconds(self):
+        """DJI の許容差は 3 秒固定 (2 分ではない)。
+
+        1.0 秒のファイルなので、次の時刻が 1+3 = 4 秒後までは続き、
+        5 秒後なら間に停止があったとみなして別撮影。長さが長くても
+        許容差は広がらない (5% ルールは適用しない)。
+        """
         a = self._make("DJI_20260914145635_0011_D.MP4")
-        b = self._make("DJI_20260914145637_0012_D.MP4")
+        b = self._make("DJI_20260914145639_0012_D.MP4")     # +4 秒
         self.assertEqual(len(split_detect.detect_groups([a, b])), 1)
+        c = self._make("DJI_20260914145640_0012_D.MP4")     # +5 秒
+        groups = split_detect.detect_groups([a, c])
+        self.assertEqual(len(groups), 2)
+        self.assertIn("許容 0:03", groups[0].reason)
+        # 5 分のセグメントでも許容は 3 秒のまま: 5:00 + 0:10 後は別撮影
+        d = self._make("DJI_20260914150000_0021_D.MP4", n_samples=9000)
+        e = self._make("DJI_20260914150510_0022_D.MP4", n_samples=9000)
+        self.assertEqual(len(split_detect.detect_groups([d, e])), 2)
+        f = self._make("DJI_20260914150502_0022_D.MP4", n_samples=9000)
+        self.assertEqual(len(split_detect.detect_groups([d, f])), 1)
 
     def test_new_naming_different_id_adjacent_not_merged(self):
         # 連番は続いているが撮影IDが違う → 別撮影 (旧実装はまとめていた)
@@ -268,7 +282,7 @@ class TestDJI(_Base):
         self.assertIn("前の 0012 とは別撮影", solo_c.reason)
         self.assertIn("ファイル名の時刻差 12:00", solo_c.reason)
         self.assertIn("前の長さ 5:00", solo_c.reason)
-        self.assertIn("許容 2:00", solo_c.reason)
+        self.assertIn("許容 0:03", solo_c.reason)
         self.assertIn("次の 0014 とは別撮影", solo_c.reason)
         self.assertIn("映像 avc1", solo_c.reason)
         self.assertIn("コーデック/解像度/デコーダ設定が違う", solo_c.reason)

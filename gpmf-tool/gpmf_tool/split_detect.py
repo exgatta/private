@@ -302,8 +302,8 @@ def _dji_time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     同じカメラで前の撮影が終わる前に別の撮影を始めることはできないので、
     次のファイルの時刻が前のファイルの範囲内 (またはその直後) にあれば
     強制分割の続きと言える。長さの記録が実際より長めでも、これなら
-    取りこぼさない。長いセグメントほど丸め誤差が積もるので、許容差は
-    tol と長さの 5% の大きい方。時刻が逆行していれば矛盾 (gap)。
+    取りこぼさない。許容差は DJI_TOLERANCE_SEC (3 秒) 固定。
+    時刻が逆行していれば矛盾 (gap)。
     """
     a, b = _dji_stamp(prev), _dji_stamp(cur)
     if a is None or b is None:
@@ -319,8 +319,15 @@ def _dji_time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     return "gap"
 
 
+# DJI のファイル名の時刻は「前の開始 + 前の長さ」に秒単位でぴったり一致する
+# (実測: Osmo Pocket 18 分のセグメント 3 本で誤差 0 秒)。秒への丸めと
+# 1 秒程度の重なりだけ見ればよいので、他社向けの 2 分ではなく固定 3 秒。
+# これより離れていれば「間に撮影停止があった = 別撮影」と断定する。
+DJI_TOLERANCE_SEC = 3.0
+
+
 def _dji_allow(prev: _Info, tol: float) -> float:
-    return max(tol, prev.duration * 0.05)
+    return DJI_TOLERANCE_SEC
 
 
 def _dji_detail(prev: _Info, cur: _Info, tol: float) -> str:
