@@ -603,102 +603,39 @@ def _copy(src: BinaryIO, dst: BinaryIO, offset: int, size: int,
 # ---------------------------------------------------------------------------
 
 def _name_stem(path: str) -> str:
-    """連番部分を伏せたファイル名キー (DJI_0001 → DJI_#)。"""
+    """連番部分を伏せたファイル名キー (DJI_0001 → DJI_#)。旧実装用。"""
     import re
     stem, _ = os.path.splitext(os.path.basename(path))
     return re.sub(r"\d+", "#", stem)
 
 
-class SplitInfo:
-    """1 ファイルが「強制分割された一連の撮影」の一部かを判定する材料。"""
-
-    def __init__(self, path: str):
-        self.path = path
-        self.size = os.path.getsize(path)
-        self.error: Optional[str] = None
-        self.creation = None
-        self.duration = 0.0
-        self.signature = None
-        try:
-            src = _Source(path)
-            self.creation = mp4.mp4_time_to_datetime(
-                src.mvhd.get("creation_time", 0))
-            ts = src.mvhd["timescale"] or 1
-            self.duration = src.mvhd["duration"] / ts
-            # コーデック・トラック構成のシグネチャ (違えば別撮影)
-            self.signature = tuple(
-                (src.handler(t), src.stsd_payload(t), src.timescale(t))
-                for t in src.traks)
-        except Exception as e:  # 壊れている/対応外
-            self.error = str(e)
-
-
-def detect_split_groups(paths: List[str], tolerance_sec: float = 90.0
+def detect_split_groups(paths: List[str], tolerance_sec: float = 120.0
                         ) -> List[List[str]]:
     """「1 本の撮影が強制分割されたもの」を検出してグループ化する。
 
-    判定の根拠 (強い順):
-      1. **撮影時刻の連続性** — 次ファイルの撮影開始が
-         「前ファイルの開始 + 前ファイルの長さ」とほぼ一致する
-      2. コーデック・解像度・トラック構成が完全一致する
-      3. 撮影時刻が全ファイル同一 or 記録なしの場合のみ、ファイル名の
-         連番パターンで代替判定する
+    判定本体は split_detect.detect_groups (メーカーごとの命名規則 +
+    撮影時刻・サイズの証拠)。ここでは既存の呼び出し側のために
+    「パスのリストのリスト」に薄く変換するだけ。理由や確度が必要なら
+    split_detect.detect_groups を直接使う。
 
     単独の動画は要素 1 個のグループとして返る (結合しない)。
     """
-    infos = [SplitInfo(p) for p in paths]
-    usable = [i for i in infos if i.error is None]
-    # 撮影時刻があればそれ順、無ければ名前順
-    usable.sort(key=lambda i: (i.creation is None,
-                               i.creation or 0, i.path))
-
-    groups: List[List[SplitInfo]] = []
-    for info in usable:
-        if not groups:
-            groups.append([info])
-            continue
-        prev = groups[-1][-1]
-
-        # 2) 構成が違えば必ず別撮影
-        if info.signature != prev.signature:
-            groups.append([info])
-            continue
-
-        same_group = False
-        if info.creation is not None and prev.creation is not None:
-            gap = (info.creation - prev.creation).total_seconds()
-            if abs(gap - prev.duration) <= tolerance_sec:
-                # 1) 時刻が連続 = 強制分割された続き
-                same_group = True
-            elif gap == 0:
-                # 全ファイル同じ時刻を書くカメラ → 3) 名前で代替判定
-                same_group = _name_stem(info.path) == _name_stem(prev.path)
-        else:
-            # 撮影時刻が無い → 3) 名前で代替判定
-            same_group = _name_stem(info.path) == _name_stem(prev.path)
-
-        if same_group:
-            groups[-1].append(info)
-        else:
-            groups.append([info])
-
-    out = [[i.path for i in g] for g in groups]
-    # 解析できなかったものは単独グループとして末尾に
-    out.extend([[i.path] for i in infos if i.error is not None])
-    return out
+    from . import split_detect
+    return [g.files for g in split_detect.detect_groups(paths, tolerance_sec)]
 
 
-def describe_groups(groups: List[List[str]]) -> str:
-    """検出結果を人が読める日本語にする。"""
-    lines = []
-    for gi, g in enumerate(groups, 1):
-        if len(g) == 1:
-            lines.append(f"[{gi}] 単独 (結合不要): {os.path.basename(g[0])}")
-        else:
-            lines.append(f"[{gi}] 分割された1本の撮影 ({len(g)} 個):")
-            for p in g:
-                lines.append(f"      {os.path.basename(p)}")
-    return "\n".join(lines)
+def describe_groups(groups) -> str:
+    """検出結果を人が読める日本語にする。
+
+    split_detect.DetectedGroup のリストでも、detect_split_groups が返す
+    パスのリストのリストでも受け付ける (後者は理由なしで表示)。
+    """
+    from . import split_detect
+    normalized = [
+        g if isinstance(g, split_detect.DetectedGroup)
+        else split_detect.DetectedGroup(list(g), "", "", "")
+        for g in groups]
+    return split_detect.describe_groups(normalized)
 
 
 # 後方互換 (名前ベースの旧実装)

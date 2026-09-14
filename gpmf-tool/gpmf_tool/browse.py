@@ -11,7 +11,7 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from . import concat, mp4
+from . import mp4, split_detect
 
 
 @dataclass
@@ -225,11 +225,12 @@ def scan_folder(paths, recursive: bool = True,
             progress(i, len(files), os.path.basename(p))
         entries[os.path.realpath(p)] = analyze_file(p)
 
-    groups_paths = concat.detect_split_groups(files)
     groups: List[Group] = []
-    for gp in groups_paths:
-        g = Group(entries=[entries[os.path.realpath(p)] for p in gp
-                           if os.path.realpath(p) in entries])
+    for dg in split_detect.detect_groups(files):
+        g = Group(entries=[entries[os.path.realpath(p)] for p in dg.files
+                           if os.path.realpath(p) in entries],
+                  reason=dg.reason, confidence=dg.confidence,
+                  vendor=dg.vendor)
         if g.entries:
             groups.append(g)
     return groups
