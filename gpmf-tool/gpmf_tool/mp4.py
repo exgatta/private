@@ -332,6 +332,144 @@ def parse_mdhd(payload: bytes) -> dict:
     return {"timescale": timescale, "duration": duration}
 
 
+# ---------------------------------------------------------------------------
+# stsd (サンプル記述) の比較用正規化
+# ---------------------------------------------------------------------------
+
+# 映像系サンプルエントリ (VisualSampleEntry: 固定部 78 バイト)
+_VISUAL_ENTRIES = {
+    b"avc1", b"avc2", b"avc3", b"avc4", b"hvc1", b"hev1", b"hvt1",
+    b"dvh1", b"dvhe", b"dvav", b"dva1", b"av01", b"vp08", b"vp09",
+    b"mp4v", b"s263", b"apch", b"apcn", b"apcs", b"apco", b"ap4h",
+    b"mjpa", b"mjpb", b"jpeg", b"png ", b"encv",
+}
+# 音声系サンプルエントリ (AudioSampleEntry: 固定部 28 バイト + QT 版拡張)
+_AUDIO_ENTRIES = {
+    b"mp4a", b"ac-3", b"ec-3", b"ac-4", b"alac", b"Opus", b"fLaC",
+    b"twos", b"sowt", b"lpcm", b"samr", b"sawb", b"in24", b"in32",
+    b"raw ", b"ulaw", b"alaw", b"enca", b"mlpa", b"dtsc", b"dtsh",
+    b"dtsl", b"dtse",
+}
+
+
+def normalize_stsd(payload: bytes) -> bytes:
+    """stsd の中身から「同じ設定でも毎ファイル変わる値」を取り除く。
+
+    強制分割の判定と結合の互換チェックは stsd をそのまま比較していたが、
+    サンプルエントリの中には **ファイルごとに変わって当然の値** がある:
+
+    - ``btrt`` (映像/音声): バッファサイズ・最大/平均ビットレート
+    - ``esds`` (AAC 等) の DecoderConfigDescriptor: bufferSizeDB・
+      maxBitrate・avgBitrate
+
+    DJI などはこれらを各ファイルの実測値で書くため、最後の短い
+    セグメントだけ avgBitrate が違い、「音声のコーデックが違う」として
+    結合されない事故が起きていた (実例: Osmo Pocket の 0008 だけ単独)。
+    ここではそれらをゼロ埋め/除去し、コーデック・解像度・チャンネル数・
+    サンプルレート・デコーダ設定 (avcC/hvcC/DecSpecificInfo) だけを
+    比較対象に残す。解析できない部分はそのまま返す (厳しめに倒す)。
+    """
+    if len(payload) < 8:
+        return payload
+    try:
+        count = struct.unpack(">I", payload[4:8])[0]
+        out = bytearray(payload[:8])
+        pos = 8
+        for _ in range(count):
+            if pos + 8 > len(payload):
+                break
+            size, typ = struct.unpack(">I4s", payload[pos:pos + 8])
+            if size == 0:
+                size = len(payload) - pos
+            if size < 8 or pos + size > len(payload):
+                return payload
+            out += _normalize_sample_entry(payload[pos:pos + size], typ)
+            pos += size
+        out += payload[pos:]
+        return bytes(out)
+    except Exception:
+        return payload
+
+
+def _normalize_sample_entry(entry: bytes, typ: bytes) -> bytes:
+    """1 つのサンプルエントリ (size+type 付き) を正規化する。"""
+    if typ in _VISUAL_ENTRIES:
+        fixed = 8 + 78
+    elif typ in _AUDIO_ENTRIES:
+        fixed = 8 + 28
+        if len(entry) >= 8 + 10:
+            qt_version = struct.unpack(">H", entry[16:18])[0]
+            if qt_version == 1:
+                fixed += 16
+            elif qt_version == 2:
+                fixed += 36
+    else:
+        return entry
+    if len(entry) < fixed:
+        return entry
+    head, children = entry[:fixed], entry[fixed:]
+    kept = bytearray()
+    pos = 0
+    while pos + 8 <= len(children):
+        size, ctyp = struct.unpack(">I4s", children[pos:pos + 8])
+        if size == 0:
+            size = len(children) - pos
+        if size < 8 or pos + size > len(children):
+            kept += children[pos:]       # 壊れている: 残りはそのまま
+            break
+        child = children[pos:pos + size]
+        if ctyp == b"btrt":
+            pass                          # ビットレート情報は捨てる
+        elif ctyp == b"esds":
+            kept += child[:8] + _normalize_esds(child[8:])
+        else:
+            kept += child
+        pos += size
+    # サイズ欄は比較にしか使わないので、正規化後の長さに合わせて書き直す
+    body = head[8:] + bytes(kept)
+    return struct.pack(">I", 8 + len(body)) + typ + body
+
+
+def _read_desc_size(data: bytes, pos: int) -> Tuple[int, int]:
+    """MPEG-4 の可変長サイズ (最大 4 バイト、上位ビットが継続) を読む。"""
+    size = 0
+    for _ in range(4):
+        b = data[pos]
+        pos += 1
+        size = (size << 7) | (b & 0x7F)
+        if not b & 0x80:
+            break
+    return size, pos
+
+
+def _normalize_esds(payload: bytes) -> bytes:
+    """esds の DecoderConfigDescriptor からビットレート系の値を消す。"""
+    try:
+        data = bytearray(payload)
+        pos = 4                                     # version/flags
+        if data[pos] != 0x03:                       # ES_Descriptor
+            return payload
+        _, pos = _read_desc_size(data, pos + 1)
+        pos += 2                                    # ES_ID
+        flags = data[pos]
+        pos += 1
+        if flags & 0x80:
+            pos += 2                                # dependsOn_ES_ID
+        if flags & 0x40:
+            pos += 1 + data[pos]                    # URL
+        if flags & 0x20:
+            pos += 2                                # OCR_ES_ID
+        if data[pos] != 0x04:                       # DecoderConfigDescriptor
+            return payload
+        _, pos = _read_desc_size(data, pos + 1)
+        pos += 2                                    # objectTypeIndication, streamType
+        # bufferSizeDB(3) maxBitrate(4) avgBitrate(4)
+        data[pos:pos + 11] = b"\x00" * 11
+        return bytes(data)
+    except (IndexError, struct.error):
+        return payload
+
+
 def parse_hdlr(payload: bytes) -> dict:
     handler = payload[8:12]
     name = payload[24:].split(b"\x00")[0].decode("utf-8", "replace")

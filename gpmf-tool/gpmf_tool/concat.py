@@ -57,8 +57,9 @@ class _Source:
         return s
 
     def stsd_payload(self, trak: Box) -> bytes:
+        """比較用の stsd (ファイルごとに変わるビットレート情報は除いたもの)。"""
         s = self.stbl(trak).find(b"stsd")
-        return s.payload if s else b""
+        return mp4.normalize_stsd(s.payload) if s else b""
 
     def timescale(self, trak: Box) -> int:
         return mp4.parse_mdhd(trak.find(b"mdia", b"mdhd").payload)["timescale"]

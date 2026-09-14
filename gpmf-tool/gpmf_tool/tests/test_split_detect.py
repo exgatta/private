@@ -270,7 +270,8 @@ class TestDJI(_Base):
         self.assertIn("前の長さ 5:00", solo_c.reason)
         self.assertIn("許容 2:00", solo_c.reason)
         self.assertIn("次の 0014 とは別撮影", solo_c.reason)
-        self.assertIn("コーデック/解像度が違う", solo_c.reason)
+        self.assertIn("映像 avc1", solo_c.reason)
+        self.assertIn("コーデック/解像度/デコーダ設定が違う", solo_c.reason)
         text = split_detect.describe_groups(groups)
         self.assertIn("別撮影", text)
         # 結合されたグループ側にも「次の 0013 とは別撮影」の理由が付く
@@ -294,6 +295,47 @@ class TestDJI(_Base):
         self.assertIn("命名規則: dji 番号 0011 名前の時刻 2026/09/14 14:56:35",
                       text)
         self.assertIn("トラック 映像", text)
+
+    def test_last_segment_with_different_audio_bitrate_merges(self):
+        """ユーザーの実例: 0006〜0007 (18 分・16GB) は結合されるのに、
+        最後の 0008 (4 分半) だけ「トラック#2 (音声) のコーデックが違う」で
+        単独になった。原因は esds の avgBitrate がファイルごとの実測値
+        だったこと。ビットレート情報は無視して結合されなければならない。
+        """
+        from gpmf_tool.tests.test_concat import make_mp4a_entry
+        # 1 サンプル = 20/600 秒。18:02 = 1082 秒 = 32460 サンプル、
+        # 4:32 = 272 秒 = 8160 サンプル
+        specs = [("DJI_20260914110954_0006_D.MP4", 32460, 128000),
+                 ("DJI_20260914112756_0007_D.MP4", 32460, 128010),
+                 ("DJI_20260914114558_0008_D.MP4", 8160, 97531)]
+        paths = []
+        for name, n, avg in specs:
+            data = set_creation_time(build_multi_sample_mp4(
+                "X", n, n_audio=4, audio_entry=make_mp4a_entry(avg)), BASE)
+            p = os.path.join(self.dir, name)
+            with open(p, "wb") as f:
+                f.write(data)
+            paths.append(p)
+        groups = split_detect.detect_groups(list(reversed(paths)))
+        self.assertEqual(len(groups), 1, [g.reason for g in groups])
+        self.assertEqual(self._names(groups[0]),
+                         [s[0] for s in specs])
+        self.assertIn("0006→0008", groups[0].reason)
+
+    def test_audio_sample_rate_difference_still_separates(self):
+        from gpmf_tool.tests.test_concat import make_mp4a_entry
+        a = os.path.join(self.dir, "DJI_20260914110954_0006_D.MP4")
+        b = os.path.join(self.dir, "DJI_20260914110955_0007_D.MP4")
+        with open(a, "wb") as f:
+            f.write(build_multi_sample_mp4("A", 30, n_audio=2,
+                                           audio_entry=make_mp4a_entry(128000)))
+        with open(b, "wb") as f:
+            f.write(build_multi_sample_mp4("B", 30, n_audio=2,
+                                           audio_entry=make_mp4a_entry(
+                                               128000, sample_rate=44100)))
+        groups = split_detect.detect_groups([a, b])
+        self.assertEqual(len(groups), 2)
+        self.assertIn("音声 mp4a", groups[0].reason)
 
     def test_old_naming_needs_time_evidence(self):
         # 同じ時刻 (証拠なし) → 単独のまま

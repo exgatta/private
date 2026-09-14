@@ -25,10 +25,13 @@ def _sample_bytes(tag: str, i: int) -> bytes:
 def build_multi_sample_mp4(tag: str, n_video: int, n_audio: int = 0,
                            timescale: int = 600, frame_dur: int = 20,
                            keyframe_every: int = 3,
-                           samples_per_chunk: int = 2) -> bytes:
+                           samples_per_chunk: int = 2,
+                           audio_entry: bytes = None) -> bytes:
     """複数サンプル・複数トラックの MP4 を合成する。
 
     tag はサンプルデータに埋め込まれ、どのファイル由来か判別できる。
+    audio_entry を渡すと音声トラックの mp4a サンプルエントリ本体に使う
+    (実機に近い esds 付きのエントリをテストするため)。
     """
     vid_samples = [_sample_bytes(f"{tag}V", i) for i in range(n_video)]
     aud_samples = [_sample_bytes(f"{tag}A", i) for i in range(n_audio)]
@@ -68,6 +71,8 @@ def build_multi_sample_mp4(tag: str, n_video: int, n_audio: int = 0,
         codec = b"avc1" if handler == b"vide" else b"mp4a"
         entry = (b"\x00" * 6 + struct.pack(">H", 1) + b"\x00" * 16
                  + struct.pack(">HH", width, height) + b"\x00" * 50)
+        if handler == b"soun" and audio_entry is not None:
+            entry = audio_entry
         stsd = _full(b"stsd", 0, 0, struct.pack(">I", 1) + _box(codec, entry))
         stts = _full(b"stts", 0, 0, struct.pack(">I", 1)
                      + struct.pack(">II", len(samples), dur_per_sample))
@@ -99,6 +104,33 @@ def build_multi_sample_mp4(tag: str, n_video: int, n_audio: int = 0,
                            frame_dur, False)
     moov = _box(b"moov", mvhd + traks)
     return ftyp + mdat + moov
+
+
+def make_esds(avg_bitrate: int, max_bitrate: int,
+              dsi: bytes = b"\x11\x90") -> bytes:
+    """AAC 相当の esds ボックス (ES_Descriptor → DecoderConfig → DSI)。"""
+    dsi_desc = b"\x05" + bytes([len(dsi)]) + dsi
+    dcd_body = (b"\x40\x15" + b"\x00\x00\x00"
+                + struct.pack(">II", max_bitrate, avg_bitrate) + dsi_desc)
+    dcd = b"\x04" + bytes([len(dcd_body)]) + dcd_body
+    sl = b"\x06\x01\x02"
+    es_body = b"\x00\x02\x00" + dcd + sl
+    es = b"\x03" + bytes([len(es_body)]) + es_body
+    return _box(b"esds", b"\x00\x00\x00\x00" + es)
+
+
+def make_mp4a_entry(avg_bitrate: int, max_bitrate: int = 320000,
+                    sample_rate: int = 48000, channels: int = 2,
+                    btrt: bytes = None, dsi: bytes = b"\x11\x90") -> bytes:
+    """実機に近い mp4a サンプルエントリ本体 (size/type 抜き)。"""
+    body = (b"\x00" * 6 + struct.pack(">H", 1)          # reserved, dri
+            + b"\x00" * 8                               # version 0 + reserved
+            + struct.pack(">HHHH", channels, 16, 0, 0)
+            + struct.pack(">I", sample_rate << 16)
+            + make_esds(avg_bitrate, max_bitrate, dsi))
+    if btrt is not None:
+        body += _box(b"btrt", btrt)
+    return body
 
 
 def _read_samples(path, track_index=0):
@@ -224,6 +256,43 @@ class TestConcat(unittest.TestCase):
         with self.assertRaises(mp4.MP4Error) as cm:
             concat.concat_files([a, b2], out)
         self.assertIn("コーデック/解像度", str(cm.exception))
+
+    def test_audio_bitrate_difference_is_compatible(self):
+        """esds の avg/maxBitrate や btrt が違うだけなら結合できる。
+
+        DJI 等は各ファイルの実測ビットレートを書くので、最後の短い
+        セグメントだけ値が変わる。これで「音声のコーデックが違う」と
+        拒否していたのが実際の不具合 (Osmo Pocket の 0008 だけ単独)。
+        """
+        a = self._write("a.mp4", build_multi_sample_mp4(
+            "A", 4, n_audio=4, audio_entry=make_mp4a_entry(
+                128000, 160000, btrt=struct.pack(">III", 800, 160000, 128000))))
+        b = self._write("b.mp4", build_multi_sample_mp4(
+            "B", 4, n_audio=4, audio_entry=make_mp4a_entry(
+                97531, 150000, btrt=struct.pack(">III", 700, 150000, 97531))))
+        out = os.path.join(self.dir, "j.mp4")
+        concat.concat_files([a, b], out)
+        self.assertEqual(_read_samples(out, 1),
+                         _read_samples(a, 1) + _read_samples(b, 1))
+        # 一方だけ btrt が無くても同じ扱い
+        c = self._write("c.mp4", build_multi_sample_mp4(
+            "C", 4, n_audio=4, audio_entry=make_mp4a_entry(50000, 60000)))
+        concat.concat_files([a, c], os.path.join(self.dir, "j2.mp4"))
+
+    def test_audio_real_difference_still_rejected(self):
+        a = self._write("a.mp4", build_multi_sample_mp4(
+            "A", 4, n_audio=4, audio_entry=make_mp4a_entry(128000)))
+        # サンプルレート違い
+        b = self._write("b.mp4", build_multi_sample_mp4(
+            "B", 4, n_audio=4, audio_entry=make_mp4a_entry(128000, sample_rate=44100)))
+        with self.assertRaises(mp4.MP4Error) as cm:
+            concat.concat_files([a, b], os.path.join(self.dir, "j.mp4"))
+        self.assertIn("トラック#2", str(cm.exception))
+        # デコーダ設定 (DecSpecificInfo) 違い
+        c = self._write("c.mp4", build_multi_sample_mp4(
+            "C", 4, n_audio=4, audio_entry=make_mp4a_entry(128000, dsi=b"\x12\x10")))
+        with self.assertRaises(mp4.MP4Error):
+            concat.concat_files([a, c], os.path.join(self.dir, "j2.mp4"))
 
     def test_single_file_rejected(self):
         a = self._write("a.mp4", build_multi_sample_mp4("A", 3))

@@ -239,7 +239,9 @@ def _signature_diff(prev: "_Info", cur: "_Info") -> str:
             return (f"トラック#{i} の種類が違う "
                     f"({_handler_text(ha)} / {_handler_text(hb)})")
         if sa != sb:
-            return f"トラック#{i} ({_handler_text(ha)}) のコーデック/解像度が違う"
+            codec = sa[12:16].decode("latin-1", "replace") if len(sa) >= 16 else "?"
+            return (f"トラック#{i} ({_handler_text(ha)} {codec}) の"
+                    f"コーデック/解像度/デコーダ設定が違う")
         if ta != tb:
             return f"トラック#{i} ({_handler_text(ha)}) の時間単位が違う"
     return ""
