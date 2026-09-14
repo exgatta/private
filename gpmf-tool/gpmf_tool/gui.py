@@ -344,12 +344,21 @@ def run() -> int:
         threading.Thread(target=work, daemon=True).start()
 
     def do_join():
-        """フォルダを精査し、結合対象を一覧から選ぶ画面を開く。"""
-        from .browser_ui import BrowserWindow
+        """結合選択画面 (ブラウザで動く Web UI) を開く。
+
+        サーバは初回だけデーモンスレッドで立て、以後はブラウザを開き直す
+        だけ。結合そのものは Web UI 側で実行される。
+        """
+        from .webui.server import launch_in_background
         start = os.path.dirname(in_path.get().strip()) or None
-        BrowserWindow(app, tk, ttk, filedialog, messagebox,
-                      on_join=_run_join, default_device=device.get(),
-                      initial_dir=start)
+        try:
+            url = launch_in_background(folder=start,
+                                       default_device=device.get())
+        except Exception as e:
+            messagebox.showerror("エラー", humanize_error(e))
+            return
+        log(f"ブラウザで結合画面を開きました: {url}")
+        log("  (開かない場合は上の URL をブラウザに貼り付けてください)")
 
     def on_drop(event):
         # tkinterdnd2 は空白入りパスを {..} で囲むので splitlist で正しく分解
