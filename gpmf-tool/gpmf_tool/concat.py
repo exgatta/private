@@ -209,8 +209,20 @@ def _set_duration(box: Box, which: bytes, new_duration: int) -> None:
 # ---------------------------------------------------------------------------
 
 def concat_files(inputs: List[str], output: str,
-                 log=lambda m: None) -> dict:
+                 log=lambda m: None,
+                 gopro_device: Optional[str] = None,
+                 gpx: Optional[str] = None,
+                 from_video: bool = False,
+                 rate: float = 10.0,
+                 keep_timestamp: bool = True) -> dict:
     """複数の MP4 を再エンコードせずに 1 本へ結合する。
+
+    gopro_device を指定すると、**同じ書き出しの中で** GoPro 化 (GPMF の
+    gpmd トラック + 識別情報の付与) も行う。一時ファイルを作らないので
+    ディスク使用量は結合後 1 本分だけで済む。
+
+    keep_timestamp=True なら、出力ファイルの更新日時を先頭素材の撮影日時に
+    合わせる (Finder/エクスプローラで撮影順に並ぶ)。
 
     Returns: 統計情報 dict
     """
@@ -249,8 +261,44 @@ def concat_files(inputs: List[str], output: str,
     ftyp_top = next((b for b in first.tops if b.type == b"ftyp"), None)
     with open(first.path, "rb") as f:
         ftyp_bytes = mp4.read_box_bytes(f, ftyp_top) if ftyp_top else b""
+    if gopro_device:
+        ftyp_bytes = mp4.build_ftyp_gopro()   # GoPro と同じ mp41 ブランドに
 
-    mdat_payload_total = sum(m.payload_size for s in sources for m in s.mdats)
+    # --- GoPro 化する場合、GPMF データも同じ mdat に入れる ---
+    gpmf_blob = b""
+    gpmf_durations: List[int] = []
+    gopro_preset = None
+    if gopro_device:
+        from . import gopro as gopro_mod
+        from . import telemetry as tel
+        gopro_preset = gopro_mod.DEVICE_PRESETS.get(gopro_device)
+        if gopro_preset is None:
+            raise MP4Error(f"未知の機種: {gopro_device}")
+        total_dur = sum(s.mvhd["duration"] / (s.mvhd["timescale"] or 1)
+                        for s in sources)
+        points = None
+        start_time = None
+        if gpx:
+            points, start_time = tel.load_gpx(gpx)
+        elif from_video:
+            from . import sources as src_mod
+            got = src_mod.load_video_telemetry(inputs[0])
+            if got:
+                points, start_time, label = got
+                log(f"動画内蔵テレメトリを利用: {label} ({len(points)} 点)")
+        if points:
+            rs = tel.resample_track(points, total_dur, rate_hz=rate,
+                                    fit_duration=True)
+            payloads, gpmf_durations = tel.build_payloads(
+                rs, total_dur, gopro_preset.device_name, start_time)
+        else:
+            payloads, gpmf_durations = tel.build_device_only_payloads(
+                total_dur, gopro_preset.device_name)
+        gpmf_blob = b"".join(payloads)
+        gpmf_sizes = [len(p) for p in payloads]
+
+    mdat_payload_total = (sum(m.payload_size for s in sources for m in s.mdats)
+                          + len(gpmf_blob))
     # mdat が 4GB を超えるなら 64bit largesize ヘッダを使う
     if mdat_payload_total + 8 > 0xFFFFFFFF:
         mdat_header = struct.pack(">I", 1) + b"mdat" + struct.pack(
@@ -394,6 +442,18 @@ def concat_files(inputs: List[str], output: str,
                 nb = Box(type=b"mdhd", payload=c.payload)
                 _set_duration(nb, b"mdhd", media_duration)
                 new_mdia_children.append(nb)
+            elif c.type == b"hdlr" and gopro_device:
+                # GoPro 実機と同じ handler 名にする
+                from . import gopro as _g
+                info = mp4.parse_hdlr(c.payload)
+                new_name = _g.HANDLER_RENAMES.get(info["handler"])
+                if new_name:
+                    nb = Box(type=b"hdlr",
+                             payload=c.payload[:24]
+                             + new_name.encode("utf-8") + b"\x00")
+                    new_mdia_children.append(nb)
+                else:
+                    new_mdia_children.append(c)
             elif c.type == b"minf":
                 new_mdia_children.append(new_minf)
             else:
@@ -427,6 +487,22 @@ def concat_files(inputs: List[str], output: str,
         movie_duration = max(movie_duration,
                              int(total_media_durations[ti] * movie_ts / ts))
 
+    # --- GoPro 化: gpmd トラックを追加し、識別情報を付ける ---
+    if gopro_device:
+        from . import gopro as gopro_mod
+        gpmf_offset = cursor          # 入力 mdat の直後に GPMF を置く
+        next_id = first.mvhd["next_track_id"]
+        trak_bytes = mp4.build_gpmd_trak(
+            track_id=next_id,
+            movie_timescale=movie_ts,
+            movie_duration=movie_duration,
+            sample_sizes=gpmf_sizes,
+            sample_durations_ms=gpmf_durations,
+            chunk_offset=gpmf_offset)
+        merged_traks.append(trak_bytes)
+        log(f"GoPro化: {gopro_preset.device_name} として "
+            f"GPMF {len(gpmf_sizes)} 個を付与")
+
     new_moov_children: List[Box] = []
     for c in first.moov.children:
         if c.type == b"mvhd":
@@ -442,11 +518,28 @@ def concat_files(inputs: List[str], output: str,
                 nb.payload = (b"\x01" + p[1:4]
                               + struct.pack(">QQIQ", ct, mt, ts0, movie_duration)
                               + p[20:])
+            if gopro_device:
+                # next_track_id を1つ進める (末尾4バイト)
+                nb.payload = nb.payload[:-4] + struct.pack(
+                    ">I", first.mvhd["next_track_id"] + 1)
             new_moov_children.append(nb)
         elif c.type == b"trak":
             continue  # 後でまとめて足す
         else:
             new_moov_children.append(c)
+
+    # GoPro 識別ボックス (FIRM/LENS/CAME/MUID/GPMF) を udta に足す
+    if gopro_device:
+        from . import gopro as gopro_mod
+        udta_extra = gopro_mod.build_udta_boxes(
+            gopro_preset, serial_seed=os.path.basename(output))
+        udta = next((c for c in new_moov_children if c.type == b"udta"), None)
+        extra_children = mp4._parse_children(udta_extra, 0, len(udta_extra))
+        if udta is None:
+            new_moov_children.append(
+                Box(type=b"udta", is_container=True, children=extra_children))
+        else:
+            udta.children = list(udta.children) + extra_children
 
     moov_body = b"".join(
         c.serialize() for c in new_moov_children
@@ -465,14 +558,31 @@ def concat_files(inputs: List[str], output: str,
                     _copy(fin, out, m.payload_offset, m.payload_size)
             log(f"  [{si + 1}/{len(sources)}] "
                 f"{os.path.basename(s.path)} を追加")
+        if gpmf_blob:
+            out.write(gpmf_blob)      # GPMF は入力データの直後
         out.write(moov_bytes)
+
+    # --- ファイルの日時を先頭素材に合わせる (撮影順に並ぶように) ---
+    shot = None
+    if keep_timestamp:
+        shot = mp4.mp4_time_to_datetime(first.mvhd.get("creation_time", 0))
+        try:
+            if shot is not None:
+                ts = shot.timestamp()
+            else:
+                ts = os.path.getmtime(first.path)
+            os.utime(output, (ts, ts))
+        except (OSError, OverflowError, ValueError):
+            pass
 
     return {
         "inputs": len(inputs),
         "output": output,
         "duration_sec": movie_duration / movie_ts if movie_ts else 0,
-        "tracks": n_traks,
+        "tracks": n_traks + (1 if gopro_device else 0),
         "bytes": os.path.getsize(output),
+        "gopro": gopro_preset.device_name if gopro_preset else None,
+        "shot_at": shot,
     }
 
 
@@ -492,21 +602,112 @@ def _copy(src: BinaryIO, dst: BinaryIO, offset: int, size: int,
 # 分割ファイルの自動グループ化
 # ---------------------------------------------------------------------------
 
-def group_split_files(paths: List[str]) -> List[List[str]]:
-    """分割された連番ファイルを、結合すべきグループにまとめる。
-
-    ファイル名が似ていて連続するものを 1 グループとみなす。
-    判定できないものは 1 本ずつ単独グループになる。
-    """
+def _name_stem(path: str) -> str:
+    """連番部分を伏せたファイル名キー (DJI_0001 → DJI_#)。"""
     import re
+    stem, _ = os.path.splitext(os.path.basename(path))
+    return re.sub(r"\d+", "#", stem)
+
+
+class SplitInfo:
+    """1 ファイルが「強制分割された一連の撮影」の一部かを判定する材料。"""
+
+    def __init__(self, path: str):
+        self.path = path
+        self.size = os.path.getsize(path)
+        self.error: Optional[str] = None
+        self.creation = None
+        self.duration = 0.0
+        self.signature = None
+        try:
+            src = _Source(path)
+            self.creation = mp4.mp4_time_to_datetime(
+                src.mvhd.get("creation_time", 0))
+            ts = src.mvhd["timescale"] or 1
+            self.duration = src.mvhd["duration"] / ts
+            # コーデック・トラック構成のシグネチャ (違えば別撮影)
+            self.signature = tuple(
+                (src.handler(t), src.stsd_payload(t), src.timescale(t))
+                for t in src.traks)
+        except Exception as e:  # 壊れている/対応外
+            self.error = str(e)
+
+
+def detect_split_groups(paths: List[str], tolerance_sec: float = 90.0
+                        ) -> List[List[str]]:
+    """「1 本の撮影が強制分割されたもの」を検出してグループ化する。
+
+    判定の根拠 (強い順):
+      1. **撮影時刻の連続性** — 次ファイルの撮影開始が
+         「前ファイルの開始 + 前ファイルの長さ」とほぼ一致する
+      2. コーデック・解像度・トラック構成が完全一致する
+      3. 撮影時刻が全ファイル同一 or 記録なしの場合のみ、ファイル名の
+         連番パターンで代替判定する
+
+    単独の動画は要素 1 個のグループとして返る (結合しない)。
+    """
+    infos = [SplitInfo(p) for p in paths]
+    usable = [i for i in infos if i.error is None]
+    # 撮影時刻があればそれ順、無ければ名前順
+    usable.sort(key=lambda i: (i.creation is None,
+                               i.creation or 0, i.path))
+
+    groups: List[List[SplitInfo]] = []
+    for info in usable:
+        if not groups:
+            groups.append([info])
+            continue
+        prev = groups[-1][-1]
+
+        # 2) 構成が違えば必ず別撮影
+        if info.signature != prev.signature:
+            groups.append([info])
+            continue
+
+        same_group = False
+        if info.creation is not None and prev.creation is not None:
+            gap = (info.creation - prev.creation).total_seconds()
+            if abs(gap - prev.duration) <= tolerance_sec:
+                # 1) 時刻が連続 = 強制分割された続き
+                same_group = True
+            elif gap == 0:
+                # 全ファイル同じ時刻を書くカメラ → 3) 名前で代替判定
+                same_group = _name_stem(info.path) == _name_stem(prev.path)
+        else:
+            # 撮影時刻が無い → 3) 名前で代替判定
+            same_group = _name_stem(info.path) == _name_stem(prev.path)
+
+        if same_group:
+            groups[-1].append(info)
+        else:
+            groups.append([info])
+
+    out = [[i.path for i in g] for g in groups]
+    # 解析できなかったものは単独グループとして末尾に
+    out.extend([[i.path] for i in infos if i.error is not None])
+    return out
+
+
+def describe_groups(groups: List[List[str]]) -> str:
+    """検出結果を人が読める日本語にする。"""
+    lines = []
+    for gi, g in enumerate(groups, 1):
+        if len(g) == 1:
+            lines.append(f"[{gi}] 単独 (結合不要): {os.path.basename(g[0])}")
+        else:
+            lines.append(f"[{gi}] 分割された1本の撮影 ({len(g)} 個):")
+            for p in g:
+                lines.append(f"      {os.path.basename(p)}")
+    return "\n".join(lines)
+
+
+# 後方互換 (名前ベースの旧実装)
+def group_split_files(paths: List[str]) -> List[List[str]]:
+    """ファイル名だけで分割グループを推定する (簡易版)。"""
     groups: dict = {}
     order: List[str] = []
     for p in sorted(paths):
-        base = os.path.basename(p)
-        stem, _ = os.path.splitext(base)
-        # 末尾の連番らしき数字を取り除いた部分をキーにする
-        key = re.sub(r"[_-]?\d+$", "", stem)
-        key = re.sub(r"\d+", "#", key)
+        key = _name_stem(p)
         if key not in groups:
             groups[key] = []
             order.append(key)

@@ -237,5 +237,146 @@ class TestConcat(unittest.TestCase):
         self.assertTrue(any(len(g) >= 2 for g in groups))
 
 
+class TestSplitDetection(unittest.TestCase):
+    """「1本の撮影が強制分割されたか」を撮影時刻の連続性で判定する。"""
+
+    EPOCH = __import__("datetime").datetime(
+        1904, 1, 1, tzinfo=__import__("datetime").timezone.utc)
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+
+    def _make(self, name, shot, n_samples=30):
+        data = bytearray(build_multi_sample_mp4("X", n_samples))
+        ct = int((shot - self.EPOCH).total_seconds())
+        i = data.find(b"mvhd")
+        data[i + 8:i + 16] = struct.pack(">II", ct, ct)
+        p = os.path.join(self.dir, name)
+        with open(p, "wb") as f:
+            f.write(bytes(data))
+        return p
+
+    def _base(self):
+        import datetime
+        return datetime.datetime(2025, 9, 15, 12, 0, 0,
+                                 tzinfo=datetime.timezone.utc)
+
+    def test_continuous_recording_grouped(self):
+        """時刻が連続する = 強制分割 → 1グループ。"""
+        import datetime
+        base = self._base()
+        # 各ファイルは 30サンプル x 20/600 = 1.0 秒
+        paths = [self._make(f"a{i}.mp4", base + datetime.timedelta(seconds=i))
+                 for i in range(3)]
+        groups = concat.detect_split_groups(paths)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]), 3)
+
+    def test_separate_recordings_not_grouped(self):
+        """時刻が離れている = 別撮影 → 別グループ。"""
+        import datetime
+        base = self._base()
+        a = self._make("a.mp4", base)
+        b = self._make("b.mp4", base + datetime.timedelta(minutes=30))
+        groups = concat.detect_split_groups([a, b])
+        self.assertEqual(len(groups), 2)
+
+    def test_mixed_two_recordings(self):
+        import datetime
+        base = self._base()
+        g1 = [self._make(f"x{i}.mp4", base + datetime.timedelta(seconds=i))
+              for i in range(3)]
+        g2 = [self._make(f"y{i}.mp4",
+                         base + datetime.timedelta(minutes=30, seconds=i))
+              for i in range(2)]
+        groups = concat.detect_split_groups(g1 + g2)
+        self.assertEqual(sorted(len(g) for g in groups), [2, 3])
+
+    def test_different_resolution_never_grouped(self):
+        """時刻が連続でも構成が違えば別グループ。"""
+        import datetime
+        base = self._base()
+        a = self._make("a.mp4", base)
+        b = self._make("b.mp4", base + datetime.timedelta(seconds=1))
+        # b の解像度を変える
+        with open(b, "rb") as f:
+            data = bytearray(f.read())
+        pos = data.find(struct.pack(">HH", 1920, 1080))
+        data[pos:pos + 4] = struct.pack(">HH", 1280, 720)
+        with open(b, "wb") as f:
+            f.write(bytes(data))
+        groups = concat.detect_split_groups([a, b])
+        self.assertEqual(len(groups), 2)
+
+    def test_single_file_is_own_group(self):
+        a = self._make("solo.mp4", self._base())
+        groups = concat.detect_split_groups([a])
+        self.assertEqual(groups, [[a]])
+
+
+class TestJoinWithGoPro(unittest.TestCase):
+    """結合と同時に GoPro 化する (一時ファイルなし・1パス)。"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+
+    def _write(self, name, data):
+        p = os.path.join(self.dir, name)
+        with open(p, "wb") as f:
+            f.write(data)
+        return p
+
+    def test_join_and_goproify(self):
+        from gpmf_tool import klv
+        a = self._write("a.mp4", build_multi_sample_mp4("A", 8, n_audio=8))
+        b = self._write("b.mp4", build_multi_sample_mp4("B", 8, n_audio=8))
+        out = os.path.join(self.dir, "j.mp4")
+        stats = concat.concat_files([a, b], out, gopro_device="max")
+
+        self.assertEqual(stats["gopro"], "GoPro Max")
+        # 映像・音声データは無傷
+        self.assertEqual(_read_samples(out, 0),
+                         [_sample_bytes("AV", i) for i in range(8)]
+                         + [_sample_bytes("BV", i) for i in range(8)])
+        self.assertEqual(_read_samples(out, 1),
+                         [_sample_bytes("AA", i) for i in range(8)]
+                         + [_sample_bytes("BA", i) for i in range(8)])
+        # GPMF が付いている
+        with open(out, "rb") as f:
+            samples = mp4.extract_gpmf_samples(f)
+            self.assertTrue(samples)
+            items = klv.parse(samples[0].data)
+            self.assertEqual(items[0].find_first("DVNM").value(), "GoPro Max")
+            f.seek(0)
+            tele = mp4.detect_telemetry(f)
+            self.assertTrue(tele["gpmd"])
+            for box in ("FIRM", "LENS", "CAME", "MUID", "GPMF"):
+                self.assertIn(box, tele["gopro_udta"])
+
+    def test_handler_renamed_to_gopro(self):
+        a = self._write("a.mp4", build_multi_sample_mp4("A", 4, n_audio=4))
+        b = self._write("b.mp4", build_multi_sample_mp4("B", 4, n_audio=4))
+        out = os.path.join(self.dir, "j.mp4")
+        concat.concat_files([a, b], out, gopro_device="hero11")
+        with open(out, "rb") as f:
+            tops = mp4.scan_top_level(f)
+            moov = mp4.parse_box_tree(
+                mp4.read_box_bytes(f, next(b_ for b_ in tops
+                                           if b_.type == b"moov")), b"moov")
+        names = [mp4.parse_hdlr(t.find(b"mdia", b"hdlr").payload)["name"]
+                 for t in moov.find_all(b"trak")]
+        self.assertIn("GoPro AVC", names)
+        self.assertIn("GoPro AAC", names)
+
+    def test_without_gopro_no_extra_track(self):
+        a = self._write("a.mp4", build_multi_sample_mp4("A", 4))
+        b = self._write("b.mp4", build_multi_sample_mp4("B", 4))
+        out = os.path.join(self.dir, "j.mp4")
+        stats = concat.concat_files([a, b], out)
+        self.assertIsNone(stats["gopro"])
+        with open(out, "rb") as f:
+            self.assertFalse(mp4.detect_telemetry(f)["gpmd"])
+
+
 if __name__ == "__main__":
     unittest.main()

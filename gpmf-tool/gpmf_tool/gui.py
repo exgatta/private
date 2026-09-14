@@ -299,37 +299,73 @@ def run() -> int:
     # 分割動画の結合
     # ------------------------------------------------------------------
     def do_join():
+        """分割された動画を自動判定して結合する (GoPro化も同時に可)。"""
         from . import concat
         paths = filedialog.askopenfilenames(
-            title="結合する動画を順番に選択 (Shift/⌘ で複数選択)",
+            title="結合したい動画をまとめて選択 (フォルダ内の全部でOK)",
             filetypes=[("動画", "*.mp4 *.mov *.m4v *.MP4 *.MOV *.360"),
                        ("すべて", "*.*")])
-        files = sorted(paths)
-        if len(files) < 2:
-            if paths:
-                messagebox.showerror("エラー", "結合には2本以上選んでください")
+        if not paths:
             return
-        out = filedialog.asksaveasfilename(
-            title="結合後の保存先", defaultextension=os.path.splitext(files[0])[1],
-            initialfile="結合" + os.path.splitext(os.path.basename(files[0]))[1],
-            filetypes=[("動画", "*.mp4 *.mov *.360")])
-        if not out:
+        files = collect_videos(list(paths))
+        if not files:
+            messagebox.showinfo("対象なし", "動画が見つかりませんでした")
+            return
+
+        # 強制分割されたひとまとまりを自動判定
+        groups = concat.detect_split_groups(files)
+        joinable = [g for g in groups if len(g) >= 2]
+        log("=== 分割の判定結果 ===")
+        log(concat.describe_groups(groups))
+        if not joinable:
+            messagebox.showinfo(
+                "結合対象なし",
+                "強制分割された動画は見つかりませんでした。\n"
+                "（選んだものはすべて単独の撮影です）")
+            return
+
+        n_files = sum(len(g) for g in joinable)
+        also_gopro = messagebox.askyesno(
+            "結合 + GoPro化",
+            f"{len(joinable)} 本の撮影（計 {n_files} ファイル）を結合します。\n\n"
+            f"結合と同時に GoPro 化（{device.get()}）もしますか？\n"
+            "「いいえ」なら結合のみ行います。")
+
+        out_dir = filedialog.askdirectory(title="出力先フォルダを選択")
+        if not out_dir:
             return
         set_running(True)
 
         def work():
+            made = 0
             try:
-                log(f"=== 結合: {len(files)} 本 ===")
-                for p in files:
-                    log(f"  {os.path.basename(p)}")
-                stats = concat.concat_files(files, out, log=log)
-                d = stats["duration_sec"]
-                log(f"完了: {out}")
-                log(f"  長さ {int(d // 60)}分{d % 60:.0f}秒 / "
-                    f"{stats['bytes'] / 1024**3:.2f} GB")
+                for gi, group in enumerate(joinable, 1):
+                    stem, ext = os.path.splitext(os.path.basename(group[0]))
+                    stem = stem.rstrip("0123456789_-") or stem
+                    suffix = "_結合_gopro" if also_gopro else "_結合"
+                    out = os.path.join(out_dir, f"{stem}{suffix}{ext}")
+                    log(f"--- [{gi}/{len(joinable)}] {len(group)} 本を結合 ---")
+                    try:
+                        hz = float(rate.get())
+                    except ValueError:
+                        hz = 10.0
+                    stats = concat.concat_files(
+                        group, out, log=log,
+                        gopro_device=device.get() if also_gopro else None,
+                        gpx=(gpx_path.get().strip() or None) if also_gopro else None,
+                        from_video=use_embedded.get() if also_gopro else False,
+                        rate=hz)
+                    d = stats["duration_sec"]
+                    log(f"  完了: {out}")
+                    log(f"    長さ {int(d // 60)}分{d % 60:.0f}秒 / "
+                        f"{stats['bytes'] / 1024**3:.2f} GB")
+                    if stats["shot_at"]:
+                        log(f"    撮影日時: "
+                            f"{stats['shot_at'].astimezone():%Y-%m-%d %H:%M:%S}")
+                    made += 1
                 app.after(0, lambda: messagebox.showinfo(
                     "結合 完了",
-                    f"{len(files)} 本を1本にまとめました:\n{out}"))
+                    f"{made} 本のファイルを作成しました:\n{out_dir}"))
             except Exception as e:
                 jp = humanize_error(e)
                 log("エラー: " + jp)

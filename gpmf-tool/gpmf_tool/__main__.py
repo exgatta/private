@@ -414,44 +414,61 @@ def cmd_join(args: argparse.Namespace) -> None:
     from . import concat
 
     files = collect_videos(args.inputs, recursive=args.recursive)
-    if len(files) < 2:
-        _err("結合するには 2 本以上の動画が必要です "
-             f"(見つかったのは {len(files)} 本)")
+    if not files:
+        _err("動画が見つかりません")
 
-    if args.auto_group:
-        groups = concat.group_split_files(files)
-    else:
+    if args.no_detect:
+        # 明示的に「全部まとめて1本」
+        if len(files) < 2:
+            _err(f"結合には2本以上必要です (見つかったのは {len(files)} 本)")
         groups = [files]
+    else:
+        # 撮影時刻の連続性から「強制分割された1本」を判定
+        groups = concat.detect_split_groups(files)
+        print("分割の判定結果:")
+        print(concat.describe_groups(groups))
 
-    made = 0
+    if args.dry_run:
+        print("\n(--dry-run のため実際の結合は行いません)")
+        return
+
+    made = skipped = 0
+    joinable = [g for g in groups if len(g) >= 2]
     for gi, group in enumerate(groups, 1):
         if len(group) < 2:
-            print(f"[{gi}] {os.path.basename(group[0])}: "
-                  "単独なのでスキップ")
+            skipped += 1
             continue
-        if args.output and len(groups) == 1:
+        if args.output and len(joinable) == 1:
             out_path = args.output
         else:
             stem, ext = os.path.splitext(os.path.basename(group[0]))
             stem = stem.rstrip("0123456789_-") or stem
             out_dir = args.output_dir or os.path.dirname(group[0]) or "."
             os.makedirs(out_dir, exist_ok=True)
-            out_path = os.path.join(out_dir, f"{stem}_結合{ext}")
+            suffix = "_結合_gopro" if args.gopro else "_結合"
+            out_path = os.path.join(out_dir, f"{stem}{suffix}{ext}")
 
         print(f"\n[{gi}/{len(groups)}] {len(group)} 本を結合:")
-        for p in group:
-            print(f"    {os.path.basename(p)}")
-        stats = concat.concat_files(group, out_path, log=print)
+        stats = concat.concat_files(
+            group, out_path, log=print,
+            gopro_device=args.device if args.gopro else None,
+            gpx=args.gpx, from_video=args.from_video, rate=args.rate)
         mins = int(stats["duration_sec"] // 60)
         secs = stats["duration_sec"] % 60
         print(f"  完了: {out_path}")
         print(f"    長さ {mins}分{secs:.0f}秒 / "
               f"{stats['bytes'] / 1024**3:.2f} GB")
+        if stats["gopro"]:
+            print(f"    GoPro化: {stats['gopro']}")
+        if stats["shot_at"]:
+            print(f"    撮影日時: {stats['shot_at'].astimezone():%Y-%m-%d %H:%M:%S}"
+                  " (先頭素材から引き継ぎ)")
         made += 1
 
     if made == 0:
-        _err("結合できるグループがありませんでした")
-    print(f"\n結合おわり: {made} 本のファイルを作成しました")
+        _err("強制分割されたグループが見つかりませんでした "
+             "(すべて単独の動画です)。まとめて1本にするなら --no-detect")
+    print(f"\n結合おわり: {made} 本を作成 / {skipped} 本は単独のため対象外")
 
 
 def cmd_to_gpx(args: argparse.Namespace) -> None:
@@ -666,8 +683,20 @@ def main(argv=None) -> None:
                    help="結合する動画ファイルまたはフォルダ (並び順に結合)")
     p.add_argument("-o", "--output", help="出力ファイル名 (1グループのときのみ)")
     p.add_argument("--output-dir", help="出力フォルダ")
-    p.add_argument("--auto-group", action="store_true",
-                   help="ファイル名から分割グループを推定して別々に結合する")
+    p.add_argument("--no-detect", action="store_true",
+                   help="自動判定せず、指定した全ファイルを1本にまとめる")
+    p.add_argument("--dry-run", action="store_true",
+                   help="判定結果だけ表示して結合しない")
+    p.add_argument("--gopro", action="store_true",
+                   help="結合と同時に GoPro 化する (一時ファイルなし)")
+    p.add_argument("--device", default=gopro.DEFAULT_PRESET,
+                   choices=sorted(gopro.DEVICE_PRESETS),
+                   help=f"--gopro 時の機種 (default: {gopro.DEFAULT_PRESET})")
+    p.add_argument("--gpx", help="--gopro 時に載せる GPX")
+    p.add_argument("--from-video", action="store_true",
+                   help="--gopro 時、動画内蔵のGPSを使う")
+    p.add_argument("--rate", type=float, default=10.0,
+                   help="GPS サンプリングレート Hz (default: 10)")
     p.add_argument("--recursive", action="store_true",
                    help="フォルダを再帰的に探索する")
     p.set_defaults(func=cmd_join)
