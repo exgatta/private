@@ -478,7 +478,7 @@ def cmd_join(args: argparse.Namespace) -> None:
         if stats["gopro"]:
             print(f"    GoPro化: {stats['gopro']}")
         if stats["shot_at"]:
-            print(f"    撮影日時: {stats['shot_at'].astimezone():%Y-%m-%d %H:%M:%S}"
+            print(f"    撮影日時: {stats['shot_at']:%Y-%m-%d %H:%M:%S}"
                   " (先頭素材から引き継ぎ)")
         made += 1
 
@@ -534,10 +534,10 @@ def cmd_info(args: argparse.Namespace) -> None:
         print("\n動画情報:")
         dur = m["duration_sec"]
         print(f"  長さ: {int(dur // 60)}分{dur % 60:.0f}秒 ({dur:.2f}秒)")
-        if m["creation_time"]:
-            local = m["creation_time"].astimezone()
-            print(f"  撮影日時: {local:%Y-%m-%d %H:%M:%S} "
-                  f"(UTC {m['creation_time']:%Y-%m-%d %H:%M:%S})")
+        if m.get("creation_local"):
+            src = ("タイムゾーン付きの記録" if m.get("creation_source") == "quicktime"
+                   else "カメラの時計の値をそのまま表示")
+            print(f"  撮影日時: {m['creation_local']:%Y-%m-%d %H:%M:%S} ({src})")
         else:
             print("  撮影日時: 記録なし")
         if m["width"]:

@@ -329,7 +329,7 @@ def run() -> int:
                         f"{stats['bytes'] / 1024**3:.2f} GB")
                     if stats["shot_at"]:
                         log(f"    撮影日時: "
-                            f"{stats['shot_at'].astimezone():%Y-%m-%d %H:%M:%S}")
+                            f"{stats['shot_at']:%Y-%m-%d %H:%M:%S}")
                     made += 1
                 app.after(0, lambda: messagebox.showinfo(
                     "結合 完了",

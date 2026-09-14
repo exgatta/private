@@ -424,8 +424,8 @@ class WebUIApp:
                             "duration_sec": stats.get("duration_sec", 0),
                             "bytes": stats.get("bytes", 0),
                             "gopro": stats.get("gopro"),
-                            "shot_at": (shot.astimezone().strftime(
-                                "%Y/%m/%d %H:%M:%S") if shot else None),
+                            "shot_at": (shot.strftime("%Y/%m/%d %H:%M:%S")
+                                        if shot else None),
                             "error": None,
                         }
                         d = res["duration_sec"]

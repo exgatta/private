@@ -278,7 +278,8 @@ def _size_evidence(run: List[_Info]) -> bool:
 def _fmt_time(info: _Info) -> str:
     if info.creation is None:
         return "--:--:--"
-    return f"{info.creation.astimezone():%H:%M:%S}"
+    # カメラの時計の値をそのまま (TZ 変換しない)
+    return f"{mp4.camera_wall_time(info.creation):%H:%M:%S}"
 
 
 def _fmt_size(n: int) -> str:

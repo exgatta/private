@@ -74,5 +74,33 @@ class TestMediaSummary(unittest.TestCase):
         self.assertEqual(dt.year, 2020)
 
 
+
+class TestCameraWallTime(unittest.TestCase):
+    """撮影日時はカメラの時計の値をそのまま表示する (TZ 変換で 9 時間ずれない)。"""
+
+    def test_creation_local_is_wall_clock(self):
+        shot = datetime.datetime(2026, 9, 14, 14, 56, 35,
+                                 tzinfo=datetime.timezone.utc)
+        m = mp4.media_summary(io.BytesIO(build_rich_mp4(shot=shot)))
+        self.assertEqual(m["creation_local"],
+                         datetime.datetime(2026, 9, 14, 14, 56, 35))
+        self.assertIsNone(m["creation_local"].tzinfo)
+        self.assertEqual(m["creation_source"], "camera")
+
+    def test_camera_wall_time_strips_tz(self):
+        dt = datetime.datetime(2026, 9, 14, 14, 56, 35,
+                               tzinfo=datetime.timezone.utc)
+        self.assertEqual(mp4.camera_wall_time(dt),
+                         datetime.datetime(2026, 9, 14, 14, 56, 35))
+        self.assertIsNone(mp4.camera_wall_time(None))
+
+    def test_quicktime_creationdate_preferred(self):
+        # iPhone 相当: タイムゾーン付きの正確な記録があればそれを使う
+        blob = (b"xxxx" + b"com.apple.quicktime.creationdate" + b"\x00" * 8
+                + b"2025-09-15T12:54:02+0900" + b"yyyy")
+        aware, wall = mp4.parse_quicktime_creationdate(blob)
+        self.assertEqual(wall, datetime.datetime(2025, 9, 15, 12, 54, 2))
+        self.assertEqual(aware.utcoffset(), datetime.timedelta(hours=9))
+        self.assertIsNone(mp4.parse_quicktime_creationdate(b"no key here"))
 if __name__ == "__main__":
     unittest.main()

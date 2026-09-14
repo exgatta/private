@@ -5,6 +5,7 @@ DJI / Insta360 が自動分割したファイルを 1 本にまとめる機能�
 ことを確認するのが要。
 """
 
+import datetime
 import io
 import os
 import struct
@@ -378,5 +379,31 @@ class TestJoinWithGoPro(unittest.TestCase):
             self.assertFalse(mp4.detect_telemetry(f)["gpmd"])
 
 
+
+class TestKeepTimestampLocal(unittest.TestCase):
+    """結合後ファイルの更新日時 = カメラの時計の値をローカル時刻として解釈。"""
+
+    def test_mtime_matches_camera_clock_as_local(self):
+        import time
+        d = tempfile.mkdtemp()
+        shot = datetime.datetime(2026, 9, 14, 14, 56, 35,
+                                 tzinfo=datetime.timezone.utc)
+        EPOCH = datetime.datetime(1904, 1, 1, tzinfo=datetime.timezone.utc)
+        paths = []
+        for i in range(2):
+            data = bytearray(build_multi_sample_mp4("X", 10))
+            ct = int((shot - EPOCH).total_seconds())
+            j = data.find(b"mvhd")
+            data[j + 8:j + 16] = struct.pack(">II", ct, ct)
+            p = os.path.join(d, f"a{i}.mp4")
+            with open(p, "wb") as f:
+                f.write(bytes(data))
+            paths.append(p)
+        out = os.path.join(d, "j.mp4")
+        stats = concat.concat_files(paths, out)
+        self.assertEqual(stats["shot_at"],
+                         datetime.datetime(2026, 9, 14, 14, 56, 35))
+        expected = time.mktime(stats["shot_at"].timetuple())
+        self.assertAlmostEqual(os.path.getmtime(out), expected, delta=2)
 if __name__ == "__main__":
     unittest.main()

@@ -203,3 +203,37 @@ class TestAnalyzeRobustness(unittest.TestCase):
         self.assertEqual(e.resolution_text, "1920 x 1080")
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCreatedTextNoTimezoneShift(unittest.TestCase):
+    """日本時間の PC でも撮影日時がファイル名の時刻とずれない。"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        self._tz = os.environ.get("TZ")
+
+    def tearDown(self):
+        if self._tz is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = self._tz
+        if hasattr(__import__("time"), "tzset"):
+            __import__("time").tzset()
+
+    def test_created_text_is_camera_clock(self):
+        import time
+        shot = datetime.datetime(2026, 9, 14, 14, 56, 35,
+                                 tzinfo=datetime.timezone.utc)
+        data = bytearray(build_multi_sample_mp4("X", 30))
+        ct = int((shot - EPOCH).total_seconds())
+        i = data.find(b"mvhd")
+        data[i + 8:i + 16] = struct.pack(">II", ct, ct)
+        p = os.path.join(self.dir, "DJI_20260914145635_0011_D.MP4")
+        with open(p, "wb") as f:
+            f.write(bytes(data))
+        if hasattr(time, "tzset"):
+            os.environ["TZ"] = "Asia/Tokyo"
+            time.tzset()
+        e = browse.analyze_file(p)
+        # 旧実装は astimezone() で 23:56 (翌日になることも) と表示していた
+        self.assertEqual(e.created_text, "2026/09/14 14:56")

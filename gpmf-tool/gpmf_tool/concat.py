@@ -565,10 +565,15 @@ def concat_files(inputs: List[str], output: str,
     # --- ファイルの日時を先頭素材に合わせる (撮影順に並ぶように) ---
     shot = None
     if keep_timestamp:
-        shot = mp4.mp4_time_to_datetime(first.mvhd.get("creation_time", 0))
+        # カメラは mvhd にローカル時刻 (時計の値) を書くので、それを
+        # 「この PC のローカル時刻」として解釈して更新日時にする。
+        # timestamp() で UTC 扱いにすると日本では 9 時間ずれる。
+        shot = mp4.camera_wall_time(
+            mp4.mp4_time_to_datetime(first.mvhd.get("creation_time", 0)))
         try:
             if shot is not None:
-                ts = shot.timestamp()
+                import time as _time
+                ts = _time.mktime(shot.timetuple())
             else:
                 ts = os.path.getmtime(first.path)
             os.utime(output, (ts, ts))

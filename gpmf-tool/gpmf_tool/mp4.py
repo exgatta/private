@@ -14,6 +14,7 @@ GPMF ツールに必要な範囲の実装:
 from __future__ import annotations
 
 import io
+import re
 import struct
 from dataclasses import dataclass, field
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
@@ -184,7 +185,15 @@ _MP4_EPOCH = None  # 遅延生成 (datetime を上で import 済み)
 
 
 def mp4_time_to_datetime(seconds_since_1904: int):
-    """mvhd/tkhd の creation_time (1904 起点秒) を datetime(UTC) に。0 は None。"""
+    """mvhd/tkhd の creation_time (1904 起点秒) を datetime に。0 は None。
+
+    返り値は tz=UTC 付きだが、**中身はカメラが書いた時計の値そのもの**。
+    規格上は UTC のはずが、DJI / GoPro / Insta360 / Sony など大半のカメラは
+    ローカル時刻 (カメラの時計) をそのまま書く。したがって表示するときに
+    astimezone() で変換してはいけない (日本なら 9 時間ずれる)。
+    差分計算 (連続性の判定) には同じ基準同士なので問題なく使える。
+    表示には camera_wall_time() を使うこと。
+    """
     import datetime
     if not seconds_since_1904:
         return None
@@ -192,6 +201,45 @@ def mp4_time_to_datetime(seconds_since_1904: int):
     try:
         return epoch + datetime.timedelta(seconds=seconds_since_1904)
     except OverflowError:
+        return None
+
+
+def camera_wall_time(dt):
+    """mp4_time_to_datetime() の値を「カメラの時計の値」(naive) にする。
+
+    タイムゾーン変換をせず、記録された時分秒をそのまま返す。
+    """
+    if dt is None:
+        return None
+    return dt.replace(tzinfo=None)
+
+
+_QT_CREATIONDATE_KEY = b"com.apple.quicktime.creationdate"
+_ISO8601_TZ = re.compile(
+    rb"(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?([+-]\d{2}):?(\d{2})")
+
+
+def parse_quicktime_creationdate(moov_bytes: bytes):
+    """iPhone 等が書く com.apple.quicktime.creationdate を読む。
+
+    こちらは "2025-09-15T12:54:02+0900" のようにタイムゾーン付きで正確。
+    見つかれば (tz付き datetime, その土地の壁時計 naive) を返す。
+    """
+    import datetime
+    if _QT_CREATIONDATE_KEY not in moov_bytes:
+        return None
+    m = _ISO8601_TZ.search(moov_bytes)
+    if not m:
+        return None
+    try:
+        date_s, time_s, tzh, tzm = (x.decode("ascii") for x in m.groups())
+        wall = datetime.datetime.strptime(f"{date_s}T{time_s}",
+                                          "%Y-%m-%dT%H:%M:%S")
+        sign = -1 if tzh.startswith("-") else 1
+        offset = datetime.timedelta(hours=abs(int(tzh)), minutes=int(tzm)) * sign
+        aware = wall.replace(tzinfo=datetime.timezone(offset))
+        return aware, wall
+    except (ValueError, OverflowError):
         return None
 
 
@@ -208,13 +256,27 @@ def media_summary(f: BinaryIO) -> dict:
     """動画の基本情報 (撮影日時・解像度・コーデック・fps 等) をまとめる。"""
     tops = scan_top_level(f)
     moov_top = next(b for b in tops if b.type == b"moov")
-    moov = parse_box_tree(read_box_bytes(f, moov_top), b"moov")
+    moov_bytes = read_box_bytes(f, moov_top)
+    moov = parse_box_tree(moov_bytes, b"moov")
     mvhd = parse_mvhd(moov.find(b"mvhd").payload)
+
+    creation = mp4_time_to_datetime(mvhd["creation_time"])
+    # 表示用の撮影日時 (壁時計)。iPhone 等はタイムゾーン付きの正確な値を
+    # 別途持っているのでそれを優先し、無ければ mvhd の値をそのまま使う
+    # (大半のカメラはローカル時刻を書くので変換しない)。
+    qt = parse_quicktime_creationdate(moov_bytes)
+    if qt is not None:
+        creation_local, creation_source = qt[1], "quicktime"
+    else:
+        creation_local = camera_wall_time(creation)
+        creation_source = "camera" if creation_local else None
 
     out = {
         "duration_sec": (mvhd["duration"] / mvhd["timescale"]
                          if mvhd["timescale"] else 0),
-        "creation_time": mp4_time_to_datetime(mvhd["creation_time"]),
+        "creation_time": creation,            # 差分計算用 (tz=UTC 扱い)
+        "creation_local": creation_local,     # 表示用の壁時計 (naive)
+        "creation_source": creation_source,   # "quicktime" | "camera" | None
         "width": None, "height": None, "video_codec": None,
         "fps": None, "audio_codec": None, "n_tracks": 0,
     }

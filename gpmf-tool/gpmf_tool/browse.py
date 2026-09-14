@@ -24,7 +24,8 @@ class FileEntry:
     height: int = 0
     fps: float = 0.0
     codec: str = ""
-    created: Optional[datetime.datetime] = None
+    created: Optional[datetime.datetime] = None        # 差分計算用
+    created_local: Optional[datetime.datetime] = None  # 表示用の壁時計 (naive)
     has_gpmd: bool = False
     has_gps: bool = False
     is_360: bool = False
@@ -52,9 +53,11 @@ class FileEntry:
 
     @property
     def created_text(self) -> str:
-        if self.created is None:
+        """撮影日時の表示。カメラの時計の値をそのまま出す (TZ 変換しない)。"""
+        wall = self.created_local or mp4.camera_wall_time(self.created)
+        if wall is None:
             return "-"
-        return f"{self.created.astimezone():%Y/%m/%d %H:%M}"
+        return f"{wall:%Y/%m/%d %H:%M}"
 
     @property
     def kind_text(self) -> str:
@@ -173,6 +176,7 @@ def analyze_file(path: str) -> FileEntry:
             entry.fps = m["fps"] or 0.0
             entry.codec = m["video_codec"] or ""
             entry.created = m["creation_time"]
+            entry.created_local = m.get("creation_local")
         except Exception as e:
             entry.error = _explain(e)
             return entry
