@@ -409,6 +409,51 @@ def cmd_batch(args: argparse.Namespace) -> None:
 # to-gpx (どの機種の動画でもテレメトリ → GPX)
 # ---------------------------------------------------------------------------
 
+def cmd_join(args: argparse.Namespace) -> None:
+    """分割された動画を再エンコードなしで結合する。"""
+    from . import concat
+
+    files = collect_videos(args.inputs, recursive=args.recursive)
+    if len(files) < 2:
+        _err("結合するには 2 本以上の動画が必要です "
+             f"(見つかったのは {len(files)} 本)")
+
+    if args.auto_group:
+        groups = concat.group_split_files(files)
+    else:
+        groups = [files]
+
+    made = 0
+    for gi, group in enumerate(groups, 1):
+        if len(group) < 2:
+            print(f"[{gi}] {os.path.basename(group[0])}: "
+                  "単独なのでスキップ")
+            continue
+        if args.output and len(groups) == 1:
+            out_path = args.output
+        else:
+            stem, ext = os.path.splitext(os.path.basename(group[0]))
+            stem = stem.rstrip("0123456789_-") or stem
+            out_dir = args.output_dir or os.path.dirname(group[0]) or "."
+            os.makedirs(out_dir, exist_ok=True)
+            out_path = os.path.join(out_dir, f"{stem}_結合{ext}")
+
+        print(f"\n[{gi}/{len(groups)}] {len(group)} 本を結合:")
+        for p in group:
+            print(f"    {os.path.basename(p)}")
+        stats = concat.concat_files(group, out_path, log=print)
+        mins = int(stats["duration_sec"] // 60)
+        secs = stats["duration_sec"] % 60
+        print(f"  完了: {out_path}")
+        print(f"    長さ {mins}分{secs:.0f}秒 / "
+              f"{stats['bytes'] / 1024**3:.2f} GB")
+        made += 1
+
+    if made == 0:
+        _err("結合できるグループがありませんでした")
+    print(f"\n結合おわり: {made} 本のファイルを作成しました")
+
+
 def cmd_to_gpx(args: argparse.Namespace) -> None:
     from . import sources
     got = sources.load_video_telemetry(args.file)
@@ -613,6 +658,19 @@ def main(argv=None) -> None:
     p.add_argument("--overwrite", action="store_true",
                    help="既存の出力ファイルを上書きする")
     p.set_defaults(func=cmd_batch)
+
+    p = sub.add_parser(
+        "join",
+        help="分割された動画を1本に結合 (再エンコードなし・画質劣化なし)")
+    p.add_argument("inputs", nargs="+",
+                   help="結合する動画ファイルまたはフォルダ (並び順に結合)")
+    p.add_argument("-o", "--output", help="出力ファイル名 (1グループのときのみ)")
+    p.add_argument("--output-dir", help="出力フォルダ")
+    p.add_argument("--auto-group", action="store_true",
+                   help="ファイル名から分割グループを推定して別々に結合する")
+    p.add_argument("--recursive", action="store_true",
+                   help="フォルダを再帰的に探索する")
+    p.set_defaults(func=cmd_join)
 
     p = sub.add_parser("to-gpx",
                        help="動画のGPS(GoPro/DJI/iPhone/Android/Sony等)をGPXに書き出す")

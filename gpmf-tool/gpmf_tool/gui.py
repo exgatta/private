@@ -140,6 +140,15 @@ def run() -> int:
     info_btn = ttk.Button(btns, text="入力の情報を表示")
     info_btn.pack(side="left", padx=6)
 
+    # 結合ボタン (分割された動画を1本に)
+    btns2 = ttk.Frame(frm)
+    btns2.pack(fill="x", **pad)
+    join_btn = ttk.Button(btns2, text="分割動画を結合 (DJI等)")
+    join_btn.pack(side="left")
+    ttk.Label(btns2,
+              text="  ← 自動分割されたファイルを画質そのままで1本にまとめます"
+              ).pack(side="left")
+
     # ドラッグ&ドロップ案内
     drop_hint = ("↓ ここに動画やフォルダをドラッグ&ドロップでも一括処理できます"
                  if dnd_files else
@@ -170,9 +179,8 @@ def run() -> int:
     # ------------------------------------------------------------------
     def set_running(active: bool):
         state = "disabled" if active else "normal"
-        run_btn.configure(state=state)
-        batch_btn.configure(state=state)
-        info_btn.configure(state=state)
+        for b in (run_btn, batch_btn, folder_btn, info_btn, join_btn):
+            b.configure(state=state)
 
     def do_inject():
         src = in_path.get().strip()
@@ -287,6 +295,50 @@ def run() -> int:
         if d:
             run_batch_paths([d])
 
+    # ------------------------------------------------------------------
+    # 分割動画の結合
+    # ------------------------------------------------------------------
+    def do_join():
+        from . import concat
+        paths = filedialog.askopenfilenames(
+            title="結合する動画を順番に選択 (Shift/⌘ で複数選択)",
+            filetypes=[("動画", "*.mp4 *.mov *.m4v *.MP4 *.MOV *.360"),
+                       ("すべて", "*.*")])
+        files = sorted(paths)
+        if len(files) < 2:
+            if paths:
+                messagebox.showerror("エラー", "結合には2本以上選んでください")
+            return
+        out = filedialog.asksaveasfilename(
+            title="結合後の保存先", defaultextension=os.path.splitext(files[0])[1],
+            initialfile="結合" + os.path.splitext(os.path.basename(files[0]))[1],
+            filetypes=[("動画", "*.mp4 *.mov *.360")])
+        if not out:
+            return
+        set_running(True)
+
+        def work():
+            try:
+                log(f"=== 結合: {len(files)} 本 ===")
+                for p in files:
+                    log(f"  {os.path.basename(p)}")
+                stats = concat.concat_files(files, out, log=log)
+                d = stats["duration_sec"]
+                log(f"完了: {out}")
+                log(f"  長さ {int(d // 60)}分{d % 60:.0f}秒 / "
+                    f"{stats['bytes'] / 1024**3:.2f} GB")
+                app.after(0, lambda: messagebox.showinfo(
+                    "結合 完了",
+                    f"{len(files)} 本を1本にまとめました:\n{out}"))
+            except Exception as e:
+                jp = humanize_error(e)
+                log("エラー: " + jp)
+                app.after(0, lambda: messagebox.showerror("エラー", jp))
+            finally:
+                app.after(0, lambda: set_running(False))
+
+        threading.Thread(target=work, daemon=True).start()
+
     def on_drop(event):
         # tkinterdnd2 は空白入りパスを {..} で囲むので splitlist で正しく分解
         try:
@@ -321,6 +373,7 @@ def run() -> int:
     run_btn.configure(command=do_inject)
     batch_btn.configure(command=do_batch)
     folder_btn.configure(command=do_folder)
+    join_btn.configure(command=do_join)
     info_btn.configure(command=do_info)
 
     # ドラッグ&ドロップ登録 (ウィンドウ全体とドロップ枠を対象に)

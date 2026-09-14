@@ -110,6 +110,16 @@ class TopLevelBox:
     type: bytes
     offset: int      # ファイル内オフセット (ヘッダ先頭)
     size: int        # ヘッダ込みの全長
+    header_size: int = 8  # 8、64bit largesize の場合は 16
+
+    @property
+    def payload_offset(self) -> int:
+        """中身 (ヘッダを除いたデータ) の開始オフセット。"""
+        return self.offset + self.header_size
+
+    @property
+    def payload_size(self) -> int:
+        return self.size - self.header_size
 
 
 def scan_top_level(f: BinaryIO) -> List[TopLevelBox]:
@@ -124,13 +134,16 @@ def scan_top_level(f: BinaryIO) -> List[TopLevelBox]:
         head = f.read(16)
         size = struct.unpack(">I", head[:4])[0]
         btype = head[4:8]
+        header_size = 8
         if size == 1:
             size = struct.unpack(">Q", head[8:16])[0]
+            header_size = 16
         elif size == 0:
             size = file_size - pos
-        if size < 8 or pos + size > file_size:
+        if size < header_size or pos + size > file_size:
             raise MP4Error(f"不正なトップレベルボックス @ {pos}: {btype!r} size={size}")
-        out.append(TopLevelBox(type=btype, offset=pos, size=size))
+        out.append(TopLevelBox(type=btype, offset=pos, size=size,
+                               header_size=header_size))
         pos += size
     if not any(b.type == b"moov" for b in out):
         raise MP4Error("moov ボックスが見つかりません (MP4 ではない?)")
@@ -281,6 +294,29 @@ def parse_stco(payload: bytes, is_co64: bool) -> List[int]:
     if is_co64:
         return list(struct.unpack(f">{count}Q", payload[8:8 + 8 * count]))
     return _u32s(payload, 8, count)
+
+
+def parse_stss(payload: bytes) -> List[int]:
+    """キーフレーム (同期サンプル) の番号リスト。1 始まり。"""
+    count = struct.unpack(">I", payload[4:8])[0]
+    return _u32s(payload, 8, count)
+
+
+def parse_ctts(payload: bytes) -> List[Tuple[int, int]]:
+    """(sample_count, composition_offset) のリスト。B フレーム用。
+
+    version 1 ではオフセットが符号付き 32bit。
+    """
+    version = payload[0]
+    count = struct.unpack(">I", payload[4:8])[0]
+    fmt = ">i" if version == 1 else ">I"
+    out = []
+    for i in range(count):
+        base = 8 + i * 8
+        n = struct.unpack(">I", payload[base:base + 4])[0]
+        off = struct.unpack(fmt, payload[base + 4:base + 8])[0]
+        out.append((n, off))
+    return out
 
 
 # ---------------------------------------------------------------------------
