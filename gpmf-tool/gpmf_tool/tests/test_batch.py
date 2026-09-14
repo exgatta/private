@@ -92,6 +92,33 @@ class TestBatch(unittest.TestCase):
         finally:
             tel.load_gpx = orig
 
+class TestJunkFiles(unittest.TestCase):
+    """macOS の "._" 付随ファイルや隠しファイルを動画として拾わない。"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        real = os.path.join(self.dir, "DJI_20260914145635_0011_D.MP4")
+        with open(real, "wb") as f:
+            f.write(build_synthetic_mp4(moov_first=True, duration_sec=2))
+        # AppleDouble: 拡張子は MP4 だが中身は属性情報だけ
+        with open(os.path.join(self.dir, "._DJI_20260914145635_0011_D.MP4"), "wb") as f:
+            f.write(b"\x00\x05\x16\x07" + b"\x00" * 200)
+        with open(os.path.join(self.dir, ".DS_Store"), "wb") as f:
+            f.write(b"\x00" * 10)
+
+    def test_folder_scan_skips_appledouble(self):
+        names = [os.path.basename(p) for p in collect_videos([self.dir])]
+        self.assertEqual(names, ["DJI_20260914145635_0011_D.MP4"])
+
+    def test_explicit_appledouble_skipped(self):
+        junk = os.path.join(self.dir, "._DJI_20260914145635_0011_D.MP4")
+        self.assertEqual(collect_videos([junk]), [])
+
+    def test_recursive_also_skips(self):
+        names = [os.path.basename(p)
+                 for p in collect_videos([self.dir], recursive=True)]
+        self.assertEqual(names, ["DJI_20260914145635_0011_D.MP4"])
+
 
 if __name__ == "__main__":
     unittest.main()

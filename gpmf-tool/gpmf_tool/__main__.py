@@ -319,8 +319,22 @@ def cmd_inject(args: argparse.Namespace) -> None:
 # batch (一括処理)
 # ---------------------------------------------------------------------------
 
+def is_junk_file(path: str) -> bool:
+    """動画として扱ってはいけない隠し/付随ファイルか。
+
+    - "._xxx.MP4": macOS が exFAT/FAT32 (SDカード等) に作る AppleDouble
+      メタデータ。拡張子が動画でも中身は数KBの属性情報で、動画ではない
+    - "." で始まる隠しファイル (.DS_Store など)
+    """
+    name = os.path.basename(path)
+    return name.startswith("._") or name.startswith(".")
+
+
 def collect_videos(paths, recursive: bool = False) -> list:
-    """ファイル/フォルダのリストから動画ファイルを集める (出力物 _gopro は除外)。"""
+    """ファイル/フォルダのリストから動画ファイルを集める。
+
+    出力物 (*_gopro) と、macOS の "._" 付随ファイル等の隠しファイルは除外する。
+    """
     out = []
     for p in paths:
         if os.path.isdir(p):
@@ -331,11 +345,13 @@ def collect_videos(paths, recursive: bool = False) -> list:
                 walker = (os.path.join(p, f) for f in sorted(os.listdir(p)))
             for f in walker:
                 if (os.path.isfile(f)
+                        and not is_junk_file(f)
                         and f.lower().endswith(VIDEO_EXTS)
                         and not os.path.splitext(f)[0].endswith("_gopro")):
                     out.append(f)
         elif os.path.isfile(p):
-            out.append(p)
+            if not is_junk_file(p):
+                out.append(p)
         else:
             raise FileNotFoundError(p)
     # 重複を除いて順序維持
