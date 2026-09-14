@@ -11,7 +11,9 @@ DJI / GoPro などは分割した全セグメントに **同じ撮影時刻** (�
      Insta360 の低解像度プロキシ (LRV_) はそれぞれ単独扱い。
   2. **メーカー固有の命名規則** (決定的)
        GoPro    GH010001.MP4 … 同一ファイル番号 + 連続チャプター
-       DJI 新   DJI_20260914145635_0011_D.MP4 … 同一撮影ID + 連番
+       DJI 新   DJI_20260914145635_0011_D.MP4 … 連番が連続 + ファイル名の
+                日時が「前の開始 + 前の長さ」に一致 (Osmo Pocket/Action は
+                セグメントごとに開始時刻を書く。全部同じ時刻を書く機種も可)
        Insta360 VID_20250915_125402_00_062.mp4 … 同一日時キー
      これらは名前だけで「同じ撮影」と言い切れるので confidence = "high"。
   3. **状況証拠が要るもの** — DJI 旧 (DJI_0001)、Sony (C0001)、一般的な
@@ -101,9 +103,11 @@ def _parse_name(path: str) -> Optional[_Name]:
 
     m = _RE_DJI_NEW.match(name)
     if m:
-        shot_id, counter, suffix = m.group(1), int(m.group(2)), m.group(3)
-        return _Name("dji", ("dji", shot_id, suffix), (counter,), True,
-                     label=f"{counter:04d}", extra={"shot": shot_id})
+        stamp, counter, suffix = m.group(1), int(m.group(2)), m.group(3)
+        # 14 桁はそのファイルの開始時刻。分割の続きかどうかは連番の連続と
+        # 時刻の連続 (_dji_time_relation) で判定するので key には含めない
+        return _Name("dji", ("dji", suffix), (counter,), True,
+                     label=f"{counter:04d}", extra={"stamp": stamp})
     m = _RE_DJI_OLD.match(name)
     if m:
         return _Name("dji", ("dji_old",), (int(m.group(1)),), False,
@@ -224,6 +228,45 @@ def _time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     return "gap"
 
 
+def _dji_stamp(info: _Info) -> Optional[datetime.datetime]:
+    """DJI ファイル名の 14 桁 (YYYYMMDDHHMMSS) を datetime に。"""
+    if not info.name or info.name.vendor != "dji":
+        return None
+    stamp = info.name.extra.get("stamp")
+    if not stamp:
+        return None
+    try:
+        return datetime.datetime.strptime(stamp, "%Y%m%d%H%M%S")
+    except ValueError:
+        return None
+
+
+def _dji_time_relation(prev: _Info, cur: _Info, tol: float) -> str:
+    """DJI ファイル名の時刻から見た 2 ファイルの関係 (_time_relation と同じ語彙)。
+
+    Osmo Pocket / Osmo Action / 近年のドローンは分割セグメントごとに
+    そのファイルの開始時刻を名前に書くので、cur の時刻 ≈ prev の時刻 +
+    prev の長さ なら「強制分割の続き」。全セグメントに同じ時刻を書く
+    機種もあるので gap == 0 は中立。長いセグメントほど丸め誤差が
+    積もるので、許容差は tol と長さの 5% の大きい方。
+    """
+    a, b = _dji_stamp(prev), _dji_stamp(cur)
+    if a is None or b is None:
+        return "unknown"
+    gap = (b - a).total_seconds()
+    if gap == 0:
+        return "identical"
+    allow = max(tol, prev.duration * 0.05)
+    if abs(gap - prev.duration) <= allow:
+        return "continuous"
+    return "gap"
+
+
+def _fmt_stamp(info: _Info) -> str:
+    d = _dji_stamp(info)
+    return f"{d:%H:%M:%S}" if d else "--:--:--"
+
+
 def _size_evidence(run: List[_Info]) -> bool:
     """run (末尾を除く全ファイル) が分割上限で切られた大きさに揃っているか。"""
     sizes = [i.size for i in run]
@@ -332,11 +375,16 @@ def _group_by_vendor_key(infos: List[_Info], tol: float
 
 
 def _vendor_continues(prev: _Info, cur: _Info, tol: float) -> bool:
-    """同一撮影IDでも、構成違い・番号飛び・時刻の矛盾があれば切る。"""
+    """同じ命名系列でも、構成違い・番号飛び・時刻の矛盾があれば切る。"""
     if cur.signature != prev.signature:
         return False
     if not _consecutive(prev.name, cur.name):
         return False
+    if prev.name.vendor == "dji":
+        # DJI はファイル名の時刻が一次証拠。連番が続いていても時刻が
+        # 「前の開始 + 前の長さ」から外れていれば別の撮影
+        if _dji_time_relation(prev, cur, tol) == "gap":
+            return False
     return _time_relation(prev, cur, tol) != "gap"
 
 
@@ -357,8 +405,14 @@ def _vendor_group(run: List[_Info]) -> DetectedGroup:
             reason += " ※先頭チャプターが見つかりません"
             confidence = "medium"
     elif vendor == "dji":
-        reason = (f"DJI 同一撮影ID {first.name.extra['shot']} / "
-                  f"連番 {first.name.label}→{last.name.label}")
+        reason = f"DJI 連番 {first.name.label}→{last.name.label}"
+        rels = {_dji_time_relation(a, b, DEFAULT_TOLERANCE_SEC)
+                for a, b in zip(run, run[1:])}
+        if rels == {"identical"}:
+            reason += f" / 全ファイル同一時刻 ({first.name.extra['stamp']})"
+        elif "continuous" in rels:
+            reason += (f" / ファイル名の時刻が連続 "
+                       f"({_fmt_stamp(first)} → {_fmt_stamp(last)})")
     else:  # insta360
         reason = (f"Insta360 同一撮影 {first.name.extra['shot']} / "
                   f"クリップ {first.name.label}→{last.name.label}")
@@ -370,7 +424,9 @@ def _vendor_single_label(info: _Info) -> str:
     if n.vendor == "gopro":
         return f"GoPro ファイル番号 {n.extra['num']} チャプター {n.label}"
     if n.vendor == "dji":
-        return f"DJI 撮影ID {n.extra['shot']}"
+        d = _dji_stamp(info)
+        when = f" {d:%Y/%m/%d %H:%M:%S}" if d else ""
+        return f"DJI 連番 {n.label}{when}"
     return f"Insta360 撮影 {n.extra['shot']}"
 
 

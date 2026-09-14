@@ -146,6 +146,46 @@ class TestDJI(_Base):
         self.assertIn("20260914145635", g.reason)
         self.assertIn("0011→0013", g.reason)
 
+    def test_osmo_pocket_per_segment_timestamps_merge(self):
+        """Osmo Pocket / Action はセグメントごとに開始時刻を名前に書く。
+
+        各ファイルは 1.0 秒なので、名前の時刻が 1 秒ずつ進む 3 本は
+        強制分割された 1 本の撮影として結合されなければならない
+        (旧実装は日時をIDとみなして全部単独にしていた)。
+        """
+        a = self._make("DJI_20260914145635_0011_D.MP4")
+        b = self._make("DJI_20260914145636_0012_D.MP4")
+        c = self._make("DJI_20260914145637_0013_D.MP4")
+        groups = split_detect.detect_groups([c, a, b])
+        self.assertEqual(len(groups), 1)
+        g = groups[0]
+        self.assertEqual(self._names(g), ["DJI_20260914145635_0011_D.MP4",
+                                          "DJI_20260914145636_0012_D.MP4",
+                                          "DJI_20260914145637_0013_D.MP4"])
+        self.assertEqual(g.confidence, "high")
+        self.assertIn("時刻が連続", g.reason)
+
+    def test_osmo_pocket_two_recordings_in_one_folder(self):
+        """連番は続くが 30 分空く → 別撮影 2 組 (ユーザーの実フォルダ相当)。"""
+        a = self._make("DJI_20260914145635_0011_D.MP4")
+        b = self._make("DJI_20260914145636_0012_D.MP4")
+        c = self._make("DJI_20260914152600_0013_D.MP4")
+        d = self._make("DJI_20260914152601_0014_D.MP4")
+        groups = split_detect.detect_groups([d, b, c, a])
+        self.assertEqual(sorted(len(g.files) for g in groups), [2, 2])
+        names = [self._names(g) for g in groups]
+        self.assertIn(["DJI_20260914145635_0011_D.MP4",
+                       "DJI_20260914145636_0012_D.MP4"], names)
+        self.assertIn(["DJI_20260914152600_0013_D.MP4",
+                       "DJI_20260914152601_0014_D.MP4"], names)
+
+    def test_new_naming_stamp_tolerance_scales_with_duration(self):
+        # 名前の時刻が長さから 5% 以内ずれていても続きとみなす
+        # (1.0 秒のファイルなので許容は tol=120s が効く。ここでは gap=2s)
+        a = self._make("DJI_20260914145635_0011_D.MP4")
+        b = self._make("DJI_20260914145637_0012_D.MP4")
+        self.assertEqual(len(split_detect.detect_groups([a, b])), 1)
+
     def test_new_naming_different_id_adjacent_not_merged(self):
         # 連番は続いているが撮影IDが違う → 別撮影 (旧実装はまとめていた)
         a = self._make("DJI_20260914145635_0011_D.MP4")
@@ -384,7 +424,7 @@ class TestDescribeAndWrappers(_Base):
         self.assertEqual(len(split), 1)
         self.assertEqual(split[0].vendor, "dji")
         self.assertEqual(split[0].confidence, "high")
-        self.assertIn("同一撮影ID", split[0].reason)
+        self.assertIn("DJI 連番", split[0].reason)
 
 
 if __name__ == "__main__":
