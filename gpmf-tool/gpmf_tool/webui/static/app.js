@@ -655,6 +655,7 @@ async function scan() {
       }
       if (st.state === 'error') throw new Error(st.error || 'スキャンに失敗しました');
       state.groups = st.groups || [];
+      state.scanJob = job;
       break;
     }
     state.scanned = true;
@@ -665,10 +666,40 @@ async function scan() {
     state.scanned = false;
   } finally {
     setScanning(false);
+    $('#btn-diag').disabled = !(state.scanned && state.scanJob);
     render();
   }
 }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// 判定の詳細 (診断テキスト)
+async function showDiagnose() {
+  if (!state.scanJob) return;
+  const pre = $('#diag-text');
+  pre.textContent = '読み込み中…';
+  $('#diag-copied').classList.add('hidden');
+  $('#diag').classList.remove('hidden');
+  try {
+    const { text } = await api('/api/diagnose?job=' + encodeURIComponent(state.scanJob));
+    pre.textContent = text || '(情報がありません)';
+  } catch (e) {
+    pre.textContent = '取得できません: ' + e.message;
+  }
+}
+async function copyDiagnose() {
+  const text = $('#diag-text').textContent;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (_) { /* 権限なし */ }
+  if (!ok) {
+    // クリップボード API が使えない場合は選択状態にしてユーザーに任せる
+    const r = document.createRange(); r.selectNodeContents($('#diag-text'));
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+  }
+  const done = $('#diag-copied');
+  done.textContent = ok ? 'コピーしました' : 'コピーできません。テキストを選択して Ctrl/⌘+C を押してください';
+  done.classList.remove('hidden');
+}
 async function refreshRecent() {
   try {
     const { recent } = await api('/api/recent', {});
@@ -866,6 +897,10 @@ $('#gpx').addEventListener('change', () => { state.gpx = $('#gpx').value.trim();
 $('#device').addEventListener('change', () => { state.device = $('#device').value; savePrefs(); });
 $('#from-video').addEventListener('change', () => { state.fromVideo = $('#from-video').checked; savePrefs(); });
 $('#btn-progress-close').addEventListener('click', () => $('#progress').classList.add('hidden'));
+$('#btn-diag').addEventListener('click', showDiagnose);
+$('#btn-diag-copy').addEventListener('click', copyDiagnose);
+$('#btn-diag-close').addEventListener('click', () => $('#diag').classList.add('hidden'));
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') $('#diag').classList.add('hidden'); });
 $('#btn-quit').addEventListener('click', async () => {
   if (state.joining) return;
   if (!confirm('結合画面を終了しますか？')) return;

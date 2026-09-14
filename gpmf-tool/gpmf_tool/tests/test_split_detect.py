@@ -205,6 +205,91 @@ class TestDJI(_Base):
         self.assertEqual(len(g.files), 2)
         self.assertEqual(g.confidence, "high")
 
+    def test_osmo_pocket_next_stamp_inside_previous_duration_merges(self):
+        """次のファイル名の時刻が「前の開始 + 前の長さ」より手前でも続き。
+
+        同じカメラで前の撮影が終わる前に別の撮影は始められないので、
+        前の動画の範囲内に次の時刻があれば強制分割の続きと判断する
+        (長さの記録が実際より長い機種でも取りこぼさない)。
+        """
+        # 各 300 秒。0012 は 0011 の 85 秒後 (範囲内)、0013 は 0012 の
+        # 終わり (14:58:00 + 5:00 = 15:03:00) + 許容 2 分より後 → 別撮影
+        a = self._make("DJI_20260914145635_0011_D.MP4", n_samples=9000)
+        b = self._make("DJI_20260914145800_0012_D.MP4", n_samples=9000)
+        c = self._make("DJI_20260914151000_0013_D.MP4", n_samples=9000)
+        groups = split_detect.detect_groups([c, b, a])
+        self.assertEqual(sorted(len(g.files) for g in groups), [1, 2])
+        merged = [g for g in groups if len(g.files) == 2][0]
+        self.assertEqual(self._names(merged), ["DJI_20260914145635_0011_D.MP4",
+                                               "DJI_20260914145800_0012_D.MP4"])
+        self.assertEqual(merged.confidence, "high")
+
+    def test_osmo_pocket_filename_wins_over_odd_internal_time(self):
+        """ファイル名の時刻が続いていれば、動画内の撮影時刻が変でも続き。"""
+        a = self._make("DJI_20260914145635_0011_D.MP4", BASE)
+        b = self._make("DJI_20260914145636_0012_D.MP4",
+                       BASE + datetime.timedelta(hours=5))
+        g = split_detect.detect_groups([a, b])[0]
+        self.assertEqual(len(g.files), 2)
+
+    def test_reversed_filename_time_never_merges(self):
+        a = self._make("DJI_20260914145635_0011_D.MP4")
+        b = self._make("DJI_20260914120000_0012_D.MP4")
+        self.assertEqual(len(split_detect.detect_groups([a, b])), 2)
+
+    def test_zero_mvhd_duration_uses_track_duration(self):
+        """mvhd の duration が 0 でもトラックの長さで判定できる。"""
+        a = self._make("DJI_20260914145635_0011_D.MP4", n_samples=9000)
+        b = self._make("DJI_20260914150135_0012_D.MP4", n_samples=9000)
+        for p in (a, b):
+            with open(p, "rb") as f:
+                data = bytearray(f.read())
+            i = data.find(b"mvhd")
+            data[i + 20:i + 24] = b"\x00\x00\x00\x00"   # duration = 0
+            with open(p, "wb") as f:
+                f.write(data)
+        g = split_detect.detect_groups([a, b])[0]
+        self.assertEqual(len(g.files), 2, g.reason)
+        text = split_detect.diagnose([a, b])
+        self.assertIn("mvhd 0:00", text)
+        self.assertIn("トラック 5:00", text)
+        # 一覧の「長さ」もトラックの長さで埋まる ("-" にならない)
+        entry = browse.analyze_file(a)
+        self.assertEqual(entry.duration_text, "5:00")
+
+    def test_single_reason_explains_neighbours_with_numbers(self):
+        a = self._make("DJI_20260914145635_0011_D.MP4", n_samples=9000)
+        b = self._make("DJI_20260914145800_0012_D.MP4", n_samples=9000)
+        c = self._make("DJI_20260914151000_0013_D.MP4", n_samples=9000)
+        d = self._make("DJI_20260914151000_0014_D.MP4", n_samples=9000,
+                       width=1280)
+        groups = split_detect.detect_groups([a, b, c, d])
+        solo_c = [g for g in groups if g.files == [c]][0]
+        self.assertIn("前の 0012 とは別撮影", solo_c.reason)
+        self.assertIn("ファイル名の時刻差 12:00", solo_c.reason)
+        self.assertIn("前の長さ 5:00", solo_c.reason)
+        self.assertIn("許容 2:00", solo_c.reason)
+        self.assertIn("次の 0014 とは別撮影", solo_c.reason)
+        self.assertIn("コーデック/解像度が違う", solo_c.reason)
+        text = split_detect.describe_groups(groups)
+        self.assertIn("別撮影", text)
+
+    def test_diagnose_report(self):
+        a = self._make("DJI_20260914145635_0011_D.MP4")
+        b = self._make("DJI_20260914145636_0012_D.MP4")
+        c = self._make("DJI_20260914160000_0013_D.MP4")
+        text = split_detect.diagnose([c, b, a])
+        self.assertIn("== ファイル ==", text)
+        self.assertIn("== 隣同士の判断", text)
+        self.assertIn("== 判定結果 ==", text)
+        self.assertIn("DJI_20260914145635_0011_D.MP4 → "
+                      "DJI_20260914145636_0012_D.MP4: 続き (結合)", text)
+        self.assertIn("DJI_20260914145636_0012_D.MP4 → "
+                      "DJI_20260914160000_0013_D.MP4: 別撮影", text)
+        self.assertIn("命名規則: dji 番号 0011 名前の時刻 2026/09/14 14:56:35",
+                      text)
+        self.assertIn("トラック 映像", text)
+
     def test_old_naming_needs_time_evidence(self):
         # 同じ時刻 (証拠なし) → 単独のまま
         a = self._make("DJI_0011.MP4")

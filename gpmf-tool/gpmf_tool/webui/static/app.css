@@ -374,6 +374,8 @@ button, input, select { font: inherit; color: inherit; }
 .result .rmeta { color: var(--fg-muted); white-space: nowrap; }
 .result.fail { border-color: #f1b8b4; background: var(--low-bg); color: var(--low-fg); }
 .panel-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.diag-log { max-height: 60vh; user-select: text; }
+.panel .hint { margin: 0 0 8px; }
 
 /* ---------- 狭い画面 ---------- */
 @media (max-width: 900px) {

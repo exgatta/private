@@ -281,6 +281,18 @@ class TestWebUIServer(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn(self.dir, r["recent"])
 
+    def test_diagnose_api(self):
+        self.scanned()
+        job = next(iter(self.srv.app.scan_jobs))
+        status, r = self.c.json("GET", f"/api/diagnose?job={job}")
+        self.assertEqual(status, 200, r)
+        self.assertIn("== 判定結果 ==", r["text"])
+        self.assertIn("a0.mp4", r["text"])
+        self.assertIn("読み取り失敗", r["text"])      # broken.mp4
+        status, r = self.c.json("GET", "/api/diagnose?job=nope")
+        self.assertEqual(status, 404)
+        self.assertIn("スキャン", r["error"])
+
     def test_scan_bad_folder(self):
         status, r = self.c.json("POST", "/api/scan",
                                 {"path": os.path.join(self.dir, "nope")})
@@ -561,6 +573,17 @@ class TestWebUIBrowser(unittest.TestCase):
         page.wait_for_function(
             "document.querySelectorAll('.thumb .ph, .thumb video').length >= 2",
             timeout=15000)
+
+        # 判定の詳細 (診断) パネル
+        self.assertFalse(page.locator("#btn-diag").is_disabled())
+        page.click("#btn-diag")
+        page.wait_for_function(
+            "document.querySelector('#diag-text').textContent.includes('== 判定結果 ==')",
+            timeout=15000)
+        self.assertIn("a0.mp4", page.locator("#diag-text").inner_text())
+        page.keyboard.press("Escape")
+        page.wait_for_function(
+            "document.querySelector('#diag').classList.contains('hidden')")
 
         os.makedirs(os.path.dirname(SCREENSHOT), exist_ok=True)
         page.screenshot(path=SCREENSHOT, full_page=True)

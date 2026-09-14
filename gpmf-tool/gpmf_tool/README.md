@@ -98,6 +98,10 @@ python3 -m gpmf_tool join ./videos --output-dir ./out
 # 判定結果だけ先に確認する
 python3 -m gpmf_tool join ./videos --dry-run
 
+# 「続きのはずなのに単独になる」とき: 判定の材料 (時刻・長さ・構成) と
+# 隣同士の判断をすべて表示する (GUI の「判定の詳細…」ボタンと同じ内容)
+python3 -m gpmf_tool join ./videos --diagnose
+
 # 結合と同時に GoPro 化 (一時ファイルを作らないので容量は1本分だけ)
 python3 -m gpmf_tool join ./videos --gopro --device max --output-dir ./out
 
@@ -115,9 +119,12 @@ python3 -m gpmf_tool join a.mp4 b.mp4 --no-detect -o 結合.mp4
    - GoPro `GH010001.MP4` … 同一ファイル番号 + 連続チャプター
      (旧 `GOPR0001` + `GP010001` も対応)
    - DJI `DJI_20260914145635_0011_D.MP4` … 連番が連続 + ファイル名の日時が
-     「前の開始 + 前の長さ」に一致 (Osmo Pocket/Action はセグメントごとに
-     開始時刻を書く。全部同じ時刻を書く機種も可。時刻が離れていれば
-     連番が続いていても別撮影)
+     「前の開始 + 前の長さ (+許容差)」以内 (Osmo Pocket/Action は
+     セグメントごとに開始時刻を書く。全部同じ時刻を書く機種も可。
+     同じカメラで前の撮影が終わる前に別の撮影は始められないので、前の
+     範囲内なら続き。次の時刻がそれより後 = 間に停止があった = 別撮影)。
+     単独と判定された動画には「前/次の動画とは別撮影」と判断した理由が
+     数値付きで表示される
    - Insta360 `VID_20250915_125402_00_062.mp4` … 同一日時キー
 3. **状況証拠が要るもの** — DJI 旧 `DJI_0001`、Sony `C0001`、一般的な
    連番 `xxx_001` は「新しい撮影でも番号が進む」ため、

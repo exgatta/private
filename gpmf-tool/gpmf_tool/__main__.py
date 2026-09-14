@@ -434,6 +434,11 @@ def cmd_join(args: argparse.Namespace) -> None:
     if not files:
         _err("動画が見つかりません")
 
+    if getattr(args, "diagnose", False):
+        from . import split_detect
+        print(split_detect.diagnose(files))
+        return
+
     if args.no_detect:
         # 明示的に「全部まとめて1本」
         if len(files) < 2:
@@ -711,6 +716,9 @@ def main(argv=None) -> None:
                    help="自動判定せず、指定した全ファイルを1本にまとめる")
     p.add_argument("--dry-run", action="store_true",
                    help="判定結果だけ表示して結合しない")
+    p.add_argument("--diagnose", action="store_true",
+                   help="判定の材料 (時刻・長さ・構成) と隣同士の判断を"
+                        "すべて表示して結合しない (問題報告用)")
     p.add_argument("--gopro", action="store_true",
                    help="結合と同時に GoPro 化する (一時ファイルなし)")
     p.add_argument("--device", default=gopro.DEFAULT_PRESET,

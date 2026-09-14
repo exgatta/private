@@ -12,8 +12,10 @@ DJI / GoPro などは分割した全セグメントに **同じ撮影時刻** (�
   2. **メーカー固有の命名規則** (決定的)
        GoPro    GH010001.MP4 … 同一ファイル番号 + 連続チャプター
        DJI 新   DJI_20260914145635_0011_D.MP4 … 連番が連続 + ファイル名の
-                日時が「前の開始 + 前の長さ」に一致 (Osmo Pocket/Action は
-                セグメントごとに開始時刻を書く。全部同じ時刻を書く機種も可)
+                日時が「前の開始 + 前の長さ (+許容差)」以内 (Osmo Pocket/
+                Action はセグメントごとに開始時刻を書く。全部同じ時刻を
+                書く機種も可)。同じカメラで前の撮影が終わる前に別の撮影は
+                始められないので、前の範囲内なら続きと言い切れる
        Insta360 VID_20250915_125402_00_062.mp4 … 同一日時キー
      これらは名前だけで「同じ撮影」と言い切れるので confidence = "high"。
   3. **状況証拠が要るもの** — DJI 旧 (DJI_0001)、Sony (C0001)、一般的な
@@ -167,8 +169,11 @@ class _Info:
         self.size = _file_size(path)
         self.error: Optional[str] = None
         self.creation: Optional[datetime.datetime] = None
-        self.duration = 0.0
+        self.duration = 0.0          # 判定に使う長さ (mvhd とトラックの大きい方)
+        self.mvhd_duration = 0.0
+        self.track_duration = 0.0
         self.signature: Optional[Tuple] = None
+        self.track_kinds: List[str] = []
         self.name: Optional[_Name] = None
         self.junk = self.basename.startswith(".")
         if self.junk:
@@ -185,11 +190,22 @@ class _Info:
         self.creation = mp4.mp4_time_to_datetime(
             src.mvhd.get("creation_time", 0))
         ts = src.mvhd["timescale"] or 1
-        self.duration = src.mvhd["duration"] / ts
+        self.mvhd_duration = src.mvhd["duration"] / ts
+        # mvhd の duration を 0 や短めに書く機種があるので、各トラックの
+        # 長さも見て一番長いものを「このファイルの長さ」とする
+        tds: List[float] = []
+        for t in src.traks:
+            try:
+                tds.append(src.duration(t) / (src.timescale(t) or 1))
+            except Exception:
+                pass
+        self.track_duration = max(tds) if tds else 0.0
+        self.duration = max(self.mvhd_duration, self.track_duration)
         # 絶対条件: 種類・コーデック/解像度・時間単位が全トラックで一致
         self.signature = tuple(
             (src.handler(t), src.stsd_payload(t), src.timescale(t))
             for t in src.traks)
+        self.track_kinds = [_handler_text(h) for h, _, _ in self.signature]
 
     @property
     def is_lrv(self) -> bool:
@@ -204,6 +220,31 @@ def _explain(e: Exception) -> str:
         return str(e) or e.__class__.__name__
 
 
+_HANDLER_JA = {b"vide": "映像", b"soun": "音声", b"meta": "メタデータ",
+               b"sbtl": "字幕", b"text": "テキスト", b"subt": "字幕",
+               b"hint": "ヒント", b"tmcd": "タイムコード"}
+
+
+def _handler_text(handler: bytes) -> str:
+    return _HANDLER_JA.get(handler, handler.decode("latin-1", "replace"))
+
+
+def _signature_diff(prev: "_Info", cur: "_Info") -> str:
+    """絶対条件が合わない理由を日本語で (合っていれば空文字)。"""
+    a, b = prev.signature or (), cur.signature or ()
+    if len(a) != len(b):
+        return f"トラック数が違う ({len(a)} 本 / {len(b)} 本)"
+    for i, ((ha, sa, ta), (hb, sb, tb)) in enumerate(zip(a, b), 1):
+        if ha != hb:
+            return (f"トラック#{i} の種類が違う "
+                    f"({_handler_text(ha)} / {_handler_text(hb)})")
+        if sa != sb:
+            return f"トラック#{i} ({_handler_text(ha)}) のコーデック/解像度が違う"
+        if ta != tb:
+            return f"トラック#{i} ({_handler_text(ha)}) の時間単位が違う"
+    return ""
+
+
 # ---------------------------------------------------------------------------
 # 時刻・サイズの証拠
 # ---------------------------------------------------------------------------
@@ -214,7 +255,10 @@ def _time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     "continuous" … cur の開始 ≈ prev の開始 + prev の長さ (強制分割の続き)
                    (終了時刻を書くカメラのため cur の長さでも照合する)
     "identical"  … 同じ時刻 (全セグメントに同じ時刻を書くカメラ) → 中立
-    "gap"        … 明らかに離れている → 別撮影の証拠
+    "overlap"    … prev の撮影中に cur が始まっている。同じカメラで別の
+                   撮影を重ねて始めることはできないので、少なくとも
+                   「別撮影の証拠」ではない (長さの記録が怪しい時に起きる)
+    "gap"        … 明らかに離れている (または時刻が逆行) → 別撮影の証拠
     "unknown"    … どちらかに時刻が無い → 証拠なし
     """
     if prev.creation is None or cur.creation is None:
@@ -222,9 +266,13 @@ def _time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     gap = (cur.creation - prev.creation).total_seconds()
     if gap == 0:
         return "identical"
+    if gap < 0:
+        return "gap"
     if (abs(gap - prev.duration) <= tol
             or abs(gap - cur.duration) <= tol):
         return "continuous"
+    if gap < max(prev.duration, cur.duration):
+        return "overlap"
     return "gap"
 
 
@@ -245,10 +293,15 @@ def _dji_time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     """DJI ファイル名の時刻から見た 2 ファイルの関係 (_time_relation と同じ語彙)。
 
     Osmo Pocket / Osmo Action / 近年のドローンは分割セグメントごとに
-    そのファイルの開始時刻を名前に書くので、cur の時刻 ≈ prev の時刻 +
-    prev の長さ なら「強制分割の続き」。全セグメントに同じ時刻を書く
-    機種もあるので gap == 0 は中立。長いセグメントほど丸め誤差が
-    積もるので、許容差は tol と長さの 5% の大きい方。
+    そのファイルの開始時刻を名前に書く。全セグメントに同じ時刻を書く
+    機種もあるので gap == 0 は中立。
+
+    「続き」の条件は cur の時刻 ≤ prev の時刻 + prev の長さ + 許容差。
+    同じカメラで前の撮影が終わる前に別の撮影を始めることはできないので、
+    次のファイルの時刻が前のファイルの範囲内 (またはその直後) にあれば
+    強制分割の続きと言える。長さの記録が実際より長めでも、これなら
+    取りこぼさない。長いセグメントほど丸め誤差が積もるので、許容差は
+    tol と長さの 5% の大きい方。時刻が逆行していれば矛盾 (gap)。
     """
     a, b = _dji_stamp(prev), _dji_stamp(cur)
     if a is None or b is None:
@@ -256,10 +309,36 @@ def _dji_time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     gap = (b - a).total_seconds()
     if gap == 0:
         return "identical"
-    allow = max(tol, prev.duration * 0.05)
-    if abs(gap - prev.duration) <= allow:
+    allow = _dji_allow(prev, tol)
+    if gap < -allow:
+        return "gap"
+    if gap <= prev.duration + allow:
         return "continuous"
     return "gap"
+
+
+def _dji_allow(prev: _Info, tol: float) -> float:
+    return max(tol, prev.duration * 0.05)
+
+
+def _dji_detail(prev: _Info, cur: _Info, tol: float) -> str:
+    """DJI の時刻判定に使った数値 (単独の理由・診断に出す)。"""
+    a, b = _dji_stamp(prev), _dji_stamp(cur)
+    if a is None or b is None:
+        return "ファイル名に時刻がない"
+    gap = (b - a).total_seconds()
+    return (f"ファイル名の時刻差 {_fmt_sec(gap)} / 前の長さ "
+            f"{_fmt_sec(prev.duration)} / 許容 {_fmt_sec(_dji_allow(prev, tol))}")
+
+
+def _fmt_sec(sec: float) -> str:
+    sign = "-" if sec < 0 else ""
+    total = int(round(abs(sec)))
+    h, rem = divmod(total, 3600)
+    m, s = divmod(rem, 60)
+    if h:
+        return f"{sign}{h}:{m:02d}:{s:02d}"
+    return f"{sign}{m}:{s:02d}"
 
 
 def _fmt_stamp(info: _Info) -> str:
@@ -364,38 +443,80 @@ def _group_by_vendor_key(infos: List[_Info], tol: float
     out: List[DetectedGroup] = []
     for members in buckets.values():
         members.sort(key=lambda i: (i.name.order, i.basename))
+        # 区間 (run) と、その直前で切った理由を並べる
+        runs: List[Tuple[List[_Info], Optional[str]]] = []
         run: List[_Info] = []
+        pending: Optional[str] = None
         for info in members:
-            if run and not _vendor_continues(run[-1], info, tol):
-                out.append(_vendor_group(run))
-                run = []
+            if run:
+                why = _break_reason(run[-1], info, tol)
+                if why is not None:
+                    runs.append((run, pending))
+                    run, pending = [], why
             run.append(info)
         if run:
-            out.append(_vendor_group(run))
+            runs.append((run, pending))
+        for idx, (run, before) in enumerate(runs):
+            nxt = runs[idx + 1] if idx + 1 < len(runs) else None
+            out.append(_vendor_group(
+                run,
+                prev_info=runs[idx - 1][0][-1] if idx > 0 else None,
+                before=before,
+                next_info=nxt[0][0] if nxt else None,
+                after=nxt[1] if nxt else None))
     return out
+
+
+def _break_reason(prev: _Info, cur: _Info, tol: float) -> Optional[str]:
+    """同じ命名系列の隣同士を「別撮影」として切るなら、その理由 (日本語)。
+
+    続きとみなすなら None。構成違い・番号飛び・時刻の矛盾で切る。
+    """
+    diff = _signature_diff(prev, cur)
+    if diff:
+        return diff
+    if not _consecutive(prev.name, cur.name):
+        return f"番号が連続していない ({prev.name.label} → {cur.name.label})"
+    if prev.name.vendor == "dji":
+        # DJI はファイル名の時刻が一次証拠。連番が続いていても次の時刻が
+        # 「前の開始 + 前の長さ」より後なら間に停止があった = 別の撮影。
+        # 逆に名前の時刻が続いていれば、動画内の時刻の記録がどうであれ続き
+        rel = _dji_time_relation(prev, cur, tol)
+        if rel == "gap":
+            return ("ファイル名の時刻が前の動画の終わりに続いていない "
+                    f"({_dji_detail(prev, cur, tol)})")
+        if rel == "continuous":
+            return None
+    if _time_relation(prev, cur, tol) == "gap":
+        return ("動画内の撮影時刻が続いていない "
+                f"({_fmt_time(prev)} + {_fmt_sec(prev.duration)} → "
+                f"{_fmt_time(cur)})")
+    return None
 
 
 def _vendor_continues(prev: _Info, cur: _Info, tol: float) -> bool:
     """同じ命名系列でも、構成違い・番号飛び・時刻の矛盾があれば切る。"""
-    if cur.signature != prev.signature:
-        return False
-    if not _consecutive(prev.name, cur.name):
-        return False
-    if prev.name.vendor == "dji":
-        # DJI はファイル名の時刻が一次証拠。連番が続いていても時刻が
-        # 「前の開始 + 前の長さ」から外れていれば別の撮影
-        if _dji_time_relation(prev, cur, tol) == "gap":
-            return False
-    return _time_relation(prev, cur, tol) != "gap"
+    return _break_reason(prev, cur, tol) is None
 
 
-def _vendor_group(run: List[_Info]) -> DetectedGroup:
+def _vendor_group(run: List[_Info],
+                  prev_info: Optional[_Info] = None,
+                  before: Optional[str] = None,
+                  next_info: Optional[_Info] = None,
+                  after: Optional[str] = None) -> DetectedGroup:
     first, last = run[0], run[-1]
     vendor = first.name.vendor
     paths = [i.path for i in run]
     if len(run) == 1:
-        return DetectedGroup(paths, vendor, "high",
-                             f"単独の動画 ({_vendor_single_label(first)})")
+        reason = f"単独の動画 ({_vendor_single_label(first)})"
+        notes = []
+        if prev_info is not None and before:
+            notes.append(f"前の {prev_info.name.label} とは別撮影: {before}")
+        if next_info is not None and after:
+            notes.append(f"次の {next_info.name.label} とは別撮影: {after}")
+        if notes:
+            reason += " / " + " / ".join(notes)
+        return DetectedGroup(paths, vendor, "high", reason)
 
     confidence = "high"
     if vendor == "gopro":
@@ -539,13 +660,86 @@ _CONFIDENCE_TEXT = {"high": "確度: 高", "medium": "確度: 中",
                     "low": "確度: 低 (要確認)", "": ""}
 
 
+def diagnose(paths: List[str],
+             tolerance_sec: float = DEFAULT_TOLERANCE_SEC) -> str:
+    """判定の材料と隣同士の判断をすべて書き出す (問題報告用のテキスト)。
+
+    画面の「判定の詳細」やコマンドの --diagnose から使う。ファイル名・
+    連番・ファイル名の時刻・動画内の撮影時刻・長さ (mvhd / トラック)・
+    サイズ・トラック構成を 1 行ずつ、続けて同じ系列の隣同士について
+    「続き」か「別撮影」かとその根拠を並べる。
+    """
+    infos = [_Info(p) for p in _dedupe(paths)]
+    lines: List[str] = ["== ファイル =="]
+    for i in sorted(infos, key=lambda x: x.basename):
+        n = i.name
+        if i.junk:
+            lines.append(f"{i.basename}: 付随/隠しファイル (対象外)")
+            continue
+        if i.error:
+            lines.append(f"{i.basename}: 読み取り失敗: {i.error}")
+            continue
+        stamp = _dji_stamp(i)
+        naming = "命名規則: 不明"
+        if n:
+            naming = f"命名規則: {n.vendor} 番号 {n.label}"
+            if stamp:
+                naming += f" 名前の時刻 {stamp:%Y/%m/%d %H:%M:%S}"
+        shot = (f"{mp4.camera_wall_time(i.creation):%Y/%m/%d %H:%M:%S}"
+                if i.creation else "なし")
+        lines.append(
+            f"{i.basename}: {naming} / 動画内の撮影時刻 {shot} / "
+            f"長さ {_fmt_sec(i.duration)} (mvhd {_fmt_sec(i.mvhd_duration)}, "
+            f"トラック {_fmt_sec(i.track_duration)}) / "
+            f"サイズ {_fmt_size(i.size)} / "
+            f"トラック {'+'.join(i.track_kinds) or '?'}")
+
+    lines.append("")
+    lines.append("== 隣同士の判断 (同じ命名系列) ==")
+    usable = [i for i in infos
+              if not (i.junk or i.error or i.is_lrv) and i.name]
+    buckets: Dict[Tuple, List[_Info]] = {}
+    for i in usable:
+        buckets.setdefault(i.name.key, []).append(i)
+    n_pairs = 0
+    for members in buckets.values():
+        members.sort(key=lambda x: (x.name.order, x.basename))
+        for a, b in zip(members, members[1:]):
+            n_pairs += 1
+            if a.name.deterministic:
+                why = _break_reason(a, b, tolerance_sec)
+                extra = ""
+                if a.name.vendor == "dji" and not (why and "時刻差" in why):
+                    extra = f" [{_dji_detail(a, b, tolerance_sec)}]"
+                verdict = "別撮影: " + why if why else "続き (結合)"
+                lines.append(f"{a.basename} → {b.basename}: {verdict}{extra}")
+            else:
+                verdict = _evidence_verdict([a], b, tolerance_sec)
+                rel = _time_relation(a, b, tolerance_sec)
+                lines.append(
+                    f"{a.basename} → {b.basename}: "
+                    + (f"続き (確度 {_CONFIDENCE_TEXT.get(verdict, verdict)})"
+                       if verdict else "別撮影 (証拠なし)")
+                    + f" [動画内の時刻: {rel}]")
+    if not n_pairs:
+        lines.append("(同じ命名系列のファイルが 2 つ以上ありません)")
+
+    lines.append("")
+    lines.append("== 判定結果 ==")
+    lines.append(describe_groups(detect_groups(paths, tolerance_sec)))
+    lines.append("")
+    lines.append(f"(許容差 {_fmt_sec(tolerance_sec)})")
+    return "\n".join(lines)
+
+
 def describe_groups(groups: List[DetectedGroup]) -> str:
     """検出結果を人が読める日本語にする。"""
     lines = []
     for gi, g in enumerate(groups, 1):
         if len(g.files) == 1:
             line = f"[{gi}] 単独 (結合不要): {os.path.basename(g.files[0])}"
-            if g.reason and not g.reason.startswith("単独"):
+            if g.reason and (not g.reason.startswith("単独")
+                             or "別撮影" in g.reason):
                 line += f"  — {g.reason}"
             lines.append(line)
             continue

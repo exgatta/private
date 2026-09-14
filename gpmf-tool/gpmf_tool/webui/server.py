@@ -372,6 +372,18 @@ class WebUIApp:
         threading.Thread(target=work, daemon=True, name="webui-scan").start()
         return job_id
 
+    def diagnose(self, job: dict) -> str:
+        """スキャン済みフォルダについて判定の材料を全部書き出す。"""
+        from .. import split_detect
+        from ..__main__ import collect_videos
+        files = collect_videos([job["path"]],
+                               recursive=bool(job.get("recursive")))
+        head = [f"フォルダ: {job['path']}",
+                f"動画: {len(files)} 個", ""]
+        if not files:
+            return "\n".join(head + ["(動画がありません)"])
+        return "\n".join(head) + split_detect.diagnose(files)
+
     # --- 結合 ------------------------------------------------------------
     def start_join(self, req: dict) -> str:
         from .. import concat
@@ -635,6 +647,14 @@ class _Handler(BaseHTTPRequestHandler):
         if path == "/api/file":
             eid = (query.get("id") or [""])[0]
             return self._stream_file(app.entries.get(eid))
+        if path == "/api/diagnose":
+            job = app.scan_jobs.get((query.get("job") or [""])[0])
+            if job is None:
+                return self._error(404, "先にフォルダをスキャンしてください")
+            try:
+                return self._json({"text": app.diagnose(job)})
+            except Exception as e:  # noqa: BLE001
+                return self._error(500, _humanize(e))
         self._error(404, "見つかりません")
 
     def _config(self) -> dict:

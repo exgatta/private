@@ -285,6 +285,14 @@ def media_summary(f: BinaryIO) -> dict:
         hdlr = trak.find(b"mdia", b"hdlr")
         handler = parse_hdlr(hdlr.payload)["handler"] if hdlr else b""
         out["n_tracks"] += 1
+        # mvhd の duration を 0 や短めに書く機種があるので、トラックの
+        # 長さの方が長ければそちらを採用する
+        mdhd_box = trak.find(b"mdia", b"mdhd")
+        if mdhd_box is not None:
+            md = parse_mdhd(mdhd_box.payload)
+            if md["timescale"]:
+                out["duration_sec"] = max(out["duration_sec"],
+                                          md["duration"] / md["timescale"])
         stsd = trak.find(b"mdia", b"minf", b"stbl", b"stsd")
         if not stsd:
             continue

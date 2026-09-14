@@ -34,6 +34,8 @@
           <option value="l">大</option>
         </select>
       </label>
+      <button id="btn-diag" class="btn" type="button" disabled
+              title="なぜ結合/単独と判定したか、材料 (時刻・長さ・構成) をすべて表示">判定の詳細…</button>
       <button id="btn-quit" class="btn btn-quiet" type="button" title="サーバを止めてこの画面を終了">終了</button>
     </div>
   </header>
@@ -121,6 +123,22 @@
         <button id="btn-open-outdir" class="btn" type="button" disabled>フォルダを開く</button>
         <span class="spacer"></span>
         <button id="btn-progress-close" class="btn btn-primary" type="button" disabled>閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 判定の詳細 (診断) ===== -->
+  <div class="overlay hidden" id="diag">
+    <div class="panel">
+      <div class="panel-title">判定の詳細</div>
+      <p class="hint">単独と判定された動画には「前/次の動画とは別撮影」と判断した理由が数値付きで出ます。
+        おかしいと思ったら「コピー」で全文をコピーして報告してください。</p>
+      <pre class="log diag-log" id="diag-text"></pre>
+      <div class="panel-actions">
+        <button id="btn-diag-copy" class="btn" type="button">コピー</button>
+        <span id="diag-copied" class="hint hidden">コピーしました</span>
+        <span class="spacer"></span>
+        <button id="btn-diag-close" class="btn btn-primary" type="button">閉じる</button>
       </div>
     </div>
   </div>
