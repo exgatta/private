@@ -11,11 +11,16 @@ DJI / GoPro などは分割した全セグメントに **同じ撮影時刻** (�
      Insta360 の低解像度プロキシ (LRV_) はそれぞれ単独扱い。
   2. **メーカー固有の命名規則** (決定的)
        GoPro    GH010001.MP4 … 同一ファイル番号 + 連続チャプター
-       DJI 新   DJI_20260914145635_0011_D.MP4 … 連番が連続 + ファイル名の
-                日時が「前の開始 + 前の長さ (+許容差)」以内 (Osmo Pocket/
-                Action はセグメントごとに開始時刻を書く。全部同じ時刻を
-                書く機種も可)。同じカメラで前の撮影が終わる前に別の撮影は
-                始められないので、前の範囲内なら続きと言い切れる
+       DJI 新   DJI_20260914145635_0011_D.MP4 … 連番が連続 + 次のどちらか:
+                (a) 動画内 (moov/udta) に DJI が書く分割情報 fsid / gpid
+                    (Osmo Pocket 4 Pro 等)。fsid はその撮影の先頭ファイルの
+                    パス、gpid は撮影内の位置 (2, 3, …) で続きにだけある。
+                    これはカメラ自身の記録なので最優先で採用する
+                (b) それが無い機種は、ファイル名の日時が「前の開始 + 前の
+                    長さ (+許容差)」以内 (Osmo Pocket/Action はセグメント
+                    ごとに開始時刻を書く。全部同じ時刻を書く機種も可)。
+                    同じカメラで前の撮影が終わる前に別の撮影は始められ
+                    ないので、前の範囲内なら続きと言い切れる
        Insta360 VID_20250915_125402_00_062.mp4 … 同一日時キー
      これらは名前だけで「同じ撮影」と言い切れるので confidence = "high"。
   3. **状況証拠が要るもの** — DJI 旧 (DJI_0001)、Sony (C0001)、一般的な
@@ -174,6 +179,9 @@ class _Info:
         self.track_duration = 0.0
         self.signature: Optional[Tuple] = None
         self.track_kinds: List[str] = []
+        # DJI が udta に書く分割情報 (無い機種は None のまま)
+        self.dji_fsid: Optional[str] = None   # その撮影の先頭ファイル名
+        self.dji_gpid: Optional[int] = None   # 撮影内の位置 (続きにだけある)
         self.name: Optional[_Name] = None
         self.junk = self.basename.startswith(".")
         if self.junk:
@@ -206,10 +214,39 @@ class _Info:
             (src.handler(t), src.stsd_payload(t), src.timescale(t))
             for t in src.traks)
         self.track_kinds = [_handler_text(h) for h, _, _ in self.signature]
+        self.dji_fsid, self.dji_gpid = _read_dji_udta(src.moov)
 
     @property
     def is_lrv(self) -> bool:
         return bool(self.name and self.name.extra.get("is_lrv"))
+
+
+def _read_dji_udta(moov: mp4.Box) -> Tuple[Optional[str], Optional[int]]:
+    """moov/udta から DJI の分割情報 (fsid, gpid) を読む。無ければ (None, None)。
+
+    Osmo Pocket 4 Pro の実測 (29 ファイル):
+      fsid … 64 バイト、NUL 終端の SD カード上のパス。その撮影の **先頭
+             ファイル** を指す。先頭ファイルと単独のファイルでは自分自身
+             (例: 0006〜0008 の fsid はどれも …_0005_D.MP4)
+      gpid … 4 バイトのビッグエンディアン整数。撮影内での位置 (2, 3, …)。
+             続きのファイルにだけあり、先頭・単独には無い
+    fsid はファイル名 (basename) だけにして返す。
+    """
+    udta = moov.find(b"udta")
+    if udta is None:
+        return None, None
+    fsid: Optional[str] = None
+    gpid: Optional[int] = None
+    for c in udta.children:
+        if c.is_container:
+            continue
+        if c.type == b"fsid":
+            text = c.payload.split(b"\x00", 1)[0].decode("utf-8", "replace").strip()
+            if text:
+                fsid = text.replace("\\", "/").rsplit("/", 1)[-1]
+        elif c.type == b"gpid" and 1 <= len(c.payload) <= 8:
+            gpid = int.from_bytes(c.payload, "big")
+    return fsid, gpid
 
 
 def _explain(e: Exception) -> str:
@@ -276,6 +313,38 @@ def _time_relation(prev: _Info, cur: _Info, tol: float) -> str:
     if gap < max(prev.duration, cur.duration):
         return "overlap"
     return "gap"
+
+
+def _dji_marker(prev: _Info, cur: _Info) -> Optional[Tuple[bool, str]]:
+    """DJI が動画内に書く分割情報 (fsid / gpid) から 2 ファイルの関係を決める。
+
+    返り値は (cur が prev の続きか, 根拠の文)。cur に fsid が無い機種なら
+    None (= 材料なし。ファイル名の時刻で判定する)。
+
+    続きの条件: cur の gpid が prev の位置 + 1 で、cur の fsid が prev の
+    属する撮影の先頭ファイル (prev の fsid、無ければ prev 自身) と一致。
+    gpid が無く fsid が自分自身なら、cur は新しい撮影の先頭 = 別撮影。
+    ファイルを PC で改名していても、fsid はカメラが書いた元の名前同士で
+    比べるので影響しない。
+    """
+    if cur.dji_fsid is None:
+        return None
+    prev_head = prev.dji_fsid or prev.basename
+    prev_pos = prev.dji_gpid or 1
+    if cur.dji_gpid is None:
+        if cur.dji_fsid == cur.basename or cur.dji_fsid != prev_head:
+            return False, (f"{cur.name.label} は新しい撮影の先頭 "
+                           f"(gpid なし / fsid={cur.dji_fsid})")
+        return None
+    if cur.dji_fsid != prev_head:
+        return False, (f"撮影ID (fsid) が違う ({cur.name.label} は "
+                       f"{cur.dji_fsid} の続き gpid={cur.dji_gpid}、"
+                       f"{prev.name.label} は {prev_head} の撮影)")
+    if cur.dji_gpid != prev_pos + 1:
+        return False, (f"撮影内の位置 (gpid) が飛んでいる "
+                       f"({prev_pos} → {cur.dji_gpid}, fsid={cur.dji_fsid})")
+    return True, (f"撮影ID (fsid={cur.dji_fsid}) が一致 / "
+                  f"位置 (gpid) {prev_pos} → {cur.dji_gpid}")
 
 
 def _dji_stamp(info: _Info) -> Optional[datetime.datetime]:
@@ -487,9 +556,15 @@ def _break_reason(prev: _Info, cur: _Info, tol: float) -> Optional[str]:
     if not _consecutive(prev.name, cur.name):
         return f"番号が連続していない ({prev.name.label} → {cur.name.label})"
     if prev.name.vendor == "dji":
-        # DJI はファイル名の時刻が一次証拠。連番が続いていても次の時刻が
-        # 「前の開始 + 前の長さ」より後なら間に停止があった = 別の撮影。
-        # 逆に名前の時刻が続いていれば、動画内の時刻の記録がどうであれ続き
+        # DJI がカメラ内で書いた分割情報 (udta の fsid / gpid) があれば
+        # それが決定的。名前の時刻や動画内の時刻とは矛盾しても従う
+        marker = _dji_marker(prev, cur)
+        if marker is not None:
+            ok, detail = marker
+            return None if ok else f"DJI の内部情報: {detail}"
+        # 無い機種はファイル名の時刻が一次証拠。連番が続いていても次の
+        # 時刻が「前の開始 + 前の長さ」より後なら間に停止があった = 別の
+        # 撮影。逆に名前の時刻が続いていれば、動画内の時刻がどうであれ続き
         rel = _dji_time_relation(prev, cur, tol)
         if rel == "gap":
             return ("ファイル名の時刻が前の動画の終わりに続いていない "
@@ -540,9 +615,14 @@ def _vendor_group(run: List[_Info],
             confidence = "medium"
     elif vendor == "dji":
         reason = f"DJI 連番 {first.name.label}→{last.name.label}"
+        pairs = list(zip(run, run[1:]))
+        markers = [_dji_marker(a, b) for a, b in pairs]
         rels = {_dji_time_relation(a, b, DEFAULT_TOLERANCE_SEC)
-                for a, b in zip(run, run[1:])}
-        if rels == {"identical"}:
+                for a, b in pairs}
+        if all(m is not None and m[0] for m in markers):
+            reason += (f" / 動画内の撮影ID (fsid={first.dji_fsid or first.basename}) "
+                       f"が一致・位置 (gpid) が 1→{last.dji_gpid} と連続")
+        elif rels == {"identical"}:
             reason += f" / 全ファイル同一時刻 ({first.name.extra['stamp']})"
         elif "continuous" in rels:
             reason += (f" / ファイル名の時刻が連続 "
@@ -701,12 +781,16 @@ def diagnose(paths: List[str],
                 naming += f" 名前の時刻 {stamp:%Y/%m/%d %H:%M:%S}"
         shot = (f"{mp4.camera_wall_time(i.creation):%Y/%m/%d %H:%M:%S}"
                 if i.creation else "なし")
+        dji_inner = ""
+        if i.dji_fsid is not None:
+            dji_inner = (f" / DJI 内部 fsid={i.dji_fsid} "
+                         f"gpid={i.dji_gpid if i.dji_gpid is not None else 'なし'}")
         lines.append(
             f"{i.basename}: {naming} / 動画内の撮影時刻 {shot} / "
             f"長さ {_fmt_sec(i.duration)} (mvhd {_fmt_sec(i.mvhd_duration)}, "
             f"トラック {_fmt_sec(i.track_duration)}) / "
             f"サイズ {_fmt_size(i.size)} / "
-            f"トラック {'+'.join(i.track_kinds) or '?'}")
+            f"トラック {'+'.join(i.track_kinds) or '?'}{dji_inner}")
 
     lines.append("")
     lines.append("== 隣同士の判断 (同じ命名系列) ==")
@@ -723,8 +807,12 @@ def diagnose(paths: List[str],
             if a.name.deterministic:
                 why = _break_reason(a, b, tolerance_sec)
                 extra = ""
-                if a.name.vendor == "dji" and not (why and "時刻差" in why):
-                    extra = f" [{_dji_detail(a, b, tolerance_sec)}]"
+                if a.name.vendor == "dji":
+                    marker = _dji_marker(a, b)
+                    if marker is not None and marker[0]:
+                        extra = f" [DJI の内部情報: {marker[1]}]"
+                    elif marker is None and not (why and "時刻差" in why):
+                        extra = f" [{_dji_detail(a, b, tolerance_sec)}]"
                 verdict = "別撮影: " + why if why else "続き (結合)"
                 lines.append(f"{a.basename} → {b.basename}: {verdict}{extra}")
             else:

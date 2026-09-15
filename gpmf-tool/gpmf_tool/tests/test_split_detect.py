@@ -13,7 +13,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from gpmf_tool import browse, concat, split_detect
+from gpmf_tool import browse, concat, mp4, split_detect
 from gpmf_tool.tests.test_concat import build_multi_sample_mp4
 
 EPOCH = datetime.datetime(1904, 1, 1, tzinfo=datetime.timezone.utc)
@@ -33,19 +33,50 @@ def set_creation_time(data: bytes, shot) -> bytes:
     return bytes(data)
 
 
+def add_dji_udta(data: bytes, fsid: str, gpid=None) -> bytes:
+    """合成 MP4 の moov に DJI 風の udta (fsid / gpid) を足す。
+
+    fsid は Osmo Pocket 4 Pro と同じく SD カード上のフルパスを 64 バイトに
+    NUL 詰めしたもの。gpid は 4 バイトのビッグエンディアン (None なら書かない
+    = 先頭/単独ファイル)。
+    """
+    tops = []
+    pos = 0
+    while pos < len(data):
+        size, typ = struct.unpack(">I4s", data[pos:pos + 8])
+        tops.append((typ, pos, size))
+        pos += size
+    moov_t = next(t for t in tops if t[0] == b"moov")
+    moov = mp4.parse_box_tree(data[moov_t[1]:moov_t[1] + moov_t[2]], b"moov")
+    path = f"/mnt/media_rw/sdcard0/DCIM/DJI_001/{fsid}".encode()
+    children = [mp4.Box(b"\xa9uid", payload=os.urandom(4)),
+                mp4.Box(b"fsid", payload=path.ljust(64, b"\x00"))]
+    if gpid is not None:
+        children.insert(1, mp4.Box(b"gpid", payload=struct.pack(">I", gpid)))
+    moov.children.append(mp4.Box(b"udta", is_container=True, children=children))
+    return (data[:moov_t[1]] + moov.serialize()
+            + data[moov_t[1] + moov_t[2]:])
+
+
 class _Base(unittest.TestCase):
 
     def setUp(self):
         self.dir = tempfile.mkdtemp()
 
-    def _make(self, name, shot=BASE, n_samples=30, width=None):
-        """1.0 秒 (30 x 20/600) の合成動画を name で保存する。"""
+    def _make(self, name, shot=BASE, n_samples=30, width=None,
+              fsid=None, gpid=None):
+        """1.0 秒 (30 x 20/600) の合成動画を name で保存する。
+
+        fsid を渡すと DJI 風の udta (fsid / gpid) を書く。
+        """
         data = set_creation_time(build_multi_sample_mp4("X", n_samples), shot)
         if width is not None:
             data = bytearray(data)
             pos = data.find(struct.pack(">HH", 1920, 1080))
             data[pos:pos + 4] = struct.pack(">HH", width, 720)
             data = bytes(data)
+        if fsid is not None:
+            data = add_dji_udta(data, fsid, gpid)
         p = os.path.join(self.dir, name)
         with open(p, "wb") as f:
             f.write(data)
@@ -366,6 +397,139 @@ class TestDJI(_Base):
         self.assertEqual(self._names(merged[0]), ["DJI_0021.MP4", "DJI_0022.MP4"])
         self.assertEqual(merged[0].vendor, "dji")
         self.assertIn("撮影時刻が連続", merged[0].reason)
+
+
+# ---------------------------------------------------------------------------
+# DJI: 動画内の分割情報 (udta fsid / gpid)
+# ---------------------------------------------------------------------------
+
+class TestDJIInternalMarker(_Base):
+    """Osmo Pocket 4 Pro の実データ (29 ファイル) で確認した仕組み:
+
+    続きのファイルは udta に gpid (撮影内の位置 2, 3, …) と fsid (その撮影の
+    先頭ファイルのパス) を持ち、先頭ファイル・単独ファイルは gpid を持たず
+    fsid が自分自身を指す。これはカメラ自身の記録なので、ファイル名の時刻の
+    推定より優先する。
+    """
+
+    def _real_folder(self):
+        """実フォルダの 0005〜0010 相当 (0005〜0008 が 1 本、0009〜0010 が 1 本)。"""
+        h1 = "DJI_20260914105154_0005_D.MP4"
+        h2 = "DJI_20260914120000_0009_D.MP4"
+        return [
+            self._make(h1, fsid=h1),
+            self._make("DJI_20260914105155_0006_D.MP4", fsid=h1, gpid=2),
+            self._make("DJI_20260914105156_0007_D.MP4", fsid=h1, gpid=3),
+            self._make("DJI_20260914105157_0008_D.MP4", fsid=h1, gpid=4),
+            self._make(h2, fsid=h2),
+            self._make("DJI_20260914120001_0010_D.MP4", fsid=h2, gpid=2),
+        ]
+
+    def test_fsid_gpid_group_matches_real_folder(self):
+        paths = self._real_folder()
+        groups = split_detect.detect_groups(list(reversed(paths)))
+        self._assert_partition(paths, groups)
+        self.assertEqual(sorted(len(g.files) for g in groups), [2, 4])
+        big = [g for g in groups if len(g.files) == 4][0]
+        self.assertEqual([os.path.basename(p) for p in big.files],
+                         [os.path.basename(p) for p in paths[:4]])
+        self.assertEqual(big.confidence, "high")
+        self.assertIn("fsid=DJI_20260914105154_0005_D.MP4", big.reason)
+        self.assertIn("gpid) が 1→4", big.reason)
+        # 0008 → 0009 は「0009 が新しい撮影の先頭」で切れている
+        self.assertIn("次の 0009 とは別撮影: DJI の内部情報", big.reason)
+        self.assertIn("新しい撮影の先頭", big.reason)
+
+    def test_marker_wins_over_filename_time_gap(self):
+        """名前の時刻が 10 分空いていても、カメラの記録が続きなら続き。"""
+        h = "DJI_20260914105154_0005_D.MP4"
+        a = self._make(h, fsid=h)
+        b = self._make("DJI_20260914110154_0006_D.MP4", fsid=h, gpid=2)
+        groups = split_detect.detect_groups([b, a])
+        self.assertEqual(len(groups), 1, [g.reason for g in groups])
+        self.assertEqual(groups[0].confidence, "high")
+        self.assertIn("fsid", groups[0].reason)
+
+    def test_marker_separates_even_when_filename_time_continues(self):
+        """名前の時刻は 1 秒後 (推定なら続き) でも、次が先頭ファイルなら別撮影。"""
+        h1 = "DJI_20260914105154_0005_D.MP4"
+        h2 = "DJI_20260914105155_0006_D.MP4"
+        a = self._make(h1, fsid=h1)
+        b = self._make(h2, fsid=h2)
+        groups = split_detect.detect_groups([a, b])
+        self.assertEqual(len(groups), 2)
+        self.assertIn("次の 0006 とは別撮影: DJI の内部情報", groups[0].reason)
+        self.assertIn("gpid なし", groups[0].reason)
+
+    def test_fsid_mismatch_separates(self):
+        """gpid=2 でも fsid が前のファイルの撮影を指していなければ別撮影。"""
+        h1 = "DJI_20260914105154_0005_D.MP4"
+        a = self._make(h1, fsid=h1)
+        b = self._make("DJI_20260914105155_0006_D.MP4",
+                       fsid="DJI_20260914100000_0003_D.MP4", gpid=2)
+        groups = split_detect.detect_groups([a, b])
+        self.assertEqual(len(groups), 2)
+        self.assertIn("撮影ID (fsid) が違う", groups[0].reason)
+
+    def test_gpid_skip_separates(self):
+        """間のファイルが無い (gpid 2 → 4) なら結合しない。"""
+        h = "DJI_20260914105154_0005_D.MP4"
+        a = self._make("DJI_20260914105155_0006_D.MP4", fsid=h, gpid=2)
+        b = self._make("DJI_20260914105156_0007_D.MP4", fsid=h, gpid=4)
+        groups = split_detect.detect_groups([a, b])
+        self.assertEqual(len(groups), 2)
+        self.assertIn("位置 (gpid) が飛んでいる", groups[0].reason)
+
+    def test_renamed_files_still_grouped_by_fsid(self):
+        """PC で改名しても fsid 同士 (カメラが書いた元の名前) で比べる。"""
+        h = "DJI_20260914105154_0005_D.MP4"
+        a = self._make("DJI_20260914105154_0015_D.MP4", fsid=h)
+        b = self._make("DJI_20260914105155_0016_D.MP4", fsid=h, gpid=2)
+        groups = split_detect.detect_groups([a, b])
+        self.assertEqual(len(groups), 1, [g.reason for g in groups])
+
+    def test_signature_mismatch_still_wins_over_marker(self):
+        h = "DJI_20260914105154_0005_D.MP4"
+        a = self._make(h, fsid=h)
+        b = self._make("DJI_20260914105155_0006_D.MP4", fsid=h, gpid=2,
+                       width=1280)
+        groups = split_detect.detect_groups([a, b])
+        self.assertEqual(len(groups), 2)
+        self.assertIn("コーデック/解像度", groups[0].reason)
+
+    def test_without_marker_falls_back_to_filename_time(self):
+        """udta が無い DJI 機種は従来どおり名前の時刻で判定する。"""
+        a = self._make("DJI_20260914145635_0011_D.MP4")
+        b = self._make("DJI_20260914145636_0012_D.MP4")
+        self.assertEqual(len(split_detect.detect_groups([a, b])), 1)
+        c = self._make("DJI_20260914150000_0013_D.MP4")
+        self.assertEqual(len(split_detect.detect_groups([b, c])), 2)
+
+    def test_diagnose_shows_marker(self):
+        paths = self._real_folder()
+        text = split_detect.diagnose(paths)
+        self.assertIn("DJI 内部 fsid=DJI_20260914105154_0005_D.MP4 gpid=なし",
+                      text)
+        self.assertIn("DJI 内部 fsid=DJI_20260914105154_0005_D.MP4 gpid=2",
+                      text)
+        self.assertIn("DJI_20260914105154_0005_D.MP4 → "
+                      "DJI_20260914105155_0006_D.MP4: 続き (結合) "
+                      "[DJI の内部情報: 撮影ID (fsid=DJI_20260914105154_0005_D.MP4) "
+                      "が一致 / 位置 (gpid) 1 → 2]", text)
+        self.assertIn("DJI_20260914105157_0008_D.MP4 → "
+                      "DJI_20260914120000_0009_D.MP4: 別撮影: DJI の内部情報: "
+                      "0009 は新しい撮影の先頭", text)
+        self.assertIn("分割された1本の撮影 (4 個)", text)
+
+    def test_read_dji_udta_parses_real_layout(self):
+        h = "DJI_20260914105154_0005_D.MP4"
+        p = self._make("DJI_20260914105155_0006_D.MP4", fsid=h, gpid=2)
+        info = split_detect._Info(p)
+        self.assertEqual(info.dji_fsid, h)
+        self.assertEqual(info.dji_gpid, 2)
+        solo = split_detect._Info(self._make("DJI_20260914130000_0001_D.MP4"))
+        self.assertIsNone(solo.dji_fsid)
+        self.assertIsNone(solo.dji_gpid)
 
 
 # ---------------------------------------------------------------------------
