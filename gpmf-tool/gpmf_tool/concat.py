@@ -566,10 +566,12 @@ def concat_files(inputs: List[str], output: str,
     # --- ファイルの日時を先頭素材に合わせる (撮影順に並ぶように) ---
     shot = None
     if keep_timestamp:
-        # カメラは mvhd にローカル時刻 (時計の値) を書くので、それを
-        # 「この PC のローカル時刻」として解釈して更新日時にする。
-        # timestamp() で UTC 扱いにすると日本では 9 時間ずれる。
-        shot = mp4.camera_wall_time(
+        # 撮影日時 = カメラの時計の値 (ローカル時刻)。ファイル名に時刻を
+        # 書く DJI / Insta360 はそれを使う (Osmo Pocket 4 Pro は mvhd が
+        # UTC なので、そのままだと日本では 9 時間早くなる)。無ければ mvhd の
+        # 値を TZ 変換せずに使う。それを「この PC のローカル時刻」として
+        # 更新日時にする。timestamp() で UTC 扱いにすると 9 時間ずれる。
+        shot = mp4.wall_time_from_name(first.path) or mp4.camera_wall_time(
             mp4.mp4_time_to_datetime(first.mvhd.get("creation_time", 0)))
         try:
             if shot is not None:

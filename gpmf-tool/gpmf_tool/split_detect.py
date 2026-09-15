@@ -779,8 +779,17 @@ def diagnose(paths: List[str],
             naming = f"命名規則: {n.vendor} 番号 {n.label}"
             if stamp:
                 naming += f" 名前の時刻 {stamp:%Y/%m/%d %H:%M:%S}"
-        shot = (f"{mp4.camera_wall_time(i.creation):%Y/%m/%d %H:%M:%S}"
-                if i.creation else "なし")
+        shot = "なし"
+        if i.creation:
+            inner = mp4.camera_wall_time(i.creation)
+            shot = f"{inner:%Y/%m/%d %H:%M:%S}"
+            if stamp:
+                # ファイル名の時刻 (カメラの時計) と動画内の記録のずれ。
+                # Osmo Pocket 4 Pro は mvhd が UTC なので日本では -9:00
+                diff = (inner - stamp).total_seconds()
+                if abs(diff) >= 60:
+                    shot += (f" (名前の時刻との差 {_fmt_sec(diff)}"
+                             f"{' = UTC 記録' if abs(abs(diff) - 9 * 3600) < 60 else ''})")
         dji_inner = ""
         if i.dji_fsid is not None:
             dji_inner = (f" / DJI 内部 fsid={i.dji_fsid} "

@@ -214,6 +214,37 @@ def camera_wall_time(dt):
     return dt.replace(tzinfo=None)
 
 
+# ファイル名に撮影開始時のカメラの時計 (ローカル時刻) を書くカメラ
+_NAME_STAMP_RES = (
+    # DJI Osmo Pocket/Action・近年のドローン: DJI_20260914145635_0011_D.MP4
+    re.compile(r"^DJI_(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})_\d{4}_[A-Z]\."),
+    # Insta360: VID_20250915_125402_00_062.mp4 / LRV_…
+    re.compile(r"^(?:VID|LRV)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_"),
+)
+
+
+def wall_time_from_name(path: str):
+    """ファイル名に埋め込まれたカメラの時計の値 (naive datetime)。無ければ None。
+
+    DJI / Insta360 は撮影開始時のカメラの時計 (ローカル時刻) をそのまま
+    ファイル名に書く。一方 mvhd の方は機種によって UTC だったりローカル
+    だったりする (Osmo Pocket 4 Pro は UTC で、日本では 9 時間早く見える)。
+    表示にはファイル名の値を優先する。
+    """
+    import datetime
+    import os
+    name = os.path.basename(path)
+    for rx in _NAME_STAMP_RES:
+        m = rx.match(name)
+        if not m:
+            continue
+        try:
+            return datetime.datetime(*(int(x) for x in m.groups()))
+        except ValueError:
+            return None
+    return None
+
+
 _QT_CREATIONDATE_KEY = b"com.apple.quicktime.creationdate"
 _ISO8601_TZ = re.compile(
     rb"(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?([+-]\d{2}):?(\d{2})")

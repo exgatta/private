@@ -94,6 +94,20 @@ class TestCameraWallTime(unittest.TestCase):
                          datetime.datetime(2026, 9, 14, 14, 56, 35))
         self.assertIsNone(mp4.camera_wall_time(None))
 
+    def test_wall_time_from_name(self):
+        self.assertEqual(
+            mp4.wall_time_from_name("/x/DJI_20260913130411_0001_D.MP4"),
+            datetime.datetime(2026, 9, 13, 13, 4, 11))
+        self.assertEqual(
+            mp4.wall_time_from_name("VID_20250915_125402_00_062.mp4"),
+            datetime.datetime(2025, 9, 15, 12, 54, 2))
+        self.assertEqual(
+            mp4.wall_time_from_name("LRV_20250915_125402_00_062.mp4"),
+            datetime.datetime(2025, 9, 15, 12, 54, 2))
+        self.assertIsNone(mp4.wall_time_from_name("GH010001.MP4"))
+        self.assertIsNone(mp4.wall_time_from_name("DJI_0001.MP4"))
+        self.assertIsNone(mp4.wall_time_from_name("DJI_20261399999999_0001_D.MP4"))
+
     def test_quicktime_creationdate_preferred(self):
         # iPhone 相当: タイムゾーン付きの正確な記録があればそれを使う
         blob = (b"xxxx" + b"com.apple.quicktime.creationdate" + b"\x00" * 8

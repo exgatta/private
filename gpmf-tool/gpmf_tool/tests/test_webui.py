@@ -267,7 +267,7 @@ class TestWebUIServer(unittest.TestCase):
         for key in ("id", "path", "name", "size", "size_text", "duration",
                     "duration_text", "width", "height", "resolution_text",
                     "fps", "codec", "created_iso", "created_text",
-                    "kind_text", "has_gpmd", "has_gps", "is_360", "error",
+                    "created_note", "kind_text", "has_gpmd", "has_gps", "is_360", "error",
                     "warning", "selected"):
             self.assertIn(key, e)
         self.assertEqual(e["resolution_text"], "1920 x 1080")

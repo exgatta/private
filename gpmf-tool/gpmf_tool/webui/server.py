@@ -273,6 +273,7 @@ def entry_to_json(e: Any) -> dict:
         "codec": g("codec", "") or "",
         "created_iso": created.isoformat() if created else None,
         "created_text": g("created_text", "-"),
+        "created_note": g("created_note", "") or "",
         "kind_text": g("kind_text", "動画"),
         "has_gpmd": bool(g("has_gpmd", False)),
         "has_gps": bool(g("has_gps", False)),

@@ -26,6 +26,7 @@ class FileEntry:
     codec: str = ""
     created: Optional[datetime.datetime] = None        # 差分計算用
     created_local: Optional[datetime.datetime] = None  # 表示用の壁時計 (naive)
+    created_source: str = ""       # "filename" | "quicktime" | "camera" | ""
     has_gpmd: bool = False
     has_gps: bool = False
     is_360: bool = False
@@ -53,11 +54,31 @@ class FileEntry:
 
     @property
     def created_text(self) -> str:
-        """撮影日時の表示。カメラの時計の値をそのまま出す (TZ 変換しない)。"""
+        """撮影日時の表示。カメラの時計の値 (ローカル時刻) をそのまま出す。
+
+        ファイル名に時刻がある DJI / Insta360 はそれを使う (動画内の mvhd が
+        UTC の機種でも正しい時刻になる)。無ければ動画内の値を TZ 変換せずに。
+        """
         wall = self.created_local or mp4.camera_wall_time(self.created)
         if wall is None:
             return "-"
         return f"{wall:%Y/%m/%d %H:%M}"
+
+    @property
+    def created_note(self) -> str:
+        """撮影日時の出典 (詳細ペイン用)。ファイル名優先のときだけ補足する。"""
+        if self.created_source != "filename":
+            return ""
+        inner = mp4.camera_wall_time(self.created)
+        if inner is None or self.created_local is None:
+            return "ファイル名の時刻"
+        diff = (inner - self.created_local).total_seconds()
+        if abs(diff) < 60:
+            return "ファイル名の時刻"
+        sign = "+" if diff > 0 else "-"
+        h, m = divmod(int(round(abs(diff) / 60)), 60)   # 分単位に丸める
+        return (f"ファイル名の時刻。動画内の記録 {inner:%H:%M} は "
+                f"{sign}{h}:{m:02d} ずれている (UTC 記録の機種)")
 
     @property
     def kind_text(self) -> str:
@@ -176,7 +197,14 @@ def analyze_file(path: str) -> FileEntry:
             entry.fps = m["fps"] or 0.0
             entry.codec = m["video_codec"] or ""
             entry.created = m["creation_time"]
-            entry.created_local = m.get("creation_local")
+            # 表示用: ファイル名の時刻 (カメラの時計) > 動画内の値
+            name_wall = mp4.wall_time_from_name(path)
+            if name_wall is not None:
+                entry.created_local = name_wall
+                entry.created_source = "filename"
+            else:
+                entry.created_local = m.get("creation_local")
+                entry.created_source = m.get("creation_source") or ""
         except Exception as e:
             entry.error = _explain(e)
             return entry

@@ -474,5 +474,31 @@ class TestKeepTimestampLocal(unittest.TestCase):
                          datetime.datetime(2026, 9, 14, 14, 56, 35))
         expected = time.mktime(stats["shot_at"].timetuple())
         self.assertAlmostEqual(os.path.getmtime(out), expected, delta=2)
+
+    def test_shot_at_prefers_filename_time_for_dji(self):
+        """DJI (mvhd が UTC) は結合結果の撮影日時・更新日時をファイル名の
+        時刻 (JST) にする。"""
+        import time
+        d = tempfile.mkdtemp()
+        inner = datetime.datetime(2026, 9, 14, 1, 51, 54,
+                                  tzinfo=datetime.timezone.utc)
+        EPOCH = datetime.datetime(1904, 1, 1, tzinfo=datetime.timezone.utc)
+        paths = []
+        for name in ("DJI_20260914105154_0005_D.MP4",
+                     "DJI_20260914105155_0006_D.MP4"):
+            data = bytearray(build_multi_sample_mp4("X", 10))
+            ct = int((inner - EPOCH).total_seconds())
+            j = data.find(b"mvhd")
+            data[j + 8:j + 16] = struct.pack(">II", ct, ct)
+            p = os.path.join(d, name)
+            with open(p, "wb") as f:
+                f.write(bytes(data))
+            paths.append(p)
+        out = os.path.join(d, "j.mp4")
+        stats = concat.concat_files(paths, out)
+        self.assertEqual(stats["shot_at"],
+                         datetime.datetime(2026, 9, 14, 10, 51, 54))
+        expected = time.mktime(stats["shot_at"].timetuple())
+        self.assertAlmostEqual(os.path.getmtime(out), expected, delta=2)
 if __name__ == "__main__":
     unittest.main()

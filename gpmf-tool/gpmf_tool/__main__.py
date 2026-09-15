@@ -543,7 +543,14 @@ def cmd_info(args: argparse.Namespace) -> None:
         print("\n動画情報:")
         dur = m["duration_sec"]
         print(f"  長さ: {int(dur // 60)}分{dur % 60:.0f}秒 ({dur:.2f}秒)")
-        if m.get("creation_local"):
+        name_wall = mp4.wall_time_from_name(args.file)
+        if name_wall is not None:
+            print(f"  撮影日時: {name_wall:%Y-%m-%d %H:%M:%S} (ファイル名の時刻)")
+            inner = m.get("creation_local")
+            if inner and abs((inner - name_wall).total_seconds()) >= 60:
+                print(f"    動画内の記録: {inner:%Y-%m-%d %H:%M:%S} "
+                      "(この機種は UTC で記録している可能性)")
+        elif m.get("creation_local"):
             src = ("タイムゾーン付きの記録" if m.get("creation_source") == "quicktime"
                    else "カメラの時計の値をそのまま表示")
             print(f"  撮影日時: {m['creation_local']:%Y-%m-%d %H:%M:%S} ({src})")

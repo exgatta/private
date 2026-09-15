@@ -521,6 +521,21 @@ class TestDJIInternalMarker(_Base):
                       "0009 は新しい撮影の先頭", text)
         self.assertIn("分割された1本の撮影 (4 個)", text)
 
+    def test_diagnose_notes_utc_offset_of_internal_time(self):
+        """Osmo Pocket 4 Pro は mvhd が UTC。診断には名前の時刻との差を出す。"""
+        inner = datetime.datetime(2026, 9, 13, 4, 4, 12,
+                                  tzinfo=datetime.timezone.utc)
+        p = self._make("DJI_20260913130411_0001_D.MP4", shot=inner)
+        text = split_detect.diagnose([p])
+        self.assertIn("動画内の撮影時刻 2026/09/13 04:04:12 "
+                      "(名前の時刻との差 -8:59:59 = UTC 記録)", text)
+        # 名前と一致していれば補足なし
+        q = self._make("DJI_20260913130411_0002_D.MP4",
+                       shot=inner + datetime.timedelta(hours=9))
+        text = split_detect.diagnose([q])
+        self.assertIn("動画内の撮影時刻 2026/09/13 13:04:12 /", text)
+        self.assertNotIn("名前の時刻との差", text)
+
     def test_read_dji_udta_parses_real_layout(self):
         h = "DJI_20260914105154_0005_D.MP4"
         p = self._make("DJI_20260914105155_0006_D.MP4", fsid=h, gpid=2)

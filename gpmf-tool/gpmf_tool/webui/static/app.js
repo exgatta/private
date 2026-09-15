@@ -612,7 +612,7 @@ function updateDetails() {
     ['解像度', e.resolution_text],
     ['fps', e.fps ? e.fps.toFixed(2) : null],
     ['コーデック', e.codec || null],
-    ['撮影日時', e.created_text],
+    ['撮影日時', e.created_text + (e.created_note ? ` (${e.created_note})` : '')],
     ['種類', e.kind_text],
     ['グループ', f.g.is_split ? `分割 (${f.g.entries.indexOf(e) + 1} / ${f.g.entries.length} 番目)` : '単独'],
     ['結合対象', e.error ? '不可' : (e.selected ? 'はい' : 'いいえ')],

@@ -237,3 +237,29 @@ class TestCreatedTextNoTimezoneShift(unittest.TestCase):
         e = browse.analyze_file(p)
         # 旧実装は astimezone() で 23:56 (翌日になることも) と表示していた
         self.assertEqual(e.created_text, "2026/09/14 14:56")
+
+    def test_dji_utc_mvhd_shows_filename_time(self):
+        """Osmo Pocket 4 Pro は mvhd に UTC を書く (実測: 名前 13:04:11 JST に
+        対し動画内 04:04:12)。表示はファイル名の時刻 (JST) にする。"""
+        inner = datetime.datetime(2026, 9, 13, 4, 4, 12,
+                                  tzinfo=datetime.timezone.utc)
+        data = bytearray(build_multi_sample_mp4("X", 30))
+        ct = int((inner - EPOCH).total_seconds())
+        i = data.find(b"mvhd")
+        data[i + 8:i + 16] = struct.pack(">II", ct, ct)
+        p = os.path.join(self.dir, "DJI_20260913130411_0001_D.MP4")
+        with open(p, "wb") as f:
+            f.write(bytes(data))
+        e = browse.analyze_file(p)
+        self.assertEqual(e.created_text, "2026/09/13 13:04")
+        self.assertEqual(e.created_source, "filename")
+        self.assertIn("動画内の記録 04:04 は -9:00 ずれている", e.created_note)
+        # 差分計算用の値は動画内のまま (判定は同じ基準同士で比べる)
+        self.assertEqual(e.created, inner)
+        # ファイル名に時刻が無いファイルは補足なし
+        q = os.path.join(self.dir, "GH010001.MP4")
+        with open(q, "wb") as f:
+            f.write(bytes(data))
+        e2 = browse.analyze_file(q)
+        self.assertEqual(e2.created_text, "2026/09/13 04:04")
+        self.assertEqual(e2.created_note, "")
