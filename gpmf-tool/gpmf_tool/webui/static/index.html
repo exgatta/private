@@ -79,8 +79,10 @@
   <div class="actionbar">
     <button id="btn-join" class="btn btn-primary" type="button" disabled>結合する</button>
     <div class="dropdown" id="gopro-dd">
-      <button id="btn-join-gopro" class="btn" type="button" disabled>結合して GoPro 化 ▾</button>
+      <button id="btn-join-gopro" class="btn" type="button" disabled
+              title="分割グループは結合してから GoPro 化。チェックが 1 本だけのグループ (単独の動画) はそのまま GoPro 化">GoPro 化 ▾</button>
       <div class="popover hidden" id="gopro-pop">
+        <p class="hint">分割グループは結合してから GoPro 化します。単独の動画 (「単独の動画も表示」でチェック) は結合せずそのまま GoPro 化します。</p>
         <div class="pop-row">
           <label for="device">機種</label>
           <select id="device" class="tb-select"></select>
@@ -99,7 +101,7 @@
           <input id="rate" class="tb-input narrow" type="number" min="1" max="50" step="1" value="10">
         </div>
         <div class="pop-actions">
-          <button id="btn-gopro-run" class="btn btn-primary" type="button">結合して GoPro 化を実行</button>
+          <button id="btn-gopro-run" class="btn btn-primary" type="button">GoPro 化を実行</button>
         </div>
       </div>
     </div>
@@ -114,7 +116,7 @@
   <!-- ===== 進捗パネル (結合中〜完了) ===== -->
   <div class="overlay hidden" id="progress">
     <div class="panel">
-      <div class="panel-title" id="progress-title">結合しています…</div>
+      <div class="panel-title" id="progress-title">処理しています…</div>
       <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
       <div class="progress-text" id="progress-text"></div>
       <pre class="log" id="progress-log"></pre>

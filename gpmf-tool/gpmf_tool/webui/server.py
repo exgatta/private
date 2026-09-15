@@ -303,10 +303,14 @@ def group_to_json(grp: Any, index: int) -> dict:
 
 
 def default_join_output(files: List[str], out_dir: str, gopro: bool) -> str:
-    """結合の出力名: <末尾の数字/_/- を除いた stem>_結合[_gopro]<ext>。"""
+    """出力名。結合: <末尾の数字/_/- を除いた stem>_結合[_gopro]<ext>。
+    単独 (1 本だけの GoPro 化): <stem>_gopro<ext> (CLI の inject と同じ)。"""
     stem, ext = os.path.splitext(os.path.basename(files[0]))
-    stem = stem.rstrip("0123456789_-") or stem
-    suffix = "_結合_gopro" if gopro else "_結合"
+    if len(files) == 1:
+        suffix = "_gopro"
+    else:
+        stem = stem.rstrip("0123456789_-") or stem
+        suffix = "_結合_gopro" if gopro else "_結合"
     base = os.path.join(out_dir, f"{stem}{suffix}{ext or '.mp4'}")
     if not os.path.exists(base):
         return base
@@ -316,6 +320,42 @@ def default_join_output(files: List[str], out_dir: str, gopro: bool) -> str:
         if not os.path.exists(cand):
             return cand
         n += 1
+
+
+def _shot_time(path: str):
+    """撮影日時 (カメラの時計の値, naive)。ファイル名 > 動画内。無ければ None。"""
+    from .. import mp4
+    wall = mp4.wall_time_from_name(path)
+    if wall is not None:
+        return wall
+    try:
+        with open(path, "rb") as f:
+            return mp4.camera_wall_time(mp4.media_summary(f)["creation_time"])
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _copy_mtime(src: str, dst: str, shot) -> None:
+    """出力ファイルの更新日時を撮影日時 (無ければ元ファイルの更新日時) にする。
+
+    concat.concat_files の keep_timestamp と同じ流儀 (カメラの時計の値を
+    この PC のローカル時刻として解釈する)。
+    """
+    try:
+        if shot is not None:
+            ts = time.mktime(shot.timetuple())
+        else:
+            ts = os.path.getmtime(src)
+        os.utime(dst, (ts, ts))
+    except (OSError, OverflowError, ValueError):
+        pass
+
+
+def _content_disposition(name: str) -> str:
+    """ダウンロード用のファイル名ヘッダ (日本語名は RFC 5987 で)。"""
+    ascii_name = name.encode("ascii", "replace").decode("ascii").replace('"', "")
+    quoted = urllib.parse.quote(name, safe="")
+    return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quoted}"
 
 
 # ---------------------------------------------------------------------------
@@ -336,6 +376,7 @@ class WebUIApp:
         self.scan_jobs: Dict[str, dict] = {}
         self.join_jobs: Dict[str, dict] = {}
         self.entries: Dict[str, str] = {}       # id → path
+        self.outputs: Dict[str, str] = {}       # id → 作成した出力ファイル
         self.thumb_cache: Dict[str, Optional[tuple]] = {}
         self.quit_event = threading.Event()
         self.busy = False                        # 結合中はスキャンも拒否
@@ -393,9 +434,17 @@ class WebUIApp:
             text += "\n\n" + metadump.dump_files(files)
         return text
 
-    # --- 結合 ------------------------------------------------------------
+    # --- 結合 / 単独の GoPro 化 -------------------------------------------
     def start_join(self, req: dict) -> str:
+        """結合ジョブを始める。
+
+        groups の各要素は {"files": [...]}。2 本以上なら結合 (gopro=True なら
+        結合と同時に GoPro 化)。1 本だけなら結合はせず、gopro=True のときに
+        その 1 本をそのまま GoPro 化する (<stem>_gopro.mp4)。gopro=False で
+        1 本だけならすることが無いのでスキップする。
+        """
         from .. import concat
+        from ..__main__ import inject_file
         job_id = secrets.token_hex(6)
         groups = req.get("groups") or []
         out_dir = req.get("out_dir") or ""
@@ -422,26 +471,47 @@ class WebUIApp:
                 os.makedirs(out_dir, exist_ok=True)
                 for gi, g in enumerate(groups, 1):
                     files = list(g.get("files") or [])
-                    if len(files) < 2:
-                        log(f"[{gi}/{len(groups)}] 2本未満のためスキップ")
+                    if not files or (len(files) < 2 and not gopro):
+                        log(f"[{gi}/{len(groups)}] 1本だけなので結合するものが"
+                            "ありません (GoPro 化なら単独でも処理できます)")
                         job["done"] = gi
                         continue
+                    single = len(files) == 1
                     out = default_join_output(files, out_dir, gopro)
-                    log(f"--- [{gi}/{len(groups)}] {len(files)} 個を結合 → "
-                        f"{os.path.basename(out)} ---")
+                    if single:
+                        log(f"--- [{gi}/{len(groups)}] 単独の動画を GoPro 化 → "
+                            f"{os.path.basename(out)} ---")
+                    else:
+                        log(f"--- [{gi}/{len(groups)}] {len(files)} 個を結合 → "
+                            f"{os.path.basename(out)} ---")
                     for f in files:
                         log(f"    + {os.path.basename(f)}")
                     try:
-                        stats = concat.concat_files(
-                            files, out, log=log,
-                            gopro_device=device if gopro else None,
-                            gpx=gpx if gopro else None,
-                            from_video=from_video if gopro else False,
-                            rate=rate)
+                        if single:
+                            st = inject_file(
+                                files[0], out, device, gpx=gpx, rate=rate,
+                                from_video=from_video, log=log)
+                            shot = _shot_time(files[0])
+                            stats = {
+                                "duration_sec": st.get("duration", 0),
+                                "bytes": os.path.getsize(out),
+                                "gopro": st.get("device_name"),
+                                "shot_at": shot,
+                            }
+                            _copy_mtime(files[0], out, shot)
+                        else:
+                            stats = concat.concat_files(
+                                files, out, log=log,
+                                gopro_device=device if gopro else None,
+                                gpx=gpx if gopro else None,
+                                from_video=from_video if gopro else False,
+                                rate=rate)
                         shot = stats.get("shot_at")
                         res = {
+                            "id": entry_id(out),
                             "output": out,
                             "name": os.path.basename(out),
+                            "single": single,
                             "duration_sec": stats.get("duration_sec", 0),
                             "bytes": stats.get("bytes", 0),
                             "gopro": stats.get("gopro"),
@@ -449,6 +519,8 @@ class WebUIApp:
                                         if shot else None),
                             "error": None,
                         }
+                        with self.lock:
+                            self.outputs[res["id"]] = out
                         d = res["duration_sec"]
                         log(f"  完了: {out}")
                         log(f"    長さ {int(d // 60)}分{d % 60:.0f}秒 / "
@@ -456,12 +528,15 @@ class WebUIApp:
                         if res["gopro"]:
                             log(f"    GoPro化: {res['gopro']}")
                         if res["shot_at"]:
-                            log(f"    撮影日時: {res['shot_at']} (先頭素材から引き継ぎ)")
+                            log(f"    撮影日時: {res['shot_at']} "
+                                + ("(元の動画から引き継ぎ)" if single
+                                   else "(先頭素材から引き継ぎ)"))
                     except Exception as e:  # noqa: BLE001
                         msg = _humanize(e)
                         failed.append(f"{os.path.basename(out)}: {msg}")
                         log(f"  エラー: {msg}")
-                        res = {"output": out, "name": os.path.basename(out),
+                        res = {"id": None, "output": out,
+                               "name": os.path.basename(out), "single": single,
                                "duration_sec": 0, "bytes": 0, "gopro": None,
                                "shot_at": None, "error": msg}
                         # 失敗した書きかけファイルは残さない
@@ -473,7 +548,7 @@ class WebUIApp:
                     job["results"].append(res)
                     job["done"] = gi
                 ok = sum(1 for r in job["results"] if not r["error"])
-                log(f"=== 結合おわり: 成功 {ok} / 失敗 {len(failed)} ===")
+                log(f"=== おわり: 成功 {ok} / 失敗 {len(failed)} ===")
                 if failed:
                     job["error"] = "\n".join(failed)
                 job["state"] = "error" if (failed and not ok) else "done"
@@ -654,8 +729,16 @@ class _Handler(BaseHTTPRequestHandler):
                              {"Cache-Control": "private, max-age=3600"})
             return
         if path == "/api/file":
+            # 一覧の動画そのもの (プレビュー用。dl=1 でブラウザにダウンロードさせる)
             eid = (query.get("id") or [""])[0]
-            return self._stream_file(app.entries.get(eid))
+            dl = (query.get("dl") or ["0"])[0] in ("1", "true")
+            return self._stream_file(app.entries.get(eid), download=dl)
+        if path == "/api/download":
+            # このサーバが作った出力ファイルだけ配信する (任意のパスは不可)
+            eid = (query.get("id") or [""])[0]
+            with app.lock:
+                target = app.outputs.get(eid)
+            return self._stream_file(target, download=True)
         if path == "/api/diagnose":
             job = app.scan_jobs.get((query.get("job") or [""])[0])
             if job is None:
@@ -685,7 +768,7 @@ class _Handler(BaseHTTPRequestHandler):
         }
 
     # --- Range 対応のファイル配信 ---------------------------------------
-    def _stream_file(self, path: Optional[str]) -> None:
+    def _stream_file(self, path: Optional[str], download: bool = False) -> None:
         if not path or not os.path.isfile(path):
             return self._error(404, "ファイルがありません")
         size = os.path.getsize(path)
@@ -723,6 +806,9 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Content-Length", str(length))
         self.send_header("Cache-Control", "private, max-age=3600")
+        if download:
+            self.send_header("Content-Disposition",
+                             _content_disposition(os.path.basename(path)))
         if status == 206:
             self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
         self.end_headers()

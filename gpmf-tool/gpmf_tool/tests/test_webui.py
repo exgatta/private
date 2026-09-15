@@ -143,6 +143,14 @@ class TestHelpers(unittest.TestCase):
             pass
         self.assertEqual(webui.default_join_output(files, d, False),
                          os.path.join(d, "DJI_結合 (2).MP4"))
+        # 1 本だけ (単独の GoPro 化) は CLI の inject と同じ <stem>_gopro
+        self.assertEqual(webui.default_join_output([files[0]], d, True),
+                         os.path.join(d, "DJI_0001_gopro.MP4"))
+
+    def test_content_disposition_japanese(self):
+        h = webui._content_disposition("DJI_結合_gopro.MP4")
+        self.assertTrue(h.startswith("attachment;"))
+        self.assertIn("filename*=UTF-8''DJI_%E7%B5%90%E5%90%88_gopro.MP4", h)
 
     def test_recent_dedup_and_limit(self):
         path = os.path.join(tempfile.mkdtemp(), "recent.json")
@@ -396,6 +404,53 @@ class TestWebUIServer(unittest.TestCase):
         with open(res["output"], "rb") as f:
             self.assertTrue(mp4.detect_telemetry(f)["gpmd"])
 
+    def test_single_gopro_and_download(self):
+        """単独の動画 1 本だけを結合せずに GoPro 化し、結果をダウンロードできる。"""
+        out = tempfile.mkdtemp()
+        status, r = self.c.json("POST", "/api/join", {
+            "groups": [{"files": [self.paths["solo"]]}], "out_dir": out,
+            "gopro": True, "device": "hero11"})
+        self.assertEqual(status, 200, r)
+        st = self.c.wait_job("join", r["job"])
+        self.assertEqual(st["state"], "done", st)
+        self.assertEqual(len(st["results"]), 1)
+        res = st["results"][0]
+        self.assertIsNone(res["error"])
+        self.assertTrue(res["single"])
+        self.assertEqual(res["name"], "solo_gopro.mp4")
+        self.assertEqual(res["gopro"], "HERO11 Black")
+        self.assertTrue(os.path.isfile(res["output"]))
+        self.assertTrue(any("単独の動画を GoPro 化" in line for line in st["log"]))
+        with open(res["output"], "rb") as f:
+            self.assertTrue(mp4.detect_telemetry(f)["gpmd"])
+        # 出来上がったファイルはブラウザでダウンロードできる (添付ヘッダ付き)
+        status, hdr, body = self.c.raw("GET", f"/api/download?id={res['id']}")
+        self.assertEqual(status, 200)
+        self.assertIn("attachment", hdr["content-disposition"])
+        self.assertIn("solo_gopro.mp4", hdr["content-disposition"])
+        self.assertEqual(len(body), res["bytes"])
+        # 作っていないファイルの id は配信しない
+        status, _, _ = self.c.raw("GET", "/api/download?id=" + webui.entry_id(self.paths["a0"]))
+        self.assertEqual(status, 404)
+        # 元の動画も dl=1 でダウンロードできる
+        solo = self.entry("solo.mp4")
+        status, hdr, _ = self.c.raw("GET", f"/api/file?id={solo['id']}&dl=1")
+        self.assertEqual(status, 200)
+        self.assertIn("solo.mp4", hdr["content-disposition"])
+        status, hdr, _ = self.c.raw("GET", f"/api/file?id={solo['id']}")
+        self.assertNotIn("content-disposition", hdr)
+
+    def test_single_without_gopro_is_skipped(self):
+        status, r = self.c.json("POST", "/api/join", {
+            "groups": [{"files": [self.paths["solo"]]}], "out_dir": self.out,
+            "gopro": False})
+        self.assertEqual(status, 200, r)
+        st = self.c.wait_job("join", r["job"])
+        self.assertEqual(st["state"], "done", st)
+        self.assertEqual(st["results"], [])
+        self.assertTrue(any("1本だけ" in line for line in st["log"]))
+        self.assertFalse(os.path.exists(os.path.join(self.out, "solo_gopro.mp4")))
+
     def test_join_failure_is_japanese(self):
         # 1 本だけ → concat が MP4Error を出す → 日本語のまま返る
         status, r = self.c.json("POST", "/api/join", {
@@ -538,8 +593,20 @@ class TestWebUIBrowser(unittest.TestCase):
         self.assertEqual(page.locator("tr.item.broken").count(), 1)
         self.assertEqual(page.locator("tr.item.broken .warn-icon").count(), 1)
         self.assertTrue(page.locator("tr.item.broken input[type=checkbox]").is_disabled())
+        # 表示中の単独の動画 (solo.mp4) は GoPro 化の対象に数えられる (壊れた方は除外)
+        self.assertIn("単独 GoPro 化 1 件", page.locator("#status-text").inner_text())
+        self.assertFalse(page.locator("#btn-join-gopro").is_disabled())
+        # 単独の行の詳細に「この動画だけ GoPro 化」と「ダウンロード」がある
+        page.click("tr.item:has-text('solo.mp4')")
+        page.wait_for_selector("#details-body .actions")
+        self.assertEqual(page.locator("#details-body .actions button").inner_text(), "この動画だけ GoPro 化")
+        dl = page.locator("#details-body .actions a")
+        self.assertEqual(dl.inner_text(), "ダウンロード")
+        self.assertIn("/api/file?id=", dl.get_attribute("href"))
+        self.assertIn("dl=1", dl.get_attribute("href"))
         page.uncheck("#opt-solo")
         page.wait_for_function("document.querySelectorAll('tr.item').length === 3")
+        self.assertNotIn("単独 GoPro 化", page.locator("#status-text").inner_text())
 
         # チェックを外すとステータスバーの件数が変わる
         page.locator("tr.item input[type=checkbox]").first.uncheck()

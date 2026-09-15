@@ -149,8 +149,18 @@ function groupTitle(g) {
   if (!g.is_split) return `単独の動画 (${fmtDur(t.dur)})`;
   return `分割された1本の撮影 — ${t.n}個 / ${fmtDur(t.dur)} / ${fmtSize(t.size)}`;
 }
+// 「結合する」の対象: 2 本以上チェックされた分割グループ
 function joinableGroups() {
   return state.groups.filter(g => g.is_split && checkedEntries(g).length >= 2);
+}
+// 「GoPro 化」で単独のまま処理する対象: チェックが 1 本だけのグループ。
+// 単独の動画は「単独の動画も表示」で見えているときだけ対象にする
+// (非表示のものまで黙って処理しないため)。
+function singleGoproGroups() {
+  return state.groups.filter(g => (g.is_split || state.showSolo) && checkedEntries(g).length === 1);
+}
+function goproTargets() {
+  return [...joinableGroups(), ...singleGoproGroups()];
 }
 function sortKey(e, key) {
   switch (key) {
@@ -399,7 +409,7 @@ function render() {
   const nSolo = state.groups.filter(g => !g.is_split).length;
   if (!state.scanned) { et.textContent = 'フォルダを選んでスキャンすると、ここに動画が一覧表示されます。'; empty.classList.remove('hidden'); }
   else if (!state.groups.length) { et.textContent = 'このフォルダには動画 (.mp4 / .mov / .m4v / .360) が見つかりませんでした。'; empty.classList.remove('hidden'); }
-  else if (!vis.length) { et.textContent = `分割された動画は見つかりませんでした。単独の動画 ${nSolo} 個は非表示です（「単独の動画も表示」で表示できます）。`; empty.classList.remove('hidden'); }
+  else if (!vis.length) { et.textContent = `分割された動画は見つかりませんでした。単独の動画 ${nSolo} 個は非表示です（「単独の動画も表示」で表示すると、単独のまま GoPro 化やダウンロードができます）。`; empty.classList.remove('hidden'); }
   else empty.classList.add('hidden');
   // 表示されなくなった選択は捨てる
   const keys = new Set(rowKeys());
@@ -529,14 +539,16 @@ $('#scroll').addEventListener('keydown', ev => {
 function updateStatus() {
   const nFiles = state.groups.reduce((a, g) => a + g.entries.length, 0);
   const joinable = joinableGroups();
+  const singles = singleGoproGroups();
   let nSel = 0, bytes = 0;
-  for (const g of state.groups) if (g.is_split) for (const e of checkedEntries(g)) { nSel++; bytes += e.size || 0; }
-  const parts = [`動画 ${nFiles} 個`, `結合対象 ${joinable.length} 件`,
-                 `選択中 ${nSel} ファイル 合計 ${fmtGB(bytes)}（出力に同容量の空きが必要）`];
+  for (const g of state.groups) if (g.is_split || state.showSolo) for (const e of checkedEntries(g)) { nSel++; bytes += e.size || 0; }
+  const parts = [`動画 ${nFiles} 個`, `結合対象 ${joinable.length} 件`];
+  if (singles.length) parts.push(`単独 GoPro 化 ${singles.length} 件`);
+  parts.push(`選択中 ${nSel} ファイル 合計 ${fmtGB(bytes)}（出力に同容量の空きが必要）`);
   $('#status-text').textContent = parts.join(' / ');
-  const can = joinable.length > 0 && !state.joining && !state.scanning && !state.quit;
-  $('#btn-join').disabled = !can;
-  $('#btn-join-gopro').disabled = !can;
+  const idle = !state.joining && !state.scanning && !state.quit;
+  $('#btn-join').disabled = !(idle && joinable.length > 0);
+  $('#btn-join-gopro').disabled = !(idle && (joinable.length > 0 || singles.length > 0));
 }
 function dl(pairs) {
   const d = el('dl', { class: 'dl' });
@@ -617,6 +629,17 @@ function updateDetails() {
     ['グループ', f.g.is_split ? `分割 (${f.g.entries.indexOf(e) + 1} / ${f.g.entries.length} 番目)` : '単独'],
     ['結合対象', e.error ? '不可' : (e.selected ? 'はい' : 'いいえ')],
   ]));
+  if (!e.error) {
+    // この 1 本だけを対象にした操作 (結合せずに GoPro 化 / 元ファイルのダウンロード)
+    const acts = el('div', { class: 'actions' });
+    acts.append(el('button', { class: 'btn small', type: 'button', text: 'この動画だけ GoPro 化',
+      title: '結合せず、この 1 本をそのまま GoPro 化します (機種・GPX などは「GoPro 化 ▾」の設定を使います)',
+      disabled: state.joining || state.scanning || state.quit,
+      onclick: () => startJoin(true, [{ files: [e.path] }]) }));
+    acts.append(el('a', { class: 'btn small', href: mediaUrl('/api/file?id=' + e.id + '&dl=1'), download: e.name,
+      title: '元の動画をそのままブラウザでダウンロード', text: 'ダウンロード' }));
+    body.append(acts);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -757,10 +780,18 @@ function setJoining(on) {
   for (const id of ['btn-scan', 'btn-pick', 'btn-outdir', 'btn-quit']) $('#' + id).disabled = on || state.quit;
   updateStatus();
 }
-async function startJoin(gopro) {
+// gopro=false: 2 本以上の分割グループを結合。gopro=true: 分割グループは結合して
+// GoPro 化、チェックが 1 本だけのグループ (単独の動画など) はそのまま GoPro 化。
+// only を渡すとその {files} 列だけを処理する (詳細ペインの「この動画だけ」)。
+async function startJoin(gopro, only) {
   if (state.joining || state.scanning || state.quit) return;
-  const groups = joinableGroups().map(g => ({ files: checkedEntries(g).map(e => e.path) }));
-  if (!groups.length) { alert('結合対象がありません。2つ以上チェックされた分割グループが必要です。'); return; }
+  const groups = only || (gopro ? goproTargets() : joinableGroups())
+    .map(g => ({ files: checkedEntries(g).map(e => e.path) }));
+  if (!groups.length) {
+    alert(gopro ? 'GoPro 化する動画がありません。分割グループか、単独の動画 (「単独の動画も表示」で表示) をチェックしてください。'
+                : '結合対象がありません。2つ以上チェックされた分割グループが必要です。');
+    return;
+  }
   let outDir = $('#outdir').value.trim() || state.outDir || state.folder;
   if (!outDir) { outDir = await pickFolder('outdir'); if (!outDir) return; }
   state.outDir = outDir;
@@ -771,10 +802,13 @@ async function startJoin(gopro) {
   savePrefs();
   $('#gopro-pop').classList.add('hidden');
   const total = groups.reduce((a, g) => a + g.files.length, 0);
+  const nJoin = groups.filter(g => g.files.length >= 2).length, nSingle = groups.length - nJoin;
   const body = { groups, out_dir: outDir, gopro: !!gopro, device: state.device,
                  gpx: gopro ? (state.gpx || null) : null, from_video: gopro && state.fromVideo, rate: state.rate };
   setJoining(true);
-  openProgress(`${groups.length} 件 (${total} ファイル) を結合しています…`);
+  const what = [nJoin ? `${nJoin} 件を結合${gopro ? 'して GoPro 化' : ''}` : '',
+                nSingle ? `${nSingle} 本を単独のまま GoPro 化` : ''].filter(Boolean).join(' / ');
+  openProgress(`${what} (${total} ファイル) しています…`);
   try {
     const { job } = await api('/api/join', body);
     await pollJoin(job, outDir);
@@ -816,17 +850,17 @@ async function pollJoin(job, outDir) {
     }
     const pct = st.total ? Math.round(st.done * 100 / st.total) : 0;
     $('#progress-fill').style.width = pct + '%';
-    $('#progress-text').textContent = `${st.done} / ${st.total} グループ`;
+    $('#progress-text').textContent = `${st.done} / ${st.total} 件`;
     renderResults(st.results || []);
     if (st.state === 'running') continue;
     const ok = (st.results || []).filter(r => !r.error).length;
     if (st.state === 'error' && !ok) {
-      $('#progress-title').textContent = '結合できませんでした';
+      $('#progress-title').textContent = '処理できませんでした';
       $('#progress-fill').classList.add('err');
     } else if (st.error) {
-      $('#progress-title').textContent = `結合おわり: ${ok} 本を作成 (一部失敗)`;
+      $('#progress-title').textContent = `おわり: ${ok} 本を作成 (一部失敗)`;
     } else {
-      $('#progress-title').textContent = `結合おわり: ${ok} 本を作成しました`;
+      $('#progress-title').textContent = `おわり: ${ok} 本を作成しました`;
     }
     const open = $('#btn-open-outdir');
     open.disabled = false;
@@ -840,6 +874,7 @@ function renderResults(results) {
   box.replaceChildren();
   for (const r of results) {
     const row = el('div', { class: 'result' + (r.error ? ' fail' : '') });
+    if (r.single) row.append(el('span', { class: 'kind-badge', text: '単独' }));
     row.append(el('span', { class: 'rname', text: r.name || r.output }));
     if (r.error) row.append(el('span', { class: 'rmeta', text: r.error }));
     else {
@@ -848,6 +883,8 @@ function renderResults(results) {
       row.append(el('span', { class: 'spacer' }));
       row.append(el('button', { class: 'btn small', type: 'button', text: '開く',
         onclick: () => api('/api/open', { path: r.output }).catch(e => alert(e.message)) }));
+      if (r.id) row.append(el('a', { class: 'btn small', href: mediaUrl('/api/download?id=' + r.id), download: r.name,
+        title: '出来上がったファイルをブラウザでダウンロード', text: 'ダウンロード' }));
     }
     box.append(row);
   }
