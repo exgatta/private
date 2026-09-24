@@ -1,0 +1,19 @@
+# 秘密情報・認証（誤コミット防止）
+*credential*.json
+*token*.json
+*.key
+*.pem
+.env
+.env.*
+client_secret*.json
+oauth*.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store

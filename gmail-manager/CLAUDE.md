@@ -5,6 +5,9 @@ exgatta@gmail.com の受信メールを毎朝自動で「メルマガ削除＋�
 
 > このファイルは Claude Code が自動で読み込む引き継ぎ用ドキュメント。
 > 別マシン（Web版など）でこのフォルダを開けば、ここを起点に作業を続けられる。
+>
+> **置き場所**: GitHub `exgatta/private` リポジトリの `gmail-manager/` フォルダ（2026-09 に旧 `exgatta/gmail-manager` から移設）。
+> 下記のコマンドはすべて**この `gmail-manager/` フォルダに cd してから**実行する。
 
 ---
 

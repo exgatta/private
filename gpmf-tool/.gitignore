@@ -1,0 +1,4 @@
+# PyInstaller ビルド成果物 (バイナリはコミットしない。各自ビルドする)
+/build/
+/dist/
+/out/

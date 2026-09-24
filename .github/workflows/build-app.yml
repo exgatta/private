@@ -13,15 +13,19 @@ on:
   workflow_dispatch:        # 手動実行 (Actions タブから)
   push:
     branches:
+      - main                 # mac_setup.sh は main の最新成功ビルドを取得する
       - "claude/**"          # 作業ブランチへの push で自動ビルド確認
     paths:                   # ビルドに関係するファイルが変わった時だけ
-      - "gpmf_tool/**"
-      - "gpmf_app.py"
-      - "gpmf_tool.spec"
+      - "gpmf-tool/**"
       - ".github/workflows/build-app.yml"
 
 permissions:
   contents: read
+
+# リポジトリ直下ではなく gpmf-tool/ フォルダでビルドする
+defaults:
+  run:
+    working-directory: gpmf-tool
 
 jobs:
   build:
@@ -81,5 +85,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: out/*
+          path: gpmf-tool/out/*
           if-no-files-found: error

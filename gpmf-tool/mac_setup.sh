@@ -15,8 +15,8 @@
 #   brew install gh && gh auth login
 set -euo pipefail
 
-REPO="exgatta/gmail-manager"
-BRANCH="claude/gpmf-parser-metadata-tool-myrzwo"
+REPO="exgatta/private"
+BRANCH="main"
 ARTIFACT="gpmf-macos-arm64"
 APP_NAME="GPMF-GoPro.app"
 DEST_DIR="${1:-$HOME/Applications}"
