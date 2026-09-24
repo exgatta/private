@@ -1,0 +1,112 @@
+{
+ "_comment": [
+  "Minecraft Education 用のデータ値（aux）対応表の黄金コピー（キーは見た目の向き）。",
+  "blueprint/blockstate.py の AUX_RULES と一致していることを test_pack.py が検査する。",
+  "出所: pmmp/BedrockBlockUpgradeSchema・Nukkit・実機（Education 1.21.133, check_muki.txt）。",
+  "実機で確定した非対称仕様（2026-08-29 の色分けテスト）:",
+  " - sticky_piston: 水平は押す向きの反対を格納（北=3 南=2 東=4 西=5）、上下はそのまま（下=0 上=1）",
+  " - repeater / comparator: 矢印（出力）の反対＝入力側を格納（北=0 東=1 南=2 西=3）",
+  "他のブロックは格納値がそのまま見た目の向き。"
+ ],
+ "aux": {
+  "chest": {
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "cobblestone_stairs": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  },
+  "comparator": {
+   "south": 2,
+   "west": 3,
+   "north": 0,
+   "east": 1
+  },
+  "dispenser": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "dropper": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "hopper": {
+   "down": 0,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "ladder": {
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "oak_fence_gate": {
+   "south": 0,
+   "west": 1,
+   "north": 2,
+   "east": 3
+  },
+  "oak_stairs": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  },
+  "oak_trapdoor": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  },
+  "observer": {
+   "down": 0,
+   "up": 1,
+   "north": 2,
+   "south": 3,
+   "west": 4,
+   "east": 5
+  },
+  "repeater": {
+   "south": 2,
+   "west": 3,
+   "north": 0,
+   "east": 1
+  },
+  "sign": {
+   "south": 0,
+   "west": 4,
+   "north": 8,
+   "east": 12
+  },
+  "sticky_piston": {
+   "north": 3,
+   "south": 2,
+   "east": 4,
+   "west": 5,
+   "down": 0,
+   "up": 1
+  },
+  "stone_brick_stairs": {
+   "east": 0,
+   "west": 1,
+   "south": 2,
+   "north": 3
+  }
+ }
+}

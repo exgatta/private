@@ -1,0 +1,1655 @@
+/* ===========================================================================
+ * マイクラ設計図レンダラ (JavaScript版) — Gemini プロンプト同梱用テンプレート
+ *
+ * このファイルは blueprint/palette.py + model.py + render.py の完全な移植。
+ * Gemini は「このコードを一字一句そのままコピー」し、DESIGN（設計データ）だけを書く。
+ * 図の正しさ・見た目・検品はすべてこの決定的コードが保証する。
+ *
+ * 使い方（HTML内）:
+ *   <script> ...このファイルの中身... </script>
+ *   <script>
+ *     const DESIGN = { name:"...", description:"...", ops:[...], notes:[...],
+ *                      layer_notes:{ } };
+ *     MinecraftBlueprint.mount(DESIGN);
+ *   </script>
+ *
+ * 座標: x=西→東, z=北→南(図では上が北), y=段(0が最下段)
+ * =========================================================================== */
+(function (global) {
+  "use strict";
+
+  /* ------------------------------------------------------------------ palette
+   * palette.py の BLOCKS と完全に同じ（色・記号・日本語名・Bedrock ID・MakeCode名）
+   */
+  var BLOCKS = {
+    grass: { name_ja: "草ブロック", bedrock_id: "grass_block", makecode: "GRASS", color: "#6FA83C", symbol: "草", side_color: "#8A5A33" },
+    dirt: { name_ja: "土", bedrock_id: "dirt", makecode: "DIRT", color: "#8A5A33", symbol: "土" },
+    stone: { name_ja: "石", bedrock_id: "stone", makecode: "STONE", color: "#8F8F8F", symbol: "石" },
+    cobblestone: { name_ja: "丸石", bedrock_id: "cobblestone", makecode: "COBBLESTONE", color: "#767B76", symbol: "丸" },
+    stone_bricks: { name_ja: "石レンガ", bedrock_id: "stone_bricks", makecode: "STONE_BRICKS", color: "#A2A6A2", symbol: "煉" },
+    oak_planks: { name_ja: "オークの板材", bedrock_id: "oak_planks", makecode: "PLANKS_OAK", color: "#BC9458", symbol: "板", flammable: true },
+    spruce_planks: { name_ja: "トウヒの板材", bedrock_id: "spruce_planks", makecode: "PLANKS_SPRUCE", color: "#7A5732", symbol: "ト", flammable: true },
+    oak_log: { name_ja: "オークの原木", bedrock_id: "oak_log", makecode: "LOG_OAK", color: "#B0895A", symbol: "原", flammable: true, side_color: "#66492A" },
+    glass: { name_ja: "ガラス", bedrock_id: "glass", makecode: "GLASS", color: "#C4E4EA", symbol: "ガ", transparent: true },
+    brick: { name_ja: "レンガ", bedrock_id: "brick_block", makecode: "BRICKS", color: "#9E4F3B", symbol: "赤" },
+    sandstone: { name_ja: "砂岩", bedrock_id: "sandstone", makecode: "SANDSTONE", color: "#DECFA0", symbol: "砂" },
+    quartz: { name_ja: "クォーツブロック", bedrock_id: "quartz_block", makecode: "BLOCK_OF_QUARTZ", color: "#EDE8E0", symbol: "白" },
+    wool_white: { name_ja: "白の羊毛", bedrock_id: "white_wool", makecode: "WOOL", color: "#F2F2F2", symbol: "毛", flammable: true },
+    wool_red: { name_ja: "赤の羊毛", bedrock_id: "red_wool", makecode: "RED_WOOL", color: "#C43B3B", symbol: "紅", flammable: true },
+    wool_blue: { name_ja: "青の羊毛", bedrock_id: "blue_wool", makecode: "BLUE_WOOL", color: "#3B58C4", symbol: "青", flammable: true },
+    glowstone: { name_ja: "グロウストーン", bedrock_id: "glowstone", makecode: "GLOWSTONE", color: "#F2D06B", symbol: "光" },
+    mossy_stone_bricks: { name_ja: "苔むした石レンガ", bedrock_id: "mossy_stone_bricks", makecode: "MOSSY_STONE_BRICKS", color: "#7B8F6B", symbol: "苔" },
+    chiseled_stone_bricks: { name_ja: "模様入りの石レンガ", bedrock_id: "chiseled_stone_bricks", makecode: "CHISELED_STONE_BRICKS", color: "#ABAFAB", symbol: "彫" },
+    lava: { name_ja: "溶岩", bedrock_id: "lava", makecode: "LAVA", color: "#F26B1D", symbol: "溶", transparent: true },
+    water: { name_ja: "水", bedrock_id: "water", makecode: "WATER", color: "#3E68C4", symbol: "水", transparent: true },
+    oak_stairs: { name_ja: "オークの階段", bedrock_id: "oak_stairs", makecode: "OAK_WOOD_STAIRS", color: "#B08A50", symbol: "階", transparent: true, orientable: true, shape: "stairs", flammable: true },
+    stone_brick_stairs: { name_ja: "石レンガの階段", bedrock_id: "stone_brick_stairs", makecode: "STONE_BRICK_STAIRS", color: "#9A9E9A", symbol: "段", transparent: true, orientable: true, shape: "stairs" },
+    cobblestone_stairs: { name_ja: "丸石の階段", bedrock_id: "stone_stairs", makecode: "COBBLESTONE_STAIRS", color: "#6E736E", symbol: "坂", transparent: true, orientable: true, shape: "stairs" },
+    oak_slab: { name_ja: "オークのハーフブロック", bedrock_id: "oak_slab", makecode: "OAK_WOOD_SLAB", color: "#C69C60", symbol: "半", transparent: true, shape: "slab", flammable: true },
+    stone_brick_slab: { name_ja: "石レンガのハーフブロック", bedrock_id: "stone_brick_slab", makecode: "STONE_SLAB", makecode_approx: true, color: "#ACB0AC", symbol: "平", transparent: true, shape: "slab" },
+    oak_fence: { name_ja: "オークのフェンス", bedrock_id: "oak_fence", makecode: "OAK_FENCE", color: "#A17C46", symbol: "柵", transparent: true, shape: "thin", flammable: true },
+    oak_fence_gate: { name_ja: "オークのフェンスゲート", bedrock_id: "fence_gate", makecode: "OAK_FENCE_GATE", color: "#B98E4F", symbol: "門", transparent: true, orientable: true, shape: "thin", marker: true, flammable: true },
+    oak_trapdoor: { name_ja: "オークのトラップドア", bedrock_id: "trapdoor", makecode: "WOODEN_TRAPDOOR", color: "#A8813F", symbol: "蓋", transparent: true, orientable: true, shape: "thin", marker: true },
+    iron_bars: { name_ja: "鉄格子", bedrock_id: "iron_bars", makecode: "IRON_BARS", color: "#8E9296", symbol: "格", transparent: true, shape: "thin" },
+    glass_pane: { name_ja: "板ガラス", bedrock_id: "glass_pane", makecode: "GLASS_PANE", color: "#D4EAEF", symbol: "窓", transparent: true, shape: "thin" },
+    cobblestone_wall: { name_ja: "丸石の塀", bedrock_id: "cobblestone_wall", makecode: "COBBLESTONE_WALL", color: "#6A6F6A", symbol: "塀", transparent: true, shape: "thin" },
+    ladder: { name_ja: "はしご", bedrock_id: "ladder", makecode: "LADDER", color: "#9C7A45", symbol: "梯", transparent: true, orientable: true, shape: "thin", marker: true, updown: true },
+    carpet_red: { name_ja: "赤いカーペット", bedrock_id: "red_carpet", makecode: "RED_CARPET", color: "#B03A3A", symbol: "絨", transparent: true, shape: "flat", flammable: true },
+    lantern: { name_ja: "ランタン", bedrock_id: "lantern", makecode: "TORCH", makecode_approx: true, color: "#E8A93C", symbol: "提", transparent: true, shape: "thin", marker: true },
+    sea_lantern: { name_ja: "シーランタン", bedrock_id: "sea_lantern", makecode: "SEA_LANTERN", color: "#B8D6CE", symbol: "海" },
+    bookshelf: { name_ja: "本棚", bedrock_id: "bookshelf", makecode: "BOOKSHELF", color: "#8A6A3E", symbol: "本", flammable: true },
+    crafting_table: { name_ja: "作業台", bedrock_id: "crafting_table", makecode: "CRAFTING_TABLE", color: "#8B6239", symbol: "作" },
+    chest: { name_ja: "チェスト", bedrock_id: "chest", makecode: "CHEST", color: "#A57C3C", symbol: "箱", transparent: true, orientable: true, marker: true },
+    oak_leaves: { name_ja: "オークの葉", bedrock_id: "oak_leaves", makecode: "LEAVES_OAK", color: "#4E8B3A", symbol: "葉", transparent: true, flammable: true },
+    flower_poppy: { name_ja: "ポピー（赤い花）", bedrock_id: "poppy", makecode: "POPPY", color: "#CE4040", symbol: "花", transparent: true, shape: "flat", marker: true, flammable: true },
+    flower_dandelion: { name_ja: "タンポポ（黄色い花）", bedrock_id: "dandelion", makecode: "YELLOW_FLOWER", color: "#E3C93F", symbol: "菊", transparent: true, shape: "flat", marker: true, flammable: true },
+    wool_yellow: { name_ja: "黄色の羊毛", bedrock_id: "yellow_wool", makecode: "YELLOW_WOOL", color: "#D8C13A", symbol: "黄", flammable: true },
+    wool_green: { name_ja: "緑の羊毛", bedrock_id: "green_wool", makecode: "GREEN_WOOL", color: "#4E7A32", symbol: "緑", flammable: true },
+    wool_black: { name_ja: "黒の羊毛", bedrock_id: "black_wool", makecode: "BLACK_WOOL", color: "#2B2B2E", symbol: "黒", flammable: true },
+    tnt: { name_ja: "TNT", bedrock_id: "tnt", makecode: "TNT", color: "#D9472B", symbol: "爆", flammable: true },
+    redstone_block: { name_ja: "レッドストーンブロック", bedrock_id: "redstone_block", makecode: "REDSTONE_BLOCK", color: "#8E1616", symbol: "動", redstone: true },
+    sticky_piston: { name_ja: "粘着ピストン", bedrock_id: "sticky_piston", makecode: "STICKY_PISTON", color: "#8AA05A", symbol: "押", orientable: true, marker: true, piston: true, redstone: true, updown: true },
+    redstone_wire: { name_ja: "レッドストーンダスト", bedrock_id: "redstone_wire", makecode: "REDSTONE_WIRE", color: "#E03A2A", symbol: "線", marker: true, redstone: true },
+    redstone_torch: { name_ja: "レッドストーントーチ", bedrock_id: "redstone_torch", makecode: "REDSTONE_TORCH", color: "#C22F1E", symbol: "信", marker: true, redstone: true },
+    stone_pressure_plate: { name_ja: "石の感圧板", bedrock_id: "stone_pressure_plate", makecode: "STONE_PRESSURE_PLATE", color: "#B8B8B8", symbol: "踏", marker: true, redstone: true },
+    lever: { name_ja: "レバー", bedrock_id: "lever", makecode: "LEVER", color: "#8B7355", symbol: "柄", marker: true, redstone: true },
+    hopper: { name_ja: "ホッパー", bedrock_id: "hopper", makecode: "HOPPER", color: "#4A4E52", symbol: "漏", transparent: true, orientable: true, marker: true, redstone: true, updown: true },
+    dispenser: { name_ja: "ディスペンサー（発射装置）", bedrock_id: "dispenser", makecode: "DISPENSER", color: "#6E6E6E", symbol: "発", orientable: true, marker: true, redstone: true, updown: true },
+    dropper: { name_ja: "ドロッパー", bedrock_id: "dropper", makecode: "DROPPER", color: "#767676", symbol: "落", orientable: true, marker: true, redstone: true, updown: true },
+    comparator: { name_ja: "レッドストーンコンパレーター", bedrock_id: "unpowered_comparator", makecode: "COMPARATOR", color: "#C9C4BE", symbol: "比", transparent: true, orientable: true, marker: true, redstone: true },
+    repeater: { name_ja: "レッドストーンリピーター（反復装置）", bedrock_id: "unpowered_repeater", makecode: "REPEATER", color: "#B9B4AE", symbol: "反", transparent: true, orientable: true, marker: true, redstone: true },
+    observer: { name_ja: "オブザーバー（観察者）", bedrock_id: "observer", makecode: "OBSERVER", color: "#5A5A5A", symbol: "観", orientable: true, marker: true, redstone: true, updown: true },
+    sign: { name_ja: "看板", bedrock_id: "standing_sign", makecode: "OAK_SIGN", color: "#B08D55", symbol: "札", transparent: true, orientable: true, shape: "thin", marker: true },
+    torch: { name_ja: "たいまつ", bedrock_id: "torch", makecode: "TORCH", color: "#F5A623", symbol: "灯", marker: true },
+    door: { name_ja: "オークのドア", bedrock_id: "wooden_door", makecode: "OAK_DOOR", color: "#C98A3F", symbol: "戸", marker: true }
+  };
+
+  // パレット外キーが来ても描画は止めず、目立つ色で描いて検品で報告する。
+  var UNKNOWN_BLOCK = {
+    name_ja: "未定義ブロック", bedrock_id: "?", makecode: "?",
+    color: "#FF00FF", symbol: "?", unknown: true
+  };
+
+  function block(key) {
+    return Object.prototype.hasOwnProperty.call(BLOCKS, key) ? BLOCKS[key] : UNKNOWN_BLOCK;
+  }
+
+  function clamp(v) {
+    v = Math.trunc(v);
+    return Math.max(0, Math.min(255, v));
+  }
+
+  function hex2(v) {
+    var s = v.toString(16);
+    return s.length < 2 ? "0" + s : s;
+  }
+
+  /** 立体図の面の陰影用。factor >1 で明るく、<1 で暗く。 */
+  function shade(hexColor, factor) {
+    var h = hexColor.replace(/^#/, "");
+    var r = parseInt(h.slice(0, 2), 16);
+    var g = parseInt(h.slice(2, 4), 16);
+    var b = parseInt(h.slice(4, 6), 16);
+    return "#" + hex2(clamp(r * factor)) + hex2(clamp(g * factor)) + hex2(clamp(b * factor));
+  }
+
+  /* -------------------------------------------------------- number formatting
+   * Python版と1文字たがわぬSVGを出すための数値整形。
+   *  F()  … Python の float 表記（整数値でも "35.0"）
+   *  I0() … Python の format(x, ".0f")（銀行家丸め＝偶数丸め）
+   */
+  function F(v) {
+    return Number.isInteger(v) ? v.toFixed(1) : String(v);
+  }
+
+  /* N() … Python版 _n() と同じ。小数2桁に丸めて末尾の0を落とす。
+   * 丸めないと -17.939999999999998 のような桁が出て、図は変わらないのに
+   * HTMLだけ肥大する。 */
+  function N(v) {
+    var s = v.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    return (s === "" || s === "-0") ? "0" : s;
+  }
+
+  function I0(v) {
+    var f = Math.floor(v);
+    var d = v - f;
+    var r;
+    if (d > 0.5) r = f + 1;
+    else if (d < 0.5) r = f;
+    else r = f % 2 === 0 ? f : f + 1;
+    return String(r === 0 ? 0 : r);
+  }
+
+  /* -------------------------------------------------------------- voxel model
+   * model.py の VoxelModel 移植。
+   * ブロックの格納には Map を使う（Python の dict と同じく挿入順を保持し、
+   * 既存キーの上書きでは位置が変わらない）。材料リストの同数タイの並び順や
+   * 立体図の描画順がPython版と完全に一致する。
+   */
+  function key3(x, y, z) { return x + "," + y + "," + z; }
+
+  function VoxelModel(name, description, notes) {
+    this.name = name || "";
+    this.description = description || "";
+    this.notes = (notes || []).slice();
+    this.layer_notes = {};      // y -> レイヤー図に添える注記
+    this.blocks = new Map();    // "x,y,z" -> block key
+    this.facing = new Map();    // "x,y,z" -> "north"/"south"/"east"/"west"
+    this.unknownKeys = [];      // パレット外のキー（検品用）
+  }
+
+  VoxelModel.prototype.set = function (x, y, z, key, facing) {
+    if (key === null || key === undefined || key === "air") {
+      this.blocks.delete(key3(x, y, z));
+      this.facing.delete(key3(x, y, z));
+    } else {
+      if (facing) this.facing.set(key3(x, y, z), facing);
+      else this.facing.delete(key3(x, y, z));
+      if (!Object.prototype.hasOwnProperty.call(BLOCKS, key) &&
+          this.unknownKeys.indexOf(key) === -1) {
+        this.unknownKeys.push(key);
+      }
+      this.blocks.set(key3(x, y, z), key);
+    }
+    return this;
+  };
+
+  VoxelModel.prototype.get = function (x, y, z) {
+    return this.blocks.get(key3(x, y, z));
+  };
+
+  VoxelModel.prototype.has = function (x, y, z) {
+    return this.blocks.has(key3(x, y, z));
+  };
+
+  /** 直方体を埋める（両端含む）。 */
+  VoxelModel.prototype.fill = function (x1, y1, z1, x2, y2, z2, key, facing) {
+    for (var x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      for (var y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+        for (var z = Math.min(z1, z2); z <= Math.max(z1, z2); z++) {
+          this.set(x, y, z, key, facing);
+        }
+      }
+    }
+    return this;
+  };
+
+  /** 外周の壁だけの直方体（床・天井は作らない）。 */
+  VoxelModel.prototype.hollow_box = function (x1, y1, z1, x2, y2, z2, key) {
+    for (var x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      for (var y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+        for (var z = Math.min(z1, z2); z <= Math.max(z1, z2); z++) {
+          if (x === x1 || x === x2 || z === z1 || z === z2) this.set(x, y, z, key);
+        }
+      }
+    }
+    return this;
+  };
+
+  VoxelModel.prototype.entries = function () {
+    var out = [];
+    this.blocks.forEach(function (k, ks) {
+      var p = ks.split(",");
+      out.push([+p[0], +p[1], +p[2], k]);
+    });
+    return out;
+  };
+
+  VoxelModel.prototype.bounds = function () {
+    if (this.blocks.size === 0) return [0, 0, 0, 0, 0, 0];
+    var minx = Infinity, miny = Infinity, minz = Infinity;
+    var maxx = -Infinity, maxy = -Infinity, maxz = -Infinity;
+    this.blocks.forEach(function (_k, ks) {
+      var p = ks.split(","), x = +p[0], y = +p[1], z = +p[2];
+      if (x < minx) minx = x; if (x > maxx) maxx = x;
+      if (y < miny) miny = y; if (y > maxy) maxy = y;
+      if (z < minz) minz = z; if (z > maxz) maxz = z;
+    });
+    return [minx, miny, minz, maxx, maxy, maxz];
+  };
+
+  VoxelModel.prototype.size = function () {
+    var b = this.bounds();
+    return [b[3] - b[0] + 1, b[4] - b[1] + 1, b[5] - b[2] + 1];
+  };
+
+  /** 最小座標が(0,0,0)になるよう平行移動する。 */
+  VoxelModel.prototype.normalize = function () {
+    var b = this.bounds();
+    var x1 = b[0], y1 = b[1], z1 = b[2];
+    var moved = new Map();
+    this.blocks.forEach(function (k, ks) {
+      var p = ks.split(",");
+      moved.set(key3(+p[0] - x1, +p[1] - y1, +p[2] - z1), k);
+    });
+    this.blocks = moved;
+    var movedF = new Map();
+    this.facing.forEach(function (f, ks) {
+      var q = ks.split(",");
+      movedF.set(key3(+q[0] - x1, +q[1] - y1, +q[2] - z1), f);
+    });
+    this.facing = movedF;
+    var ln = {};
+    var any = false;
+    for (var y in this.layer_notes) {
+      if (Object.prototype.hasOwnProperty.call(this.layer_notes, y)) {
+        ln[+y - y1] = this.layer_notes[y];
+        any = true;
+      }
+    }
+    if (any) this.layer_notes = ln;
+    this.shift = [x1, y1, z1];   // 何マス動かしたか（検品の説明に使う）
+    return this;
+  };
+
+  /** y昇順に [y, Map("x,z" -> key)] を返す。 */
+  VoxelModel.prototype.layers = function () {
+    var b = this.bounds();
+    var y1 = b[1], y2 = b[4];
+    var byY = new Map();
+    for (var y = y1; y <= y2; y++) byY.set(y, new Map());
+    this.blocks.forEach(function (k, ks) {
+      var p = ks.split(",");
+      byY.get(+p[1]).set(p[0] + "," + p[2], k);
+    });
+    var out = [];
+    for (var yy = y1; yy <= y2; yy++) out.push([yy, byY.get(yy)]);
+    return out;
+  };
+
+  /** ブロック種別ごとの総数（多い順・同数は初出順）。 */
+  VoxelModel.prototype.counts = function () {
+    var c = new Map();
+    this.blocks.forEach(function (k) { c.set(k, (c.get(k) || 0) + 1); });
+    var arr = [];
+    c.forEach(function (n, k) { arr.push([k, n]); });
+    arr.sort(function (a, b) { return b[1] - a[1]; });   // 安定ソート
+    return arr;
+  };
+
+  /* --------------------------------------------------------------- build model
+   * 設計データオブジェクト → VoxelModel
+   *   ops:    [{op:"fill"|"box"|"set"|"clear", ...}]  ← 推奨。上から順に適用。
+   *   blocks: [[x,y,z,"key"], ...]                    ← 展開済みの直接指定も可
+   */
+  function buildModel(design) {
+    var m = new VoxelModel(design.name, design.description, design.notes);
+    m.layer_notes = Object.assign({}, design.layer_notes || {});
+    var ops = design.ops || [];
+    for (var i = 0; i < ops.length; i++) {
+      var o = ops[i];
+      var k = o.block !== undefined ? o.block : o.key;
+      var t = (o.op || "").toLowerCase();
+      if (t === "fill") m.fill(o.x1, o.y1, o.z1, o.x2, o.y2, o.z2, k, o.facing);
+      else if (t === "box" || t === "hollow_box") m.hollow_box(o.x1, o.y1, o.z1, o.x2, o.y2, o.z2, k);
+      else if (t === "set") m.set(o.x, o.y, o.z, k, o.facing);
+      else if (t === "clear" || t === "air") m.set(o.x, o.y, o.z, null);
+      else { m.badOps = m.badOps || []; m.badOps.push(o.op); }
+    }
+    var bl = design.blocks || [];
+    for (var j = 0; j < bl.length; j++) {
+      m.set(bl[j][0], bl[j][1], bl[j][2], bl[j][3]);
+    }
+    return m;
+  }
+
+  /* ------------------------------------------------------------------ utilities
+   * render.py の _rel_luminance / _text_color_for と同じ
+   */
+  function relLuminance(hexColor) {
+    var h = hexColor.replace(/^#/, "");
+    var lin = [];
+    for (var i = 0; i < 6; i += 2) {
+      var c = parseInt(h.slice(i, i + 2), 16) / 255;
+      lin.push(c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+    }
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+  }
+
+  function textColorFor(hexColor) {
+    var bg = relLuminance(hexColor);
+    var best = "#20291d", bestRatio = 0;
+    var cands = ["#20291d", "#f4f7f0"];
+    for (var i = 0; i < cands.length; i++) {
+      var fg = relLuminance(cands[i]);
+      var lo = Math.min(bg, fg), hi = Math.max(bg, fg);
+      var ratio = (hi + 0.05) / (lo + 0.05);
+      if (ratio > bestRatio) { best = cands[i]; bestRatio = ratio; }
+    }
+    return best;
+  }
+
+  var CELL = 26;   // レイヤー図の1マスのピクセル数
+
+  /* ------------------------------------------------------------------- iso view */
+  function isOpaqueKey(k) {
+    var b = block(k);
+    return !(b.marker || b.transparent);
+  }
+
+  /* 立体図での [横の倍率, 高さの倍率, 下げ量]。Python版 _shape_scale と同じ。
+   * 立方体でないブロックを立方体として描くと、細部が伝わらない。 */
+  function shapeScale(b) {
+    var shape = b.shape;
+    if (shape === "slab") return [1.0, 0.5, 0.5];
+    if (shape === "flat") return [0.9, 0.15, 0.85];
+    if (shape === "thin") return [0.4, 1.0, 0.0];
+    if (shape === "stairs") return [1.0, 0.9, 0.1];
+    if (b.marker) return [0.62, 0.62, 0.0];
+    return [1.0, 1.0, 0.0];
+  }
+
+  /* マスの中に向きの三角形を描く。Python版 _facing_arrow と同じ。
+   * 階段は向きが分からないと作れないので、図の上で必ず読めるようにする。 */
+  function facingArrow(px, py, facing, color) {
+    return facingArrowAt(px, py, CELL, facing, color);
+  }
+
+  function facingArrowAt(px, py, cell, facing, color) {
+    var cx = px + cell / 2, cy = py + cell / 2;
+    var r = cell * 0.146, d = cell / 2 - 1.6;
+    if (facing === "down" || facing === "up") {
+      // 上下向きは矢印だと南北と見分けがつかないので隅に文字で出す
+      var g = facing === "down" ? "下" : "上";
+      return '<text x="' + N(px + cell * 0.2) + '" y="' + N(py + cell * 0.33) + '" ' +
+        'class="updown" fill="' + color + '">' + g + "</text>";
+    }
+    var tri = {
+      north: [[cx, cy - d], [cx - r, cy - d + r], [cx + r, cy - d + r]],
+      south: [[cx, cy + d], [cx - r, cy + d - r], [cx + r, cy + d - r]],
+      west: [[cx - d, cy], [cx - d + r, cy - r], [cx - d + r, cy + r]],
+      east: [[cx + d, cy], [cx + d - r, cy - r], [cx + d - r, cy + r]]
+    }[facing];
+    if (!tri) return "";
+    var pts = tri.map(function (t) { return N(t[0]) + "," + N(t[1]); }).join(" ");
+    return '<polygon points="' + pts + '" class="dir" fill="' + color + '"/>';
+  }
+
+  var TEXTURES = {
+    "noise": [[1,2,3,3,0.86], [9,1,4,3,1.1], [4,7,5,4,0.9], [11,9,3,4,1.08], [2,12,4,3,1.04]],
+    "planks": [[0,0,16,1,0.78], [0,5,16,1,0.78], [0,10,16,1,0.78], [0,15,16,1,0.78], [6,1,1,4,0.88], [11,6,1,4,0.88], [3,11,1,4,0.88]],
+    "bricks": [[0,0,16,1,0.76], [0,8,16,1,0.76], [7,1,1,7,0.8], [0,9,1,7,0.8], [15,9,1,7,0.8]],
+    "glass": [[0,0,16,1,0.72], [0,15,16,1,0.72], [0,0,1,16,0.72], [15,0,1,16,0.72], [3,3,3,3,1.25], [8,9,2,2,1.15]],
+    "leaves": [[1,1,3,3,0.84], [6,2,4,3,1.14], [11,5,4,4,0.86], [2,8,4,4,1.1], [8,11,5,4,0.84], [13,12,2,3,1.06]],
+    "log": [[2,0,1,16,0.84], [6,0,2,16,0.92], [11,0,1,16,0.84], [14,0,1,16,0.94]],
+    "wool": [[2,3,2,2,0.94], [9,6,3,2,1.06], [5,11,3,2,0.95], [12,12,2,2,1.04]],
+    "liquid": [[0,2,9,3,1.14], [7,7,9,3,0.88], [1,11,8,3,1.1]],
+    "smooth": [[0,0,16,1,0.95], [0,0,1,16,0.95]],
+    "grass": { top: [[1,2,3,3,0.9], [9,1,4,3,1.1], [4,7,5,4,0.94], [11,9,3,4,1.07], [2,12,4,3,1.03]], side: [[0,0,16,3,1.0], [0,3,16,1,0.86], [2,5,3,3,0.9], [9,7,4,3,1.08], [5,11,4,3,0.92]] },
+    "trapdoor": [[0,0,16,1,0.7], [0,15,16,1,0.7], [0,5,16,1,0.74], [0,10,16,1,0.74], [1,1,2,14,0.66], [13,1,2,14,0.66], [2,2,1,1,1.25], [13,12,1,1,1.25]],
+    "door_tex": [[0,0,1,16,0.72], [15,0,1,16,0.72], [0,0,16,1,0.72], [7,0,1,16,0.8], [12,7,2,2,1.3]],
+    "crafting": [[0,0,16,1,0.74], [0,15,16,1,0.74], [0,7,16,1,0.78], [7,0,1,16,0.78], [2,2,3,3,1.15], [10,10,3,3,0.88]],
+    "books": [[0,0,16,3,0.8], [0,13,16,3,0.8], [1,4,2,8,1.3], [4,4,1,8,0.72], [6,4,2,8,1.12], [9,4,1,8,0.78], [11,4,2,8,1.24], [14,4,1,8,0.84]],
+    "chest_tex": [[0,0,16,1,0.72], [0,15,16,1,0.72], [0,5,16,2,0.7], [7,5,3,4,0.55], [8,6,1,2,1.4]],
+    "hopper_tex": [[0,0,16,3,1.25], [0,3,16,1,0.7], [3,5,10,9,0.72], [5,7,6,5,0.6]],
+    "piston_tex": [[0,0,16,1,0.72], [0,15,16,1,0.72], [0,0,1,16,0.72], [15,0,1,16,0.72], [2,2,12,12,1.15], [3,3,10,2,0.85], [3,11,10,2,0.85]],
+    "glow": [[2,2,4,4,1.2], [9,1,5,5,1.12], [1,9,5,5,1.15], [8,8,6,6,1.22], [6,6,3,3,0.88]],
+    "sandy": [[0,0,16,1,0.82], [0,4,16,1,0.88], [0,9,16,1,0.86], [0,14,16,1,0.88], [3,1,4,2,1.06], [9,10,5,3,1.05]],
+    "tnt_tex": [[0,4,16,4,1.45], [0,3,16,1,0.7], [0,8,16,1,0.7], [5,5,6,2,0.35], [0,0,16,1,0.8], [0,15,16,1,0.8]],
+    "cage": [[0,0,16,2,0.7], [0,14,16,2,0.7], [3,2,10,12,1.3], [5,4,6,8,1.45], [7,0,2,3,0.75]],
+    "redstone_ore": [[1,1,3,3,1.3], [7,2,4,3,0.8], [11,6,4,4,1.25], [2,7,4,4,0.82], [6,11,5,4,1.28], [12,12,3,3,0.84]],
+    "device": [[0,0,16,1,0.8], [0,15,16,1,0.8], [0,0,1,16,0.8], [15,0,1,16,0.8], [5,5,6,6,0.86], [6,6,4,4,1.1]]
+  };
+  var TEX_OF = { "grass": "grass", "dirt": "noise", "stone": "noise", "cobblestone": "noise", "cobblestone_stairs": "noise", "cobblestone_wall": "noise", "sandstone": "sandy", "stone_bricks": "bricks", "mossy_stone_bricks": "bricks", "chiseled_stone_bricks": "bricks", "brick": "bricks", "stone_brick_stairs": "bricks", "stone_brick_slab": "bricks", "oak_planks": "planks", "spruce_planks": "planks", "oak_stairs": "planks", "oak_slab": "planks", "oak_fence": "planks", "oak_fence_gate": "planks", "oak_trapdoor": "trapdoor", "bookshelf": "books", "crafting_table": "crafting", "sign": "planks", "ladder": "planks", "chest": "chest_tex", "door": "door_tex", "oak_log": "log", "glass": "glass", "glass_pane": "glass", "iron_bars": "glass", "oak_leaves": "leaves", "wool_white": "wool", "wool_red": "wool", "wool_blue": "wool", "wool_yellow": "wool", "wool_green": "wool", "wool_black": "wool", "carpet_red": "wool", "lava": "liquid", "water": "liquid", "hopper": "hopper_tex", "dispenser": "device", "dropper": "device", "observer": "device", "sticky_piston": "piston_tex", "comparator": "device", "repeater": "device", "tnt": "tnt_tex", "redstone_block": "redstone_ore", "glowstone": "glow", "sea_lantern": "glow", "quartz": "smooth", "lantern": "cage" };
+
+  /* 立体図のテクスチャ。単色の立方体だと積み木にしか見えないので、
+   * 16×16の升目の模様を<pattern>にして面ごとに敷く。
+   * パターンはブロックの種類×3面ぶんだけなので、ブロックが増えても図形は増えない。 */
+  var FACE_MATRIX = {
+    t: [13 / 16, 6.5 / 16, -13 / 16, 6.5 / 16],
+    l: [-13 / 16, 6.5 / 16, 0, 13 / 16],
+    r: [13 / 16, 6.5 / 16, 0, 13 / 16]
+  };
+  var FACE_SHADE = { t: 1.14, l: 0.68, r: 0.88 };
+
+  function texName(key) {
+    return Object.prototype.hasOwnProperty.call(TEX_OF, key) ? TEX_OF[key] : "smooth";
+  }
+
+  function texSpec(key, face) {
+    var t = TEXTURES[texName(key)];
+    if (!Array.isArray(t)) return face === "t" ? t.top : t.side;
+    return t;
+  }
+
+  function texBase(key, face) {
+    var b = block(key);
+    var color = b.color;
+    if (face !== "t" && b.side_color) color = b.side_color;
+    return shade(color, FACE_SHADE[face]);
+  }
+
+  function texDefs(keys) {
+    var out = [];
+    keys.forEach(function (key) {
+      ["t", "l", "r"].forEach(function (face) {
+        var mat = FACE_MATRIX[face];
+        var spec = texSpec(key, face);
+        var base = texBase(key, face);
+        var rects = spec.map(function (r) {
+          return '<rect x="' + r[0] + '" y="' + r[1] + '" width="' + r[2] +
+            '" height="' + r[3] + '" fill="' + shade(base, r[4]) + '"/>';
+        }).join("");
+        out.push('<pattern id="t' + face + "_" + key + '" width="16" height="16" ' +
+          'patternUnits="userSpaceOnUse" ' +
+          'patternTransform="matrix(' + N(mat[0]) + "," + N(mat[1]) + "," +
+          N(mat[2]) + "," + N(mat[3]) + ',0,0)">' +
+          '<rect width="16" height="16" fill="' + base + '"/>' + rects + "</pattern>");
+      });
+    });
+    return "<defs>" + out.join("") + "</defs>";
+  }
+
+  /* レッドストーンダストが「つながる」相手。Python版 _RS_CONNECT / _dust_links と同じ。
+   * ダストを赤い板で描くだけだと配線が追えないので、
+   * つながっている向きへ腕を伸ばして描く（Minecraftと同じ考え方）。 */
+  var RS_CONNECT = ["redstone_wire", "redstone_torch", "repeater", "comparator",
+    "lever", "sticky_piston", "dispenser", "dropper", "observer",
+    "redstone_block", "stone_pressure_plate"];
+
+  function dustLinks(cells, pos) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var x = pos[0], y = pos[1], z = pos[2];
+    var links = {};
+    var up0 = cells.get(key3(x, y + 1, z));
+    var aboveOpen = !(up0 !== undefined && up0 !== null && isOpaqueKey(up0));
+    ["north", "south", "east", "west"].forEach(function (name) {
+      var d = DV[name];
+      var nk = cells.get(key3(x + d[0], y, z + d[2]));
+      if (nk !== undefined && nk !== null && RS_CONNECT.indexOf(nk) !== -1) {
+        links[name] = "flat";
+        return;
+      }
+      if (aboveOpen && cells.get(key3(x + d[0], y + 1, z + d[2])) === "redstone_wire") {
+        links[name] = "up";
+        return;
+      }
+      if (cells.get(key3(x + d[0], y - 1, z + d[2])) === "redstone_wire" &&
+          !(nk !== undefined && nk !== null && isOpaqueKey(nk))) {
+        links[name] = "down";
+      }
+    });
+    return links;
+  }
+
+  function dustParts(links) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var names = Object.keys(links);
+    if (!names.length) return [[0, 0, 0.22, 0.22, 0.0625, 0.0625]];
+    var parts = [[0, 0, 0.16, 0.16, 0.0625, 0.0625]];
+    ["north", "south", "east", "west"].forEach(function (name) {
+      if (!Object.prototype.hasOwnProperty.call(links, name)) return;
+      var d = DV[name];
+      if (d[0]) parts.push([d[0] * 0.33, 0, 0.17, 0.11, 0.0625, 0.0625]);
+      else parts.push([0, d[2] * 0.33, 0.11, 0.17, 0.0625, 0.0625]);
+      if (links[name] !== "flat") {
+        var h = links[name] === "up" ? 0.5 : 0.0625;
+        if (d[0]) parts.push([d[0] * 0.47, 0, 0.05, 0.11, h + 0.0625, 0.0625]);
+        else parts.push([0, d[2] * 0.47, 0.11, 0.05, h + 0.0625, 0.0625]);
+      }
+    });
+    return parts;
+  }
+
+  /* 上から見た図に、ダストのつながり方を線で描く。Python版 _dust_wire_svg と同じ。 */
+  function dustWireSvg(px, py, cell, links) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0] };
+    var cx = px + cell / 2, cy = py + cell / 2;
+    var w = cell * 0.17;
+    var out = ['<rect x="' + N(cx - w * 0.9) + '" y="' + N(cy - w * 0.9) +
+      '" width="' + N(w * 1.8) + '" height="' + N(w * 1.8) + '" class="wire"/>'];
+    Object.keys(links).forEach(function (name) {
+      var kind = links[name], d = DV[name];
+      if (d[0]) {
+        var x0 = d[0] > 0 ? cx : px;
+        out.push('<rect x="' + N(x0) + '" y="' + N(cy - w / 2) + '" width="' +
+          N(cell / 2) + '" height="' + N(w) + '" class="wire"/>');
+      } else {
+        var y0 = d[2] > 0 ? cy : py;
+        out.push('<rect x="' + N(cx - w / 2) + '" y="' + N(y0) + '" width="' +
+          N(w) + '" height="' + N(cell / 2) + '" class="wire"/>');
+      }
+      if (kind !== "flat") {
+        var g = kind === "up" ? "上" : "下";
+        out.push('<text x="' + N(cx + d[0] * cell * 0.34) + '" y="' +
+          N(cy + d[2] * cell * 0.34 + cell * 0.1) + '" class="wireup">' + g + "</text>");
+      }
+    });
+    return out.join("");
+  }
+
+  /* 立体図での「そのブロックの形」を箱のリストで返す。Python版 _iso_parts と同じ。
+   * 各要素は [ずれx, ずれz, 半分の幅x, 半分の幅z, 上面の高さ, 箱の高さ]（マス単位）。
+   * レッドストーン部品を小さな立方体で描くとMinecraftと別物になるので、
+   * ダスト=床の線 / トーチ=棒＋先端 / リピーター=薄い板＋灯 / ホッパー=漏斗
+   * のように実物の形で描く。 */
+  function isoParts(key, b, facing, links) {
+    var DV = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0] };
+    var d = (facing && DV[facing]) || [0, 0, 0];
+    var shape = b.shape;
+
+    if (key === "redstone_wire") return dustParts(links || {});
+    if (key === "stone_pressure_plate") return [[0, 0, 0.44, 0.44, 0.0625, 0.0625]];
+    if (key === "redstone_torch" || key === "torch") {
+      return [[0, 0, 0.09, 0.09, 0.62, 0.62], [0, 0, 0.15, 0.15, 0.78, 0.16]];
+    }
+    if (key === "lever") {
+      return [[0, 0, 0.19, 0.19, 0.19, 0.19], [0, 0, 0.07, 0.07, 0.56, 0.37]];
+    }
+    if (key === "comparator" || key === "repeater") {
+      var ox = d[0] * 0.26, oz = d[2] * 0.26;
+      return [[0, 0, 0.5, 0.5, 0.125, 0.125],
+              [-ox, -oz, 0.06, 0.06, 0.34, 0.21],
+              [ox * 0.6, oz * 0.6, 0.06, 0.06, 0.34, 0.21]];
+    }
+    if (key === "hopper") {
+      return [[0, 0, 0.5, 0.5, 1.0, 0.375], [0, 0, 0.19, 0.19, 0.625, 0.3125]];
+    }
+    if (key === "lantern") return [[0, 0, 0.19, 0.19, 0.94, 0.38]];
+    if (key === "flower_poppy" || key === "flower_dandelion") {
+      return [[0, 0, 0.05, 0.05, 0.55, 0.55], [0, 0, 0.17, 0.17, 0.68, 0.16]];
+    }
+    if (key === "chest") return [[0, 0, 0.44, 0.44, 0.875, 0.875]];
+    if (key === "ladder") {
+      return d[0] ? [[d[0] * 0.44, 0, 0.06, 0.5, 1.0, 1.0]]
+                  : [[0, d[2] * 0.44, 0.5, 0.06, 1.0, 1.0]];
+    }
+    if (key === "door") {
+      return d[0] ? [[d[0] * 0.42, 0, 0.08, 0.5, 1.0, 1.0]]
+                  : [[0, d[2] * 0.42, 0.5, 0.08, 1.0, 1.0]];
+    }
+    if (key === "oak_trapdoor") return [[0, 0, 0.5, 0.5, 0.19, 0.19]];
+    if (key === "oak_fence_gate") {
+      return d[0] ? [[0, 0, 0.09, 0.5, 1.0, 0.75]] : [[0, 0, 0.5, 0.09, 1.0, 0.75]];
+    }
+    if (key === "sign") {
+      return [[0, 0, 0.06, 0.06, 0.5, 0.5], [0, 0, 0.44, 0.06, 1.0, 0.44]];
+    }
+
+    if (shape === "stairs" && facing) {
+      return d[0]
+        ? [[0, 0, 0.5, 0.5, 0.5, 0.5], [d[0] * 0.25, 0, 0.25, 0.5, 1.0, 0.5]]
+        : [[0, 0, 0.5, 0.5, 0.5, 0.5], [0, d[2] * 0.25, 0.5, 0.25, 1.0, 0.5]];
+    }
+    if (shape === "slab") return [[0, 0, 0.5, 0.5, 0.5, 0.5]];
+    if (shape === "flat") return [[0, 0, 0.5, 0.5, 0.0625, 0.0625]];
+    if (shape === "thin") return [[0, 0, 0.12, 0.12, 1.0, 1.0]];
+    if (shape === "stairs") return [[0, 0, 0.5, 0.5, 0.9, 0.9]];
+    return [[0, 0, 0.5, 0.5, 1.0, 1.0]];
+  }
+
+  /* 立方体の一部を描く（階段のように箱を2つ重ねた形を作るため）。Python版 _iso_box と同じ。 */
+  function isoBox(cx, cy, offx, offz, ax, az, topFrac, hgt, key) {
+    var hw = 13, hh = 6.5, hz = 13;
+    var b = block(key), c = b.color;
+    var ccx = cx + (offx - offz) * hw;
+    var ccy = cy + (1 - topFrac) * hz - hh + (offx + offz) * hh;
+    var uxx = ax * hw, uxy = ax * hh;
+    var uzx = -az * hw, uzy = az * hh;
+    var bot = [ccx + uxx + uzx, ccy + uxy + uzy];
+    var lft = [ccx - uxx + uzx, ccy - uxy + uzy];
+    var top = [ccx - uxx - uzx, ccy - uxy - uzy];
+    var rgt = [ccx + uxx - uzx, ccy + uxy - uzy];
+    var h = hgt * hz;
+    var stroke = shade(c, 0.5);
+    var poly = function (pts, fill) {
+      var d = pts.map(function (q) { return N(q[0]) + "," + N(q[1]); }).join(" ");
+      return '<polygon points="' + d + '" fill="' + fill + '" ' +
+        'stroke="' + stroke + '" stroke-width="0.5"/>';
+    };
+    // 箱の大きさに関わらずテクスチャを敷く。ハーフやトラップドアにも
+    // 素材の質感が出る（単色だと板きれにしか見えない）
+    var fl = "url(#tl_" + key + ")";
+    var fr = "url(#tr_" + key + ")";
+    var ft = "url(#tt_" + key + ")";
+    return poly([lft, bot, [bot[0], bot[1] + h], [lft[0], lft[1] + h]], fl) +
+      poly([rgt, bot, [bot[0], bot[1] + h], [rgt[0], rgt[1] + h]], fr) +
+      poly([bot, lft, top, rgt], ft);
+  }
+
+  /* ブロックの集まりを立体図で描く。
+   *   cells     … Map("x,y,z" -> block key)
+   *   highlight … 全色で描く座標(Set)。null なら全部そのまま描く。
+   *               指定した場合、それ以外は薄く描いて主役を目立たせる。 */
+  function isoCellsSvg(cells, highlight, label, maxW, scale, facings) {
+    maxW = maxW || 640;
+    scale = scale || 1;
+    facings = facings || new Map();
+    var hw = 13, hh = 6.5, hz = 13;
+    var ptsX = [], ptsY = [], cubes = [];
+    var dirs6 = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]];
+    cells.forEach(function (k, ks) {
+      var q = ks.split(","), x = +q[0], y = +q[1], z = +q[2];
+      var hidden = true;
+      for (var i = 0; i < dirs6.length; i++) {
+        var nk = key3(x + dirs6[i][0], y + dirs6[i][1], z + dirs6[i][2]);
+        var nb = cells.get(nk);
+        if (nb === undefined || !isOpaqueKey(nb)) { hidden = false; break; }
+      }
+      if (hidden) return;
+      var cx = (x - z) * hw;
+      var cy = (x + z) * hh - y * hz;
+      cubes.push([x + z, y, cx, cy, k, highlight === null || highlight.has(ks), ks]);
+      ptsX.push(cx - hw, cx + hw);
+      ptsY.push(cy - 2 * hh, cy + hz);
+    });
+    if (cubes.length === 0) return "";
+    var minX = Math.min.apply(null, ptsX), maxX = Math.max.apply(null, ptsX);
+    var minY = Math.min.apply(null, ptsY), maxY = Math.max.apply(null, ptsY);
+    var pad = 16;
+    var vb = [minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2];
+    cubes.sort(function (a, b) { return (a[0] - b[0]) || (a[1] - b[1]); });
+
+    var faces = [];
+    var DIRV3 = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0] };
+    for (var i2 = 0; i2 < cubes.length; i2++) {
+      var cx2 = cubes[i2][2], cy2 = cubes[i2][3], k2 = cubes[i2][4];
+      var b = block(k2);
+      var lk = k2 === "redstone_wire" ? dustLinks(cells, cubes[i2][6].split(",").map(Number)) : null;
+      var body = isoParts(k2, b, facings.get(cubes[i2][6]), lk).map(function (q) {
+        return isoBox(cx2, cy2, q[0], q[1], q[2], q[3], q[4], q[5], k2);
+      }).join("");
+      faces.push(cubes[i2][5] ? body : '<g class="faint">' + body + "</g>");
+    }
+    var usedKeys = [];
+    cubes.forEach(function (c3) { if (usedKeys.indexOf(c3[4]) === -1) usedKeys.push(c3[4]); });
+    usedKeys.sort();
+    return '<svg viewBox="' + I0(vb[0]) + " " + I0(vb[1]) + " " + I0(vb[2]) + " " + I0(vb[3]) + '" ' +
+           'role="img" aria-label="' + label + '" ' +
+           'style="max-width:' + I0(Math.min(maxW, vb[2] * scale)) + 'px">' +
+           texDefs(usedKeys) + faces.join("") + "</svg>";
+  }
+
+  function isoSvg(model) {
+    return isoCellsSvg(model.blocks, null, "完成イメージ", 640, 1, model.facing);
+  }
+
+  /* --------------------------------------------- redstone circuit detail
+   * レッドストーン部品がある設計にだけ、回路だけを大きく描いた図を足す。
+   * 回路は1マスのズレで動かなくなるので、全体図とは別に確認用の図が要る。 */
+  var CELL_RS = 34;
+  var RS_MARGIN = 2;
+  var DIR_JA = { north: "北", south: "南", east: "東", west: "西",
+    down: "下", up: "上" };
+
+  function rsCells(model) {
+    var out = [];
+    model.blocks.forEach(function (k, ks) {
+      if (block(k).redstone) {
+        var q = ks.split(",").map(Number);
+        out.push({ pos: q, key: k, ks: ks });
+      }
+    });
+    return out;
+  }
+
+  function rsRole(key, facing) {
+    var b = block(key);
+    if (key === "redstone_torch") {
+      return "真下のブロックの上に立てる（壁に横付けしない）。" +
+        "その真下のブロックが動力を受けると消える＝スイッチが逆になる。" +
+        "ふだんは真上のブロックを強く動力化している。";
+    }
+    if (key === "stone_pressure_plate") {
+      return "踏むと真下のブロックを強く動力化する。" +
+        "そのブロックにとなり合うレッドストーンダストへ動力が伝わる。";
+    }
+    if (b.piston) {
+      if (!facing) return "向きが決まっていない。どちらへ押すか決めないと作れない。";
+      return DIR_JA[facing] + "向き（図の矢印のとおり）。" +
+        "前の1マスにあるブロックを、前の2マス目へ押し出す。" +
+        "前の2マス目がふさがっていると伸びられないので必ず空けておく。" +
+        "動力を受けているあいだ伸びたままになる。";
+    }
+    if (key === "hopper") {
+      return "アイテムを吸い取り、向いている先（チェスト・ホッパー・ディスペンサー等）へ" +
+        "流し込む。真上に落ちたアイテムも拾う。向きを間違えると流れが止まって" +
+        "装置全体が動かなくなる。";
+    }
+    if (key === "dispenser") {
+      return "動力を受けると中身を1つ発射する。向いている方向へ飛んでいく。" +
+        "卵や矢を撃ち出すのに使う。";
+    }
+    if (key === "dropper") {
+      return "動力を受けると中身を1つ、向いている先へ押し出す（飛ばさずに置く）。";
+    }
+    if (key === "comparator") {
+      return "うしろにあるチェストやディスペンサーの「中身の量」を信号の強さにして出す。" +
+        "中身が少ないと信号も弱い。真横にレッドストーンダストを置くと" +
+        "止まってしまうので、横は必ず空けるか固いブロックにする。";
+    }
+    if (key === "repeater") {
+      return "弱った信号を15の強さに戻して先へ送る。うしろから入れて前へ出す。" +
+        "コンパレーターの弱い信号を遠くまで届かせるのに必要。";
+    }
+    if (key === "observer") {
+      return "前のブロックが変化したときに、うしろ側から短い信号を出す。";
+    }
+    if (key === "redstone_wire") {
+      return "となり合うダストへ信号を運ぶ（動力源から15マスまで）。" +
+        "かならず下に支えのブロックが要る。位置は下の図で確かめる。";
+    }
+    if (key === "lever") return "手で入れ切りするスイッチ。取り付けた面のブロックを動力化する。";
+    if (key === "redstone_block") return "置くだけで常にONの動力源。となりの部品をずっと動かし続ける。";
+    return b.name_ja;
+  }
+
+  /* 回路だけの立体図に描くブロックを選ぶ。Python版 _rs_visual_cells と同じ。
+   * 範囲をまるごと切り出すと床や壁にさえぎられて配線が見えないので、
+   * 部品と、その働きに直接かかわるブロックだけを取り出す。 */
+  function rsVisualCells(model, rs) {
+    var DIRV2 = { north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0] };
+    var cells = new Map();
+    rs.forEach(function (r) { cells.set(r.ks, r.key); });
+    var extra = [];
+    rs.forEach(function (r) {
+      var x = r.pos[0], y = r.pos[1], z = r.pos[2];
+      extra.push([x, y - 1, z]);
+      if (r.key === "redstone_torch") extra.push([x, y + 1, z]);
+      if (block(r.key).piston) {
+        var f = model.facing.get(r.ks);
+        if (f) {
+          var d = DIRV2[f];
+          extra.push([x + d[0], y + d[1], z + d[2]]);
+          extra.push([x + d[0] * 2, y + d[1] * 2, z + d[2] * 2]);
+        }
+      }
+    });
+    extra.forEach(function (q) {
+      var ks = key3(q[0], q[1], q[2]);
+      if (!cells.has(ks)) {
+        var k = model.get(q[0], q[1], q[2]);
+        if (k !== null && k !== undefined) cells.set(ks, k);
+      }
+    });
+    return cells;
+  }
+
+  function rsLayerSvg(model, y, rsSet, box) {
+    var x1 = box[0], z1 = box[2], x2 = box[3], z2 = box[5];
+    var cols = x2 - x1 + 1, rows = z2 - z1 + 1;
+    var m = 26;
+    var w = cols * CELL_RS + m + 2, h = rows * CELL_RS + m + 2;
+    var grid = "", i, j;
+    for (i = 0; i <= cols; i++) grid += "M" + (m + i * CELL_RS) + " " + m + "V" + (m + rows * CELL_RS);
+    for (j = 0; j <= rows; j++) grid += "M" + m + " " + (m + j * CELL_RS) + "H" + (m + cols * CELL_RS);
+    var out = ['<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="回路 ' + (y + 1) + '段目" ' +
+      'style="width:' + w + 'px;max-width:100%">' +
+      '<rect x="' + m + '" y="' + m + '" width="' + (cols * CELL_RS) + '" height="' + (rows * CELL_RS) + '" ' +
+      'class="empty-bg"/><path class="grid" d="' + grid + '"/>'];
+    for (i = 0; i < cols; i++) {
+      out.push('<text x="' + F(m + i * CELL_RS + CELL_RS / 2) + '" y="' + (m - 9) + '" class="ax">' + (x1 + i) + "</text>");
+    }
+    for (j = 0; j < rows; j++) {
+      out.push('<text x="' + (m - 9) + '" y="' + F(m + j * CELL_RS + CELL_RS / 2 + 4) + '" class="ax">' + (z1 + j) + "</text>");
+    }
+    for (j = 0; j < rows; j++) {
+      for (i = 0; i < cols; i++) {
+        var x = x1 + i, z = z1 + j;
+        var key = model.get(x, y, z);
+        if (!key) continue;
+        var px = m + i * CELL_RS, py = m + j * CELL_RS;
+        var b = block(key);
+        var isRs = rsSet.has(key3(x, y, z));
+        if (key === "redstone_wire") {
+          out.push("<g" + (isRs ? "" : ' class="faint"') + '><rect x="' + px + '" y="' + py +
+            '" width="' + CELL_RS + '" height="' + CELL_RS + '" class="wire-bg"/>' +
+            dustWireSvg(px, py, CELL_RS, dustLinks(model.blocks, [x, y, z])) + "</g>");
+        } else {
+        out.push("<g" + (isRs ? "" : ' class="faint"') + '><rect x="' + px + '" y="' + py +
+          '" width="' + CELL_RS + '" height="' + CELL_RS + '" ' +
+          'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
+          '<text x="' + F(px + CELL_RS / 2) + '" y="' + F(py + CELL_RS / 2 + 6) + '" ' +
+          'class="sym rs" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text></g>");
+        }
+        if (isRs) {
+          out.push('<rect x="' + F(px + 1.5) + '" y="' + F(py + 1.5) + '" width="' + (CELL_RS - 3) +
+            '" height="' + (CELL_RS - 3) + '" class="rs-ring"/>');
+        }
+        var fc = model.facing.get(key3(x, y, z));
+        if (fc) out.push(facingArrowAt(px, py, CELL_RS, fc, textColorFor(b.color)));
+      }
+    }
+    out.push("</svg>");
+    return out.join("");
+  }
+
+  function circuitSection(model) {
+    var rs = rsCells(model);
+    if (!rs.length) return "";
+    var mb = model.bounds();
+    var xs = rs.map(function (r) { return r.pos[0]; });
+    var ys = rs.map(function (r) { return r.pos[1]; });
+    var zs = rs.map(function (r) { return r.pos[2]; });
+    var mn = function (a) { return Math.min.apply(null, a); };
+    var mx = function (a) { return Math.max.apply(null, a); };
+    var box = [
+      Math.max(mb[0], mn(xs) - RS_MARGIN), Math.max(mb[1], mn(ys) - 1), Math.max(mb[2], mn(zs) - RS_MARGIN),
+      Math.min(mb[3], mx(xs) + RS_MARGIN), Math.min(mb[4], mx(ys) + 1), Math.min(mb[5], mx(zs) + RS_MARGIN)
+    ];
+    var rsSet = new Set(rs.map(function (r) { return r.ks; }));
+
+    var from = Math.max(box[1], mn(ys) - 1), to = Math.min(box[4], mx(ys) + 1);
+    var cards = [], y;
+    for (y = from; y <= to; y++) {
+      var n = rs.filter(function (r) { return r.pos[1] === y; }).length;
+      var head = n ? n + "個の部品" : "部品なし（支えの段）";
+      cards.push('<div class="layer-card rs-card"><div class="layer-head">' +
+        '<span class="layer-no">' + (y + 1) + '段目</span>' +
+        '<span class="layer-count">' + head + "</span></div>" +
+        '<div class="grid-wrap">' + rsLayerSvg(model, y, rsSet, box) + "</div></div>");
+    }
+
+    // 同じ種類・同じ向きはまとめて1行にする（ダストが何十行も並ぶのを防ぐ）
+    var sorted = rs.slice().sort(function (a, c) {
+      return (a.pos[1] - c.pos[1]) || (a.pos[2] - c.pos[2]) || (a.pos[0] - c.pos[0]);
+    });
+    var order = [], groups = {};
+    sorted.forEach(function (r) {
+      var f = model.facing.get(r.ks) || "";
+      var g = r.key + "|" + f;
+      if (!groups[g]) { groups[g] = { key: r.key, facing: f, poss: [] }; order.push(g); }
+      groups[g].poss.push(r.pos);
+    });
+    var rows = order.map(function (g) {
+      var G = groups[g], b = block(G.key), where;
+      if (G.poss.length <= 6) {
+        where = G.poss.map(function (q) {
+          return (q[1] + 1) + "段目 x=" + q[0] + ", z=" + q[2];
+        }).join("<br>");
+      } else {
+        var uy = [];
+        G.poss.forEach(function (q) { if (uy.indexOf(q[1]) === -1) uy.push(q[1]); });
+        uy.sort(function (a, c) { return a - c; });
+        where = uy.map(function (v) { return (v + 1) + "段目"; }).join("<br>") +
+          "<br>ぜんぶで" + G.poss.length + "個";
+      }
+      return '<tr><td class="n">' + where + "</td>" +
+        '<td><span class="swatch" style="background:' + b.color + '"></span>' +
+        "<b>" + esc(b.name_ja) + "</b>" +
+        (G.facing ? "<b>（" + DIR_JA[G.facing] + "向き）</b>" : "") +
+        " ×" + G.poss.length +
+        '<div class="role">' + rsRole(G.key, G.facing) + "</div></td></tr>";
+    });
+
+    return '<h2>レッドストーン回路のくわしい図</h2>' +
+      '<p class="hint">仕掛けの部分だけを切り出した図。全体の設計図とは別に、' +
+      'ここで位置と向きを確かめてから作る。</p>' +
+      '<div class="panel iso-panel rs-iso">' +
+      isoCellsSvg(rsVisualCells(model, rs), rsSet, "回路だけの立体図", 560, 2, model.facing) +
+      '<p class="cap">回路だけを立体で見たところ。色のついたものがレッドストーン部品、' +
+      '薄いものは支えのブロックとピストンが押す先。</p></div>' +
+      '<h3 class="rs-h3">部品と役割</h3>' +
+      '<div class="panel"><table class="bom rs-list">' +
+      '<tr><th>位置</th><th>部品と役割</th></tr>' + rows.join("") + "</table></div>" +
+      '<h3 class="rs-h3">段ごとの位置（上から見た図）</h3>' +
+      '<p class="hint">まわり' + RS_MARGIN + 'マスの支えのブロックも薄い色で描いてある。' +
+      '回路は1マスのズレでも動かなくなるので、この図で1つずつ確かめる。</p>' +
+      '<div class="layers rs-layers">' + cards.join("") + "</div>";
+  }
+
+  /* --------------------------------------------------------------------- layers */
+  function layerSvg(model, y, layer, prevLayer, xRange, zRange) {
+    var x1 = xRange[0], x2 = xRange[1];
+    var z1 = zRange[0], z2 = zRange[1];
+    var cols = x2 - x1 + 1;
+    var rows = z2 - z1 + 1;
+    var m = 22;   // 座標ラベル用マージン
+    var w = cols * CELL + m + 2;
+    var h = rows * CELL + m + 2;
+    // 空きマスを1マスずつ<rect>で描くと、大きな設計図でHTMLが肥大する
+    // （32×32×24段で空マスだけ2万個以上の図形になっていた）。
+    // 背景1枚＋罫線1本のパスにまとめる。見た目は1マスずつ描いたときと同じ。
+    var grid = "";
+    for (var gi = 0; gi <= cols; gi++) {
+      grid += "M" + (m + gi * CELL) + " " + m + "V" + (m + rows * CELL);
+    }
+    for (var gj = 0; gj <= rows; gj++) {
+      grid += "M" + m + " " + (m + gj * CELL) + "H" + (m + cols * CELL);
+    }
+    var out = ['<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + (y + 1) + '段目" ' +
+               'style="width:' + w + 'px;max-width:100%">' +
+               '<rect x="' + m + '" y="' + m + '" width="' + (cols * CELL) + '" height="' + (rows * CELL) + '" ' +
+               'class="empty-bg"/><path class="grid" d="' + grid + '"/>'];
+    var i, j;
+    // 座標ラベル
+    for (i = 0; i < cols; i++) {
+      out.push('<text x="' + F(m + i * CELL + CELL / 2) + '" y="' + (m - 8) + '" class="ax">' + (x1 + i) + "</text>");
+    }
+    for (j = 0; j < rows; j++) {
+      out.push('<text x="' + (m - 8) + '" y="' + F(m + j * CELL + CELL / 2 + 4) + '" class="ax">' + (z1 + j) + "</text>");
+    }
+    // マス
+    for (j = 0; j < rows; j++) {
+      for (i = 0; i < cols; i++) {
+        var x = x1 + i, z = z1 + j;
+        var px = m + i * CELL, py = m + j * CELL;
+        var key = layer.get(x + "," + z);
+        if (key) {
+          var b = block(key);
+          if (key === "redstone_wire") {
+            out.push('<rect x="' + px + '" y="' + py + '" width="' + CELL +
+              '" height="' + CELL + '" class="wire-bg"/>' +
+              dustWireSvg(px, py, CELL, dustLinks(model.blocks, [x, y, z])));
+          } else {
+          out.push('<rect x="' + px + '" y="' + py + '" width="' + CELL + '" height="' + CELL + '" ' +
+                   'fill="' + b.color + '" stroke="' + shade(b.color, 0.6) + '"/>' +
+                   '<text x="' + F(px + CELL / 2) + '" y="' + F(py + CELL / 2 + 5) + '" ' +
+                   'class="sym" fill="' + textColorFor(b.color) + '">' + b.symbol + "</text>");
+          }
+          var fc = model.facing.get(key3(x, y, z));
+          if (fc && key !== "redstone_wire") {
+            out.push(facingArrow(px, py, fc, textColorFor(b.color)));
+          }
+        } else if (prevLayer && prevLayer.has(x + "," + z)) {
+          // 下の段にブロックがある目印（位置合わせ用）。空きマス自体は
+          // 上で敷いたパターンが担当するので、ここでは描かない
+          out.push('<circle cx="' + F(px + CELL / 2) + '" cy="' + F(py + CELL / 2) + '" ' +
+                   'r="2.2" class="ghost"/>');
+        }
+      }
+    }
+    out.push("</svg>");
+    return out.join("");
+  }
+
+  /* ------------------------------------------------------------------------ css
+   * render.py の CSS と完全に同じ token 構造（ライト / ダーク両対応）
+   */
+  var CSS = "\n" +
+":root {\n" +
+"  --ground: #f2f4ee; --panel: #fbfcf8; --ink: #22301f; --muted: #5d6b56;\n" +
+"  --line: #d3dbc9; --accent: #3e9b4f; --accent-ink: #2c6d38;\n" +
+"  --cell-empty: #eef1e8; --cell-line: #dde3d4; --ghost: #b9c3ad;\n" +
+"}\n" +
+"@media (prefers-color-scheme: dark) {\n" +
+"  :root:not([data-theme=\"light\"]) {\n" +
+"    --ground: #141811; --panel: #1c2317; --ink: #e7ede0; --muted: #9cab92;\n" +
+"    --line: #37422e; --accent: #59b368; --accent-ink: #8ed49a;\n" +
+"    --cell-empty: #222a1c; --cell-line: #333e29; --ghost: #55654a;\n" +
+"  }\n" +
+"}\n" +
+":root[data-theme=\"dark\"] {\n" +
+"  --ground: #141811; --panel: #1c2317; --ink: #e7ede0; --muted: #9cab92;\n" +
+"  --line: #37422e; --accent: #59b368; --accent-ink: #8ed49a;\n" +
+"  --cell-empty: #222a1c; --cell-line: #333e29; --ghost: #55654a;\n" +
+"}\n" +
+"* { box-sizing: border-box; }\n" +
+"body {\n" +
+"  margin: 0; background: var(--ground); color: var(--ink);\n" +
+"  font-family: \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", \"Noto Sans JP\",\n" +
+"    \"Yu Gothic UI\", \"Meiryo\", sans-serif;\n" +
+"  line-height: 1.7;\n" +
+"}\n" +
+"main { max-width: 980px; margin: 0 auto; padding: 32px 20px 72px; }\n" +
+"header.hero { border-bottom: 3px solid var(--accent); padding-bottom: 20px; margin-bottom: 28px; }\n" +
+".eyebrow {\n" +
+"  font-size: 12px; letter-spacing: 0.18em; color: var(--accent-ink);\n" +
+"  font-weight: 700; margin: 0 0 6px;\n" +
+"}\n" +
+"h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: 0.02em; text-wrap: balance; }\n" +
+".desc { color: var(--muted); margin: 0 0 14px; max-width: 40em; }\n" +
+".stats { display: flex; flex-wrap: wrap; gap: 10px 26px; font-size: 14px; }\n" +
+".stats b { font-variant-numeric: tabular-nums; font-size: 18px; }\n" +
+".stats span { color: var(--muted); }\n" +
+"h2 {\n" +
+"  font-size: 20px; margin: 44px 0 4px; padding-left: 12px;\n" +
+"  border-left: 5px solid var(--accent);\n" +
+"}\n" +
+".hint { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }\n" +
+".panel {\n" +
+"  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;\n" +
+"  padding: 18px; overflow-x: auto;\n" +
+"}\n" +
+".iso-panel { text-align: center; }\n" +
+"table.bom { border-collapse: collapse; width: 100%; font-size: 14.5px; }\n" +
+"table.bom th {\n" +
+"  text-align: left; color: var(--muted); font-weight: 600; font-size: 12.5px;\n" +
+"  letter-spacing: 0.08em; border-bottom: 2px solid var(--line); padding: 6px 10px;\n" +
+"}\n" +
+"table.bom td { border-bottom: 1px solid var(--line); padding: 7px 10px; }\n" +
+"table.bom td.n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }\n" +
+".swatch {\n" +
+"  display: inline-block; width: 18px; height: 18px; border-radius: 3px;\n" +
+"  vertical-align: -4px; margin-right: 8px; border: 1px solid rgb(0 0 0 / 25%);\n" +
+"}\n" +
+".layers { display: flex; flex-direction: column; gap: 26px; }\n" +
+".layer-card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }\n" +
+".layer-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }\n" +
+".layer-no {\n" +
+"  background: var(--accent); color: #fff; font-weight: 800; font-size: 15px;\n" +
+"  border-radius: 4px; padding: 2px 12px; letter-spacing: 0.05em;\n" +
+"}\n" +
+".layer-count { color: var(--muted); font-size: 13.5px; }\n" +
+".grid-wrap { overflow-x: auto; }\n" +
+"svg text.ax {\n" +
+"  font-family: ui-monospace, \"SF Mono\", Menlo, Consolas, monospace;\n" +
+"  font-size: 9px; fill: var(--muted); text-anchor: middle;\n" +
+"}\n" +
+"svg text.sym { font-size: 12px; font-weight: 700; text-anchor: middle; }\n" +
+"svg rect.empty { fill: var(--cell-empty); stroke: var(--cell-line); }\n" +
+"svg rect.empty-bg { fill: var(--cell-empty); }\n" +
+"svg path.grid { fill: none; stroke: var(--cell-line); stroke-width: 1; }\n" +
+"svg polygon.dir { opacity: 0.85; }\n" +
+"svg rect.wire-bg { fill: var(--cell-empty); stroke: var(--cell-line); }\n" +
+"svg rect.wire { fill: #e03a2a; }\n" +
+"svg text.wireup { font-size: 8.5px; font-weight: 800; fill: #7b1f17;\n" +
+"  text-anchor: middle; }\n" +
+"svg text.updown { font-size: 9.5px; font-weight: 800; text-anchor: middle;\n" +
+"  opacity: 0.9; }\n" +
+"svg g.faint { opacity: 0.28; }\n" +
+"h3.rs-h3 { font-size: 15.5px; margin: 26px 0 6px; color: var(--accent-ink);\n" +
+"  letter-spacing: 0.04em; }\n" +
+".rs-iso .cap { color: var(--muted); font-size: 13px; margin: 10px 0 0; }\n" +
+"svg rect.rs-ring { fill: none; stroke: var(--accent-ink); stroke-width: 2; rx: 2; }\n" +
+"svg text.sym.rs { font-size: 15px; }\n" +
+"table.bom.rs-list td.n { text-align: left; font-size: 12px; line-height: 1.45; white-space: nowrap; }\n" +
+"table.bom.rs-list .role { color: var(--muted); font-size: 13px; margin-top: 3px; }\n" +
+".rs-layers { margin-top: 18px; }\n" +
+"svg circle.ghost { fill: var(--ghost); }\n" +
+".compass { font-size: 12.5px; color: var(--muted); margin-top: 8px; }\n" +
+".layer-note {\n" +
+"  margin-top: 10px; padding: 10px 12px; border-radius: 5px; font-size: 13.5px;\n" +
+"  background: color-mix(in srgb, var(--accent) 12%, var(--panel));\n" +
+"  border: 1px solid var(--accent); color: var(--ink);\n" +
+"}\n" +
+".layer-note b { color: var(--accent-ink); }\n" +
+"ol.notes { margin: 0; padding-left: 1.4em; }\n" +
+"ol.notes li { margin: 6px 0; }\n" +
+"footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px; }\n";
+
+  // 検品バナー専用CSS（Python版には無い追加分）
+  var QC_CSS = "\n" +
+".qc { border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px;\n" +
+"  border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }\n" +
+".qc.ng { border-color: #d98324; background: color-mix(in srgb, #d98324 12%, var(--panel)); }\n" +
+".qc-title { font-weight: 800; font-size: 15.5px; margin: 0 0 2px; }\n" +
+".qc-lead { color: var(--muted); font-size: 12.5px; margin: 0; }\n" +
+".qc ol { margin: 10px 0 0; padding-left: 1.3em; }\n" +
+".qc li { margin: 8px 0; }\n" +
+".qc .tag { font-size: 11px; font-weight: 800; border-radius: 3px; padding: 1px 6px;\n" +
+"  margin-right: 6px; background: #d94a3d; color: #fff; letter-spacing: 0.06em; }\n" +
+".qc .tag.warn { background: #d98324; }\n" +
+".qc .tag.info { background: #5d6b56; }\n" +
+".qc .fix { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }\n";
+
+  /* ------------------------------------------------------------------ validate
+   * ページを開いた瞬間に自己検品する。model は normalize 済みを渡すこと。
+   */
+  /* 上限は実測に基づく。描画最適化後（空きマスの罫線を1本のパスに、
+   * 完全に隠れたブロックを描画から省略）に測った値:
+   *   32×32×24段  3,876個  HTML 1.6MB  ブラウザ表示 約2秒
+   *   48×48×32段  8,132個  HTML 3.3MB  約4.7秒
+   *   64×64×48段 15,940個  HTML 6.4MB  約8秒 ← ここを上限にする
+   * hard = これを超えたら「大きすぎ」と警告する線。
+   * soft = 超えると重くなり始める線（作れるが注意を促す）。 */
+  var LIMITS = {
+    maxDim: 64, maxLayers: 48, maxBlocks: 20000,
+    softDim: 32, softLayers: 24, softBlocks: 4000
+  };
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  /** 注記テキストから座標表記を拾う。 [{axis:"x", value:3, text:"x=3"}, ...] */
+  function scanCoords(text) {
+    var found = [];
+    var re, mm;
+    // 範囲表記: x=2〜5 / x=2..5 / x=2-5
+    re = /([xyzXYZ])\s*=\s*(-?\d+)\s*(?:〜|～|~|\.\.|--?|–|—)\s*(-?\d+)/g;
+    var consumed = [];
+    while ((mm = re.exec(text)) !== null) {
+      consumed.push([mm.index, mm.index + mm[0].length]);
+      found.push({ axis: mm[1].toLowerCase(), value: parseInt(mm[2], 10), text: mm[0] });
+      found.push({ axis: mm[1].toLowerCase(), value: parseInt(mm[3], 10), text: mm[0] });
+    }
+    // 単独表記: x=3
+    re = /([xyzXYZ])\s*=\s*(-?\d+)/g;
+    while ((mm = re.exec(text)) !== null) {
+      var inside = consumed.some(function (r) { return mm.index >= r[0] && mm.index < r[1]; });
+      if (!inside) found.push({ axis: mm[1].toLowerCase(), value: parseInt(mm[2], 10), text: mm[0] });
+    }
+    return found;
+  }
+
+  function scanDan(text) {
+    var out = [], mm;
+    var re = /(\d+)\s*段目/g;
+    while ((mm = re.exec(text)) !== null) out.push({ value: parseInt(mm[1], 10), text: mm[0] });
+    return out;
+  }
+
+  /** 「N段目(y=M)」の対応が N === M+1 になっているか */
+  function scanDanY(text) {
+    var out = [], mm;
+    var re = /(\d+)\s*段目\s*[（(]\s*[yY]\s*=\s*(-?\d+)\s*[）)]/g;
+    while ((mm = re.exec(text)) !== null) {
+      out.push({ dan: parseInt(mm[1], 10), y: parseInt(mm[2], 10), text: mm[0] });
+    }
+    return out;
+  }
+
+  function validate(model) {
+    var issues = [];
+    var add = function (level, title, detail, fix) {
+      issues.push({ level: level, title: title, detail: detail, fix: fix });
+    };
+
+    if (model.blocks.size === 0) {
+      add("error", "ブロックが1つもない",
+        "設計データの ops / blocks が空か、すべて clear されている。",
+        "ops に fill / set を書いてブロックを置く。");
+      return { ok: false, issues: issues };
+    }
+
+    var b = model.bounds();
+    var s = model.size();
+    var sx = s[0], sy = s[1], sz = s[2];
+    var total = model.blocks.size;
+
+    /* --- 1) パレット外ブロック --------------------------------------- */
+    if (model.unknownKeys && model.unknownKeys.length) {
+      add("error", "パレットに無いブロックを使っている（" + esc(model.unknownKeys.join(", ")) + "）",
+        "設計図では ? の記号・マゼンタ色で表示される。ゲーム内のブロックIDに変換できない。",
+        "BLOCKS に定義されたキーだけを使う。近いものに置きかえる（例: 石なら stone、石レンガなら stone_bricks）。");
+    }
+    if (model.badOps && model.badOps.length) {
+      add("error", "知らない命令が ops にある（" + esc(model.badOps.join(", ")) + "）",
+        "その行は無視されたので、その部分のブロックは置かれていない。",
+        "op は fill / box / set / clear のどれかにする。");
+    }
+
+    /* --- 2) サイズ・ブロック数の上限 --------------------------------- */
+    if (sx > LIMITS.maxDim || sz > LIMITS.maxDim) {
+      add("warn", "大きすぎる（" + sx + "×" + sz + "マス）",
+        "レイヤー図が横に長くなりすぎて、画面でも紙でも読めない。",
+        "横・奥行きとも " + LIMITS.maxDim + "マス以内におさめる。大きい建物は棟ごとに分けて別の設計図にする。");
+    } else if (sx > LIMITS.softDim || sz > LIMITS.softDim) {
+      add("info", "大きめの設計図（" + sx + "×" + sz + "マス）",
+        "作れるが、ページの表示に少し時間がかかり、印刷すると図が小さくなる。",
+        "細かさを追うなら " + LIMITS.softDim + "マス以内が読みやすい。横に広い建物は棟ごとに分けてもよい。");
+    }
+    if (sy > LIMITS.maxLayers) {
+      add("warn", "段数が多すぎる（" + sy + "段）",
+        "段ごとの図が " + sy + "枚になり、説明書として長すぎる。",
+        "高さは " + LIMITS.maxLayers + "段以内にする。");
+    } else if (sy > LIMITS.softLayers) {
+      add("info", "段数が多め（" + sy + "段）",
+        "図が " + sy + "枚になるので、印刷すると枚数が多くなる。",
+        "問題なければこのままでよい。減らすなら土台や屋根を簡単にする。");
+    }
+    if (total > LIMITS.maxBlocks) {
+      add("warn", "ブロックが多すぎる（" + total + "個）",
+        "手で積むには多すぎて、途中でいやになってしまう量。",
+        "目安は " + LIMITS.maxBlocks + "個以内。中身をくり抜く・面積を小さくするなどで減らす。");
+    } else if (total > LIMITS.softBlocks) {
+      add("info", "ブロックが多め（" + total + "個）",
+        "作りごたえのある量。何回かに分けて作るとよい。",
+        "早く仕上げたいなら、中身をくり抜くと数を減らせる。");
+    }
+
+    /* --- 3) 支えの無い浮きブロック（marker除く） ---------------------- */
+    // 置き物(marker)は壁や床に横付けするものなので判定から外す。
+    // 残りをつなげてグループ分けし、いちばん大きい塊から離れているものを
+    // 「浮いている」として報告する。
+    // つながりは斜め(角・辺で接する)も含める。階段を1段ずつずらして
+    // 勾配をつくる屋根は、面では接しないが斜めで接しており、
+    // マイクラでは正しい作り方。面だけで見ると屋根が全部「浮いている」に
+    // なってしまい、いちばん使いたい表現が使えなくなる。
+    var solid = new Set();
+    model.blocks.forEach(function (k, ks) { if (!block(k).marker) solid.add(ks); });
+    var seen = new Set();
+    var comps = [];
+    var dirs = [];
+    for (var dx = -1; dx <= 1; dx++) {
+      for (var dy = -1; dy <= 1; dy++) {
+        for (var dz = -1; dz <= 1; dz++) {
+          if (dx || dy || dz) dirs.push([dx, dy, dz]);
+        }
+      }
+    }
+    solid.forEach(function (start) {
+      if (seen.has(start)) return;
+      var stack = [start], comp = [];
+      seen.add(start);
+      while (stack.length) {
+        var cur = stack.pop();
+        comp.push(cur);
+        var p = cur.split(","), x = +p[0], y = +p[1], z = +p[2];
+        for (var d = 0; d < dirs.length; d++) {
+          var nk = key3(x + dirs[d][0], y + dirs[d][1], z + dirs[d][2]);
+          if (solid.has(nk) && !seen.has(nk)) { seen.add(nk); stack.push(nk); }
+        }
+      }
+      comps.push(comp);
+    });
+    if (comps.length > 1) {
+      comps.sort(function (a, c) { return c.length - a.length; });
+      for (var ci = 1; ci < comps.length; ci++) {
+        var comp2 = comps[ci];
+        var where = comp2.slice(0, 4).map(function (ks) {
+          var p = ks.split(",");
+          return "(x=" + p[0] + ", y=" + p[1] + ", z=" + p[2] + ")";
+        }).join(" ");
+        add("error", "空中に浮いているブロックがある（" + comp2.length + "個）",
+          "本体とどこもくっついていない: " + where + (comp2.length > 4 ? " ほか" : "") +
+          "。マイクラでは砂・砂利以外は浮いたままだが、作る人は必ず置きまちがいだと思う。",
+          "この座標をよく見て、支えの柱をたす／本体につながる位置へ動かす／不要なら消す。");
+      }
+    }
+
+    /* --- 4) 注記テキストの座標が実際の範囲外（※過去に起きた致命バグ） ---
+     * 設計を生座標で書いたのに図は正規化(0起点)で描かれるため、
+     * 図の座標と注記の座標がずれ、その通り作ると仕掛けが動かなくなった。
+     */
+    var texts = [];
+    (model.notes || []).forEach(function (t, i) { texts.push(["つくるときのポイント " + (i + 1) + "番目", t]); });
+    Object.keys(model.layer_notes || {}).forEach(function (y) {
+      texts.push([(+y + 1) + "段目の注記", model.layer_notes[y]]);
+    });
+    if (model.description) texts.push(["説明文", model.description]);
+
+    var lim = { x: [0, sx - 1], y: [0, sy - 1], z: [0, sz - 1] };
+    var shift = model.shift || [0, 0, 0];
+    var shifted = shift[0] !== 0 || shift[1] !== 0 || shift[2] !== 0;
+    for (var ti = 0; ti < texts.length; ti++) {
+      var where2 = texts[ti][0], txt = texts[ti][1] || "";
+      var bad = [];
+      scanCoords(txt).forEach(function (c) {
+        var r = lim[c.axis];
+        if (c.value < r[0] || c.value > r[1]) {
+          if (bad.indexOf(c.text) === -1) bad.push(c.text);
+        }
+      });
+      if (bad.length) {
+        add("error", "注記の座標が図の外を指している（" + esc(where2) + "）",
+          "「" + esc(bad.join("」「")) + "」は設計図に無い座標。図で使える範囲は x=0〜" + (sx - 1) +
+          " / y=0〜" + (sy - 1) + " / z=0〜" + (sz - 1) + "。" +
+          (shifted
+            ? "設計図は最小座標が(0,0,0)になるよう自動で平行移動して描かれる" +
+              "（図の座標 = 設計の座標 − x" + shift[0] + " / y" + shift[1] + " / z" + shift[2] +
+              "）。設計を書いたときの生の座標をそのまま注記に書いたのが原因。"
+            : "書きまちがいか、設計を直したときに注記を直しわすれている。") +
+          "この通りに作ると仕掛けが動かない。",
+          "注記の座標を、レイヤー図に実際に出ている数字（左と上の目盛り）に合わせて書き直す。");
+      }
+      var danBad = [];
+      scanDan(txt).forEach(function (d) {
+        if (d.value < 1 || d.value > sy) { if (danBad.indexOf(d.text) === -1) danBad.push(d.text); }
+      });
+      if (danBad.length) {
+        add("error", "注記が無い段を指している（" + esc(where2) + "）",
+          "「" + esc(danBad.join("」「")) + "」と書いてあるが、この設計は " + sy + "段しかない。",
+          "1段目〜" + sy + "段目の範囲で書き直す。");
+      }
+      var pairBad = [];
+      scanDanY(txt).forEach(function (d) {
+        if (d.dan !== d.y + 1) {
+          pairBad.push("「" + d.text + "」（" + d.dan + "段目なら y=" + (d.dan - 1) +
+            "、y=" + d.y + "なら " + (d.y + 1) + "段目）");
+        }
+      });
+      if (pairBad.length) {
+        add("error", "「N段目」と「y=」の対応が合っていない（" + esc(where2) + "）",
+          esc(pairBad.join(" / ")) + "。段目は1から数え、yは0から数える（1段目=y=0）。" +
+          "どちらの段のことか決めないと、1段ちがう場所に作ってしまう。",
+          "どちらが正しいかを決めて「(y+1)段目(y=◯)」の形にそろえる。");
+      }
+    }
+    Object.keys(model.layer_notes || {}).forEach(function (y) {
+      if (+y < 0 || +y > sy - 1) {
+        add("warn", "表示されない layer_notes がある（y=" + y + "）",
+          "その段は設計図に無いので、この注記はどこにも出ない。",
+          "layer_notes のキーを 0〜" + (sy - 1) + " の範囲にする（キーはyの値＝段目−1）。");
+      }
+    });
+
+    /* --- 4b) ピストンが伸びられない / 向かい合って干渉する -------------
+     * ピストンは「前1マスが空」か「前1マスのブロックを前2マスへ押し出せる」
+     * ときだけ伸びる。前2マスまで埋まっていると永久に動かず、自動ドアは開かない。
+     * 図の上では正しく見えるので、人の目では気づけない種類の失敗。 */
+    var DIRV = {
+      north: [0, 0, -1], south: [0, 0, 1], east: [1, 0, 0], west: [-1, 0, 0],
+      down: [0, -1, 0], up: [0, 1, 0]
+    };
+    var pistons = [];
+    model.blocks.forEach(function (k, ks) {
+      if (block(k).piston) {
+        var p = ks.split(",").map(Number);
+        pistons.push({ pos: p, key: ks, facing: model.facing.get(ks) });
+      }
+    });
+    var noFacing = pistons.filter(function (p) { return !p.facing; });
+    if (noFacing.length) {
+      add("error", "ピストンの向きが決まっていない（" + noFacing.length + "台）",
+        "どちらへ押すのか図から読めないので、作る人が向きを決められない。" +
+        "向きを1つ間違えるだけで仕掛けは動かない。",
+        'そのピストンの set に "facing" を付ける（north/south/east/west）。');
+    }
+    var stuck = [], where3 = [];
+    pistons.forEach(function (p) {
+      var d = DIRV[p.facing];
+      if (!d) return;
+      var a = [p.pos[0] + d[0], p.pos[1] + d[1], p.pos[2] + d[2]];
+      var b = [a[0] + d[0], a[1] + d[1], a[2] + d[2]];
+      var ka = model.get(a[0], a[1], a[2]);
+      var kb = model.get(b[0], b[1], b[2]);
+      if (ka && kb) {
+        stuck.push(p);
+        where3.push("(x=" + p.pos[0] + ", y=" + p.pos[1] + ", z=" + p.pos[2] + ")の" +
+          "前が" + block(ka).name_ja + "、その先も" + block(kb).name_ja);
+      }
+    });
+    if (stuck.length) {
+      add("error", "ピストンが伸びられない（" + stuck.length + "台）",
+        esc(where3.slice(0, 3).join(" / ")) + (where3.length > 3 ? " ほか" : "") +
+        "。前のブロックを押し出す先がふさがっているので、ピストンは動かない。" +
+        "自動ドアなら永久に閉じたままになる。",
+        "ピストンの前2マス目を空けるか、ピストンを1マス外側へ下げて" +
+        "「ピストン→動かす板→通り道」の並びにする。" +
+        "向かい合う2台で2マスの通路をふさぐなら、ピストンは通路の両どなりではなく" +
+        "さらに1マス外側に置き、動かす板をそのあいだに入れる。");
+    }
+
+    /* --- 4d) 溶岩のそばの燃える素材 ------------------------------------
+     * 溶岩は置いたブロックに直接ふれていなくても、近く（横どなり1マス・
+     * 上2段ほど）の木材・羊毛・葉・TNTに火をつける。設計図では正しく
+     * 見えるのに、作って数分で燃え落ちる。実際に利用者の作品が燃えた。 */
+    var lavaCells = [];
+    model.blocks.forEach(function (k, ks) {
+      if (k === "lava") lavaCells.push(ks.split(",").map(Number));
+    });
+    if (lavaCells.length) {
+      var burnSeen = {};
+      var burn = [];
+      lavaCells.forEach(function (p) {
+        for (var dx = -1; dx <= 1; dx++) {
+          for (var dy = -1; dy <= 2; dy++) {
+            for (var dz = -1; dz <= 1; dz++) {
+              if (dx === 0 && dy === 0 && dz === 0) continue;
+              var qx = p[0] + dx, qy = p[1] + dy, qz = p[2] + dz;
+              var k2 = model.get(qx, qy, qz);
+              if (!k2 || !block(k2).flammable) continue;
+              var ks2 = qx + "," + qy + "," + qz;
+              if (burnSeen[ks2]) continue;
+              burnSeen[ks2] = 1;
+              burn.push(block(k2).name_ja +
+                "(x=" + qx + ", " + (qy + 1) + "段目, z=" + qz + ")");
+            }
+          }
+        }
+      });
+      if (burn.length) {
+        add("error", "溶岩のそばに燃える素材がある（" + burn.length + "か所）",
+          esc(burn.slice(0, 3).join(" / ")) + (burn.length > 3 ? " ほか" : "") +
+          "。溶岩はふれていなくても、横どなり1マス・上2段くらいの" +
+          "木材・羊毛・葉・TNTに火をつける。作って数分で燃え広がり、" +
+          "作品が燃え落ちる。",
+          "溶岩のまわり（横1マス・上2段）は石・丸石・ガラスなど" +
+          "燃えない素材にするか、溶岩と燃える素材を2マス以上はなす。");
+      }
+    }
+
+    /* --- 4c) 向きの指定がそのブロックに合っているか -------------------
+     * 階段やチェストは「上・下」を向けない。指定しても無視されて既定の向きで
+     * 置かれるため、図どおりに見えるのに現物だけ違う、という事故になる。 */
+    var badFacing = [];
+    model.facing.forEach(function (f, ks) {
+      var k = model.blocks.get(ks);
+      if (!k) return;
+      var b = block(k);
+      var q = ks.split(",");
+      var where = "(x=" + q[0] + ", " + (+q[1] + 1) + "段目, z=" + q[2] + ")";
+      if (!b.orientable) {
+        badFacing.push(esc(b.name_ja) + where + " は向きを指定できないブロック");
+      } else if ((f === "up" || f === "down") && !b.updown) {
+        badFacing.push(esc(b.name_ja) + where + " は上下を向けない（" +
+          (f === "down" ? "下" : "上") + "が指定されている）");
+      }
+    });
+    if (badFacing.length) {
+      add("error", "向きの指定が合っていない（" + badFacing.length + "か所）",
+        badFacing.slice(0, 3).join(" / ") + (badFacing.length > 3 ? " ほか" : "") +
+        "。指定しても無視されて既定の向きで置かれるので、" +
+        "図のとおりに見えても現物だけ向きが違うことになる。",
+        "そのブロックから facing を外すか、向きを north/south/east/west に直す。" +
+        "上下を向けるのはホッパー・ディスペンサー・ドロッパー・ピストン・" +
+        "オブザーバー・はしごだけ。");
+    }
+
+    /* --- 5) marker ブロックが notes で説明されていない ----------------- */
+    var noteAll = (model.notes || []).join("\n") + "\n" +
+      Object.keys(model.layer_notes || {}).map(function (y) { return model.layer_notes[y]; }).join("\n");
+    var usedMarkers = [];
+    model.blocks.forEach(function (k) {
+      if (block(k).marker && usedMarkers.indexOf(k) === -1) usedMarkers.push(k);
+    });
+    // 「ポピー（赤い花）」を notes で「ポピー」と書いてあれば説明ありとみなす。
+    // 正式名称そのままを求めると、ふつうの書き方が不合格になってしまう。
+    var coreName = function (n) { return n.split("（")[0].split("(")[0]; };
+    var missing = usedMarkers.filter(function (k) {
+      var n = block(k).name_ja;
+      return noteAll.indexOf(n) === -1 && noteAll.indexOf(coreName(n)) === -1;
+    });
+    if (missing.length) {
+      add("warn", "置き物の説明が「つくるときのポイント」に無い（" +
+        esc(missing.map(function (k) { return block(k).name_ja; }).join("、")) + "）",
+        "ピストン・レッドストーン・ドア・たいまつなどは向きと取り付け面で動きが変わるのに、" +
+        "置き方の説明がどこにも書かれていない。図のマスを見ただけでは向きが分からない。",
+        "notes に、そのブロックをどの面にどの向きで置くか、どの順番で置くかを1行ずつ書く。");
+    }
+
+    /* --- 6) レイヤーの飛び ------------------------------------------- */
+    var empties = [];
+    model.layers().forEach(function (pair) {
+      if (pair[1].size === 0) empties.push(pair[0] + 1);
+    });
+    if (empties.length) {
+      add("error", "とちゅうに何も無い段がある（" + empties.join("段目, ") + "段目）",
+        "その段は設計図に出ないので、段の番号が飛んでしまい「作りわすれ？」と混乱する。",
+        "その段にもブロックを置く（柱を通す等）か、上の段を下へ詰めて段の番号を連続させる。");
+    }
+
+    // 「要修正」→「確認」→「参考」の順に並べる
+    var byLevel = function (lv) {
+      return issues.filter(function (i) { return i.level === lv; });
+    };
+    var ordered = byLevel("error").concat(byLevel("warn"), byLevel("info"));
+    // info（大きめ・多めのお知らせ）は直す必要が無いので合格の判定に含めない
+    var blocking = ordered.filter(function (i) { return i.level !== "info"; });
+    return { ok: blocking.length === 0, issues: ordered, blocking: blocking.length };
+  }
+
+  /** 検品結果のバナーHTML */
+  function qcBanner(result) {
+    if (result.ok && !result.issues.length) {
+      return '<div class="qc"><p class="qc-title">✅ 自動検品: 合格</p>' +
+        '<p class="qc-lead">座標のズレ・浮きブロック・パレット外ブロックなど、' +
+        'よくある失敗は見つかりませんでした。このまま作れます。</p></div>';
+    }
+    var items = result.issues.map(function (it) {
+      var tag = it.level === "error" ? '<span class="tag">要修正</span>'
+        : it.level === "warn" ? '<span class="tag warn">確認</span>'
+        : '<span class="tag info">参考</span>';
+      return "<li>" + tag + "<b>" + it.title + "</b><br>" + it.detail +
+        '<span class="fix">直し方: ' + it.fix + "</span></li>";
+    }).join("");
+    if (result.ok) {
+      // 直す必要のあるものは無く、「大きめ・多め」のお知らせだけ
+      return '<div class="qc"><p class="qc-title">✅ 自動検品: 合格</p>' +
+        '<p class="qc-lead">作るのに問題はありません。参考までに気づいた点を挙げます。</p>' +
+        "<ol>" + items + "</ol></div>";
+    }
+    return '<div class="qc ng"><p class="qc-title">⚠ ' + result.blocking + "件の問題</p>" +
+      '<p class="qc-lead">Gemini に「⚠を直して」と伝えてください（下の内容をそのまま見せればOK）。</p>' +
+      "<ol>" + items + "</ol></div>";
+  }
+
+  /* ----------------------------------------------------------------- render */
+  /**
+   * 設計データ（または VoxelModel）→ 設計図HTML。
+   * opts.banner = false で検品バナーを省く（Python版との比較検証用）。
+   */
+  function renderHTML(designOrModel, opts) {
+    opts = opts || {};
+    var model = designOrModel instanceof VoxelModel ? designOrModel : buildModel(designOrModel);
+    model.normalize();
+    var b = model.bounds();
+    var x1 = b[0], z1 = b[2], x2 = b[3], z2 = b[5];
+    var s = model.size();
+    var sx = s[0], sy = s[1], sz = s[2];
+    var counts = model.counts();
+    var total = counts.reduce(function (a, kv) { return a + kv[1]; }, 0);
+
+    // 材料リスト
+    var bomRows = counts.map(function (kv) {
+      var bk = block(kv[0]);
+      return '<tr><td><span class="swatch" style="background:' + bk.color + '"></span>' +
+        bk.name_ja +
+        '<span style="color:var(--muted)">（記号: ' + bk.symbol + "）</span></td>" +
+        '<td class="n">' + kv[1] + " 個</td></tr>";
+    }).join("");
+
+    // レイヤー図
+    var layerCards = [];
+    var prev = null;
+    model.layers().forEach(function (pair) {
+      var y = pair[0], layer = pair[1];
+      if (layer.size === 0) { prev = layer; return; }
+      var used = new Map();
+      layer.forEach(function (k) { used.set(k, (used.get(k) || 0) + 1); });
+      var usedArr = [];
+      used.forEach(function (n, k) { usedArr.push([k, n]); });
+      usedArr.sort(function (a, c) { return c[1] - a[1]; });
+      var countTxt = usedArr.map(function (kv) {
+        return block(kv[0]).name_ja + "×" + kv[1];
+      }).join(" ／ ");
+      var noteTxt = (model.layer_notes || {})[y];
+      var noteHtml = noteTxt
+        ? '<div class="layer-note"><b>この段の注意:</b> ' + noteTxt + "</div>"
+        : "";
+      layerCards.push(
+        '<div class="layer-card">' +
+        '<div class="layer-head"><span class="layer-no">' + (y + 1) + "段目</span>" +
+        '<span class="layer-count">この段で使うブロック: ' + countTxt + "</span></div>" +
+        '<div class="grid-wrap">' +
+        layerSvg(model, y, layer, prev, [x1, x2], [z1, z2]) + "</div>" +
+        '<div class="compass">図の上が北（z=' + z1 + "）・左が西（x=" + x1 + "）。" +
+        "小さな点は下の段のブロックの位置（位置合わせの目印）。</div>" +
+        noteHtml + "</div>"
+      );
+      prev = layer;
+    });
+
+    var desc = model.description ? '<p class="desc">' + model.description + "</p>" : "";
+    var notesSection = "";
+    if (model.notes && model.notes.length) {
+      var items = model.notes.map(function (n) { return "<li>" + n + "</li>"; }).join("");
+      notesSection =
+        "<h2>つくるときのポイント</h2>" +
+        '<p class="hint">向きが大事な部品（ピストン・レッドストーン等）の置き方。' +
+        "ブロックを積み終わってから、この順番で仕上げる。</p>" +
+        '<div class="panel"><ol class="notes">' + items + "</ol></div>";
+    }
+
+    var qc = "";
+    if (opts.banner !== false) {
+      qc = "<style>" + QC_CSS + "</style>\n" + qcBanner(validate(model)) + "\n";
+    }
+
+    return '<meta charset="utf-8">\n' +
+'<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+"<title>" + model.name + " — マイクラ設計図</title>\n" +
+"<style>" + CSS + "</style>\n" +
+"<main>\n" + qc +
+'<header class="hero">\n' +
+'  <p class="eyebrow">MINECRAFT EDUCATION 設計図</p>\n' +
+"  <h1>" + model.name + "</h1>\n" +
+"  " + desc + "\n" +
+'  <div class="stats">\n' +
+"    <div><b>" + sx + " × " + sz + "</b> <span>マス（横×奥行き）</span></div>\n" +
+"    <div><b>" + sy + "</b> <span>段</span></div>\n" +
+"    <div><b>" + total + "</b> <span>ブロック合計</span></div>\n" +
+"  </div>\n" +
+"</header>\n" +
+"\n" +
+"<h2>完成イメージ</h2>\n" +
+'<p class="hint">ななめ上から見たところ。手前が南東の角（南の面が左手前）。</p>\n' +
+'<div class="panel iso-panel">' + isoSvg(model) + "</div>\n" +
+"\n" +
+"<h2>材料リスト</h2>\n" +
+'<p class="hint">はじめに集めておくブロック。インベントリにそろえてからスタート！</p>\n' +
+'<div class="panel"><table class="bom">\n' +
+'<tr><th>ブロック</th><th style="text-align:right">必要数</th></tr>\n' +
+bomRows + "\n" +
+"</table></div>\n" +
+"\n" +
+notesSection + "\n" +
+circuitSection(model) + "\n" +
+"<h2>作り方（1段ずつ）</h2>\n" +
+'<p class="hint">レゴの説明書と同じで、下の段から順番に置いていく。数字はマスの座標。</p>\n' +
+'<div class="layers">' + layerCards.join("") + "</div>\n" +
+"\n" +
+"<footer>Minecraft Education 用レイヤー設計図 ・ 上から見た図（上=北） ・\n" +
+"たいまつ・ドアなどの置き物は最後に設置するときれいに作れます。</footer>\n" +
+"</main>\n";
+  }
+
+  /** ブラウザ用: ページ全体に設計図を描く。 */
+  function mount(design, opts) {
+    var html = renderHTML(design, opts);
+    var m = /<title>([\s\S]*?)<\/title>/.exec(html);
+    if (m) document.title = m[1];
+    // <meta>/<title> は <head> 用なので body に入れる分からは取りのぞく
+    document.body.innerHTML = html
+      .replace(/<meta[^>]*>\n?/g, "")
+      .replace(/<title>[\s\S]*?<\/title>\n?/, "");
+    return html;
+  }
+
+  var API = {
+    BLOCKS: BLOCKS, block: block, shade: shade,
+    VoxelModel: VoxelModel, buildModel: buildModel,
+    validate: validate, renderHTML: renderHTML, mount: mount,
+    CSS: CSS, LIMITS: LIMITS
+  };
+
+  global.MinecraftBlueprint = API;
+  if (typeof module === "object" && module.exports) module.exports = API;
+
+  // グローバルに DESIGN があれば自動で描画（HTMLテンプレート用）
+  if (typeof document !== "undefined") {
+    var auto = function () {
+      if (global.DESIGN) mount(global.DESIGN);
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", auto);
+    } else {
+      auto();
+    }
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this);

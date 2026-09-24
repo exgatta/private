@@ -1,0 +1,73 @@
+# パレット確認用コード（MakeCode Python） — 1回だけ実行して確かめる
+# 目的: このツールが使うMakeCode定数60種が、実機のCode Builderに存在するか。
+# 使い方:
+#  1. Cキー → Code Builder → MakeCode(Python) に全部貼る
+#  2. エラーになった行があれば、その行の定数名がこの環境に無い
+#     → エラー行の写真かエラー名を報告してください。パレットを直します
+#  3. 実行できたら広い平地でチャットに check → ブロックが東向きに並ぶ
+#     （i番目 = プレイヤーの iマス東・2マス南。行のコメントと見比べる）
+# 溶岩と水は流れるので、地面の中（1段下・8マス南）に置いて確認します。
+
+def check():
+    blocks.place(GRASS, pos(0, 0, 2))  # 0 草ブロック
+    blocks.place(DIRT, pos(1, 0, 2))  # 1 土
+    blocks.place(STONE, pos(2, 0, 2))  # 2 石
+    blocks.place(COBBLESTONE, pos(3, 0, 2))  # 3 丸石
+    blocks.place(STONE_BRICKS, pos(4, 0, 2))  # 4 石レンガ
+    blocks.place(PLANKS_OAK, pos(5, 0, 2))  # 5 オークの板材
+    blocks.place(PLANKS_SPRUCE, pos(6, 0, 2))  # 6 トウヒの板材
+    blocks.place(LOG_OAK, pos(7, 0, 2))  # 7 オークの原木
+    blocks.place(GLASS, pos(8, 0, 2))  # 8 ガラス
+    blocks.place(BRICKS, pos(9, 0, 2))  # 9 レンガ
+    blocks.place(SANDSTONE, pos(10, 0, 2))  # 10 砂岩
+    blocks.place(BLOCK_OF_QUARTZ, pos(11, 0, 2))  # 11 クォーツブロック
+    blocks.place(WOOL, pos(12, 0, 2))  # 12 白の羊毛
+    blocks.place(RED_WOOL, pos(13, 0, 2))  # 13 赤の羊毛
+    blocks.place(BLUE_WOOL, pos(14, 0, 2))  # 14 青の羊毛
+    blocks.place(GLOWSTONE, pos(15, 0, 2))  # 15 グロウストーン
+    blocks.place(MOSSY_STONE_BRICKS, pos(16, 0, 2))  # 16 苔むした石レンガ
+    blocks.place(CHISELED_STONE_BRICKS, pos(17, 0, 2))  # 17 模様入りの石レンガ
+    blocks.place(LAVA, pos(18, -1, 8))  # 18 溶岩（地面の中）
+    blocks.place(WATER, pos(19, -1, 8))  # 19 水（地面の中）
+    blocks.place(OAK_WOOD_STAIRS, pos(20, 0, 2))  # 20 オークの階段
+    blocks.place(STONE_BRICK_STAIRS, pos(21, 0, 2))  # 21 石レンガの階段
+    blocks.place(COBBLESTONE_STAIRS, pos(22, 0, 2))  # 22 丸石の階段
+    blocks.place(OAK_WOOD_SLAB, pos(23, 0, 2))  # 23 オークのハーフブロック
+    blocks.place(STONE_SLAB, pos(24, 0, 2))  # 24 石レンガのハーフブロック
+    blocks.place(OAK_FENCE, pos(25, 0, 2))  # 25 オークのフェンス
+    blocks.place(OAK_FENCE_GATE, pos(26, 0, 2))  # 26 オークのフェンスゲート
+    blocks.place(WOODEN_TRAPDOOR, pos(27, 0, 2))  # 27 オークのトラップドア
+    blocks.place(IRON_BARS, pos(28, 0, 2))  # 28 鉄格子
+    blocks.place(GLASS_PANE, pos(29, 0, 2))  # 29 板ガラス
+    blocks.place(COBBLESTONE_WALL, pos(30, 0, 2))  # 30 丸石の塀
+    blocks.place(LADDER, pos(31, 0, 2))  # 31 はしご
+    blocks.place(RED_CARPET, pos(32, 0, 2))  # 32 赤いカーペット
+    blocks.place(TORCH, pos(33, 0, 2))  # 33 ランタン
+    blocks.place(SEA_LANTERN, pos(34, 0, 2))  # 34 シーランタン
+    blocks.place(BOOKSHELF, pos(35, 0, 2))  # 35 本棚
+    blocks.place(CRAFTING_TABLE, pos(36, 0, 2))  # 36 作業台
+    blocks.place(CHEST, pos(37, 0, 2))  # 37 チェスト
+    blocks.place(LEAVES_OAK, pos(38, 0, 2))  # 38 オークの葉
+    blocks.place(POPPY, pos(39, 0, 2))  # 39 ポピー（赤い花）
+    blocks.place(YELLOW_FLOWER, pos(40, 0, 2))  # 40 タンポポ（黄色い花）
+    blocks.place(YELLOW_WOOL, pos(41, 0, 2))  # 41 黄色の羊毛
+    blocks.place(GREEN_WOOL, pos(42, 0, 2))  # 42 緑の羊毛
+    blocks.place(BLACK_WOOL, pos(43, 0, 2))  # 43 黒の羊毛
+    blocks.place(TNT, pos(44, 0, 2))  # 44 TNT
+    blocks.place(REDSTONE_BLOCK, pos(45, 0, 2))  # 45 レッドストーンブロック
+    blocks.place(STICKY_PISTON, pos(46, 0, 2))  # 46 粘着ピストン
+    blocks.place(REDSTONE_WIRE, pos(47, 0, 2))  # 47 レッドストーンダスト
+    blocks.place(REDSTONE_TORCH, pos(48, 0, 2))  # 48 レッドストーントーチ
+    blocks.place(STONE_PRESSURE_PLATE, pos(49, 0, 2))  # 49 石の感圧板
+    blocks.place(LEVER, pos(50, 0, 2))  # 50 レバー
+    blocks.place(HOPPER, pos(51, 0, 2))  # 51 ホッパー
+    blocks.place(DISPENSER, pos(52, 0, 2))  # 52 ディスペンサー（発射装置）
+    blocks.place(DROPPER, pos(53, 0, 2))  # 53 ドロッパー
+    blocks.place(COMPARATOR, pos(54, 0, 2))  # 54 レッドストーンコンパレーター
+    blocks.place(REPEATER, pos(55, 0, 2))  # 55 レッドストーンリピーター（反復装置）
+    blocks.place(OBSERVER, pos(56, 0, 2))  # 56 オブザーバー（観察者）
+    blocks.place(OAK_SIGN, pos(57, 0, 2))  # 57 看板
+    blocks.place(TORCH, pos(58, 0, 2))  # 58 たいまつ
+    blocks.place(OAK_DOOR, pos(59, 0, 2))  # 59 オークのドア
+
+player.on_chat("check", check)
