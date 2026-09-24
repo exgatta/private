@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>結合する動画を選ぶ — GPMF GoPro化ツール</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div id="app" class="app">
+
+  <!-- ===== ヘッダ (フォルダ選択・オプション) ===== -->
+  <header class="toolbar">
+    <div class="tb-row">
+      <span class="tb-label">フォルダ</span>
+      <input id="folder" class="tb-input" type="text" spellcheck="false"
+             placeholder="動画のあるフォルダのパスを入力するか、右の「フォルダを選ぶ」から選択">
+      <button id="btn-pick" class="btn" type="button">フォルダを選ぶ…</button>
+      <button id="btn-scan" class="btn btn-primary" type="button">再スキャン</button>
+      <select id="recent" class="tb-select" title="最近使ったフォルダ">
+        <option value="">最近使ったフォルダ</option>
+      </select>
+    </div>
+    <div class="tb-row tb-options">
+      <label class="chk"><input type="checkbox" id="opt-solo"> 単独の動画も表示</label>
+      <label class="chk"><input type="checkbox" id="opt-thumbs" checked> サムネイル表示</label>
+      <label class="chk"><input type="checkbox" id="opt-recursive"> サブフォルダも含める</label>
+      <span class="spacer"></span>
+      <label class="chk">表示サイズ
+        <select id="thumb-size" class="tb-select small">
+          <option value="s">小</option>
+          <option value="m" selected>中</option>
+          <option value="l">大</option>
+        </select>
+      </label>
+      <button id="btn-diag" class="btn" type="button" disabled
+              title="なぜ結合/単独と判定したか、材料 (時刻・長さ・構成) をすべて表示">判定の詳細…</button>
+      <button id="btn-quit" class="btn btn-quiet" type="button" title="サーバを止めてこの画面を終了">終了</button>
+    </div>
+  </header>
+
+  <!-- ===== 本体: 一覧 + 詳細ペイン ===== -->
+  <div class="main" id="main">
+    <div class="listpane" id="listpane">
+      <div class="scroll" id="scroll" tabindex="0" aria-label="動画一覧">
+        <table id="grid" class="grid thumb-m">
+          <colgroup id="cols"></colgroup>
+          <thead><tr id="head"></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" class="empty">
+          <div class="empty-icon"></div>
+          <div id="empty-text">フォルダを選んでスキャンすると、ここに動画が一覧表示されます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="splitter" id="splitter" title="ドラッグして詳細ペインの幅を変更"></div>
+    <aside class="details" id="details">
+      <div class="details-title" id="details-title">詳細</div>
+      <div class="details-body" id="details-body">
+        <div class="hint">行をクリックすると詳しい情報が表示されます。<br>
+          Ctrl/⌘+クリックで複数選択、Shift+クリックで範囲選択、<br>
+          Space でチェックの切り替え、Ctrl/⌘+A で全選択。</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ===== ステータスバー ===== -->
+  <div class="statusbar" id="statusbar">
+    <span id="status-text">動画 0 個</span>
+    <span id="status-progress" class="status-progress hidden">
+      <span class="bar"><span class="fill" id="status-fill"></span></span>
+      <span id="status-progress-text"></span>
+    </span>
+  </div>
+
+  <!-- ===== アクションバー ===== -->
+  <div class="actionbar">
+    <button id="btn-join" class="btn btn-primary" type="button" disabled>結合する</button>
+    <div class="dropdown" id="gopro-dd">
+      <button id="btn-join-gopro" class="btn" type="button" disabled
+              title="分割グループは結合してから GoPro 化。チェックが 1 本だけのグループ (単独の動画) はそのまま GoPro 化">GoPro 化 ▾</button>
+      <div class="popover hidden" id="gopro-pop">
+        <p class="hint">分割グループは結合してから GoPro 化します。単独の動画 (「単独の動画も表示」でチェック) は結合せずそのまま GoPro 化します。</p>
+        <div class="pop-row">
+          <label for="device">機種</label>
+          <select id="device" class="tb-select"></select>
+        </div>
+        <div class="pop-row">
+          <label for="gpx">GPX</label>
+          <input id="gpx" class="tb-input" type="text" spellcheck="false" placeholder="（任意）GPX ファイルのパス">
+          <button id="btn-gpx" class="btn small" type="button">選ぶ…</button>
+        </div>
+        <div class="pop-row">
+          <label></label>
+          <label class="chk"><input type="checkbox" id="from-video"> 内蔵GPSを使う (DJI / iPhone / Sony など)</label>
+        </div>
+        <div class="pop-row">
+          <label for="rate">GPS Hz</label>
+          <input id="rate" class="tb-input narrow" type="number" min="1" max="50" step="1" value="10">
+        </div>
+        <div class="pop-actions">
+          <button id="btn-gopro-run" class="btn btn-primary" type="button">GoPro 化を実行</button>
+        </div>
+      </div>
+    </div>
+    <span class="spacer"></span>
+    <span class="outdir">
+      <span class="tb-label">出力先</span>
+      <input id="outdir" class="tb-input" type="text" spellcheck="false" placeholder="（未指定: スキャンしたフォルダ）">
+      <button id="btn-outdir" class="btn" type="button">出力先を選ぶ…</button>
+    </span>
+  </div>
+
+  <!-- ===== 進捗パネル (結合中〜完了) ===== -->
+  <div class="overlay hidden" id="progress">
+    <div class="panel">
+      <div class="panel-title" id="progress-title">処理しています…</div>
+      <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text" id="progress-text"></div>
+      <pre class="log" id="progress-log"></pre>
+      <div class="results" id="progress-results"></div>
+      <div class="panel-actions">
+        <button id="btn-open-outdir" class="btn" type="button" disabled>フォルダを開く</button>
+        <span class="spacer"></span>
+        <button id="btn-progress-close" class="btn btn-primary" type="button" disabled>閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 判定の詳細 (診断) ===== -->
+  <div class="overlay hidden" id="diag">
+    <div class="panel">
+      <div class="panel-title">判定の詳細</div>
+      <p class="hint">単独と判定された動画には「前/次の動画とは別撮影」と判断した理由が数値付きで出ます。
+        おかしいと思ったら「コピー」で全文をコピーして報告してください。</p>
+      <pre class="log diag-log" id="diag-text"></pre>
+      <div class="panel-actions">
+        <button id="btn-diag-copy" class="btn" type="button">コピー</button>
+        <label class="chk" title="メーカー独自のデータトラック (DJI など) の先頭/末尾サンプルを hex で付けます。映像・音声のデータは含みません">
+          <input type="checkbox" id="diag-meta"> 内部メタデータも含める</label>
+        <span id="diag-copied" class="hint hidden">コピーしました</span>
+        <span class="spacer"></span>
+        <button id="btn-diag-close" class="btn btn-primary" type="button">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 終了後 ===== -->
+  <div class="overlay hidden" id="bye">
+    <div class="panel narrow">
+      <div class="panel-title">終了しました</div>
+      <p>サーバを停止しました。このタブは閉じて構いません。</p>
+    </div>
+  </div>
+
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

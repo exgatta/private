@@ -1,0 +1,792 @@
+"""gpmf_tool CLI。
+
+使い方:
+    python -m gpmf_tool parse   <file.mp4|file.bin> [--json out.json]
+    python -m gpmf_tool extract <in.mp4> [-o raw.bin] [--json out.json] [--gpx out.gpx]
+    python -m gpmf_tool inject  <in.mp4> -o out.mp4 [--gpx track.gpx] [--device hero11] ...
+    python -m gpmf_tool info    <file.mp4>
+    python -m gpmf_tool ui      [folder]        … ブラウザで結合選択画面を開く
+"""
+
+from __future__ import annotations
+
+import argparse
+import errno
+import json
+import os
+import shutil
+import struct
+import sys
+
+from . import gopro, klv, mp4, telemetry
+
+
+def ensure_utf8_output() -> None:
+    """標準出力/エラーを UTF-8 に切り替える。
+
+    Windows の既定コンソール (cp932/cp1252) だと日本語のヘルプや
+    ダンプ出力で UnicodeEncodeError になるため、表示不能文字は
+    置換しつつ UTF-8 で出す。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
+
+
+# ---------------------------------------------------------------------------
+# エラーメッセージの日本語化
+# ---------------------------------------------------------------------------
+
+# よくある OS エラー (errno) を分かりやすい日本語にする
+_ERRNO_JA = {
+    errno.ENOSPC: ("ディスクの空き容量が足りません。保存先の空き容量を確認してください"
+                   "（出力ファイルは元動画とほぼ同じサイズが必要です）。"),
+    errno.EACCES: ("アクセス権がありません。ファイルやフォルダの権限、"
+                   "または書き込み先を確認してください。"),
+    errno.EPERM: "操作が許可されていません。ファイルの権限を確認してください。",
+    errno.ENOENT: "ファイルまたはフォルダが見つかりません。パスが正しいか確認してください。",
+    errno.EISDIR: "フォルダが指定されています。ファイルを指定してください。",
+    errno.ENOTDIR: "パスの一部がフォルダではありません。保存先のフォルダがあるか確認してください。",
+    errno.EROFS: "書き込み禁止のドライブです。別の保存先を指定してください。",
+    errno.ENAMETOOLONG: "ファイル名が長すぎます。",
+    errno.EMFILE: "同時に開いているファイルが多すぎます。",
+    errno.ENFILE: "システムが開けるファイル数の上限に達しました。",
+    errno.EDQUOT: "ディスクの使用量制限に達しました。",
+    errno.EEXIST: "同名のファイルが既に存在します。",
+    errno.EBUSY: "ファイルが他のプログラムに使用中です。",
+}
+
+
+def humanize_error(e: BaseException) -> str:
+    """例外を日本語のわかりやすい 1 行メッセージにする。"""
+    if isinstance(e, (klv.GPMFError, mp4.MP4Error)):
+        return str(e)
+    if isinstance(e, OSError):
+        target = getattr(e, "filename", None)
+        suffix = f"（対象: {target}）" if target else ""
+        base = _ERRNO_JA.get(e.errno)
+        if base:
+            return base + suffix
+        detail = e.strerror or str(e)
+        return f"入出力エラー: {detail}{suffix}"
+    if isinstance(e, KeyboardInterrupt):
+        return "処理を中断しました。"
+    if isinstance(e, struct.error):
+        return (f"動画の構造を書き出せませんでした（内部エラー: {e}）。"
+                "動画が非常に長い/特殊な場合に起きることがあります。"
+                "この動画の情報を添えて報告してください。")
+    msg = str(e).strip()
+    return msg if msg else e.__class__.__name__
+
+
+def _err(msg: str) -> "sys.NoReturn":
+    print(f"エラー: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+
+# argparse が出す英語メッセージ断片 → 日本語 (長い語句から先に置換する)
+_ARGPARSE_REPLACEMENTS = [
+    ("the following arguments are required:", "必須の引数が指定されていません:"),
+    ("unrecognized arguments:", "認識できない引数:"),
+    ("expected at least one argument", "引数が少なくとも1つ必要です"),
+    ("expected one argument", "引数が1つ必要です"),
+    ("not allowed with argument", "は次の引数と同時には指定できません:"),
+    ("ambiguous option:", "あいまいなオプション:"),
+    ("invalid choice:", "は不正な選択です:"),
+    ("(choose from", "(選択肢:"),
+    ("is required", "は必須です"),
+    ("invalid", "不正な"),
+    ("value:", "値:"),
+    ("argument", "引数"),
+]
+
+# ヘルプ/使い方の見出しを日本語化
+_ARGPARSE_SECTIONS = [
+    ("usage:", "使い方:"),
+    ("positional arguments:", "位置引数:"),
+    ("options:", "オプション:"),
+    ("optional arguments:", "オプション:"),
+    ("show this help message and exit", "このヘルプを表示して終了する"),
+    ("positional 引数:", "位置引数:"),  # 二重置換の保険
+]
+
+
+def _translate_argparse(text: str, table) -> str:
+    for en, ja in table:
+        text = text.replace(en, ja)
+    return text
+
+
+class JapaneseArgumentParser(argparse.ArgumentParser):
+    """使い方・エラー・ヘルプをすべて日本語で表示する ArgumentParser。"""
+
+    def error(self, message):  # noqa: D401
+        msg = _translate_argparse(message, _ARGPARSE_REPLACEMENTS)
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: エラー: {msg}\n")
+
+    def format_usage(self):
+        return _translate_argparse(super().format_usage(), _ARGPARSE_SECTIONS)
+
+    def format_help(self):
+        return _translate_argparse(super().format_help(), _ARGPARSE_SECTIONS)
+
+
+# ---------------------------------------------------------------------------
+# parse
+# ---------------------------------------------------------------------------
+
+def cmd_parse(args: argparse.Namespace) -> None:
+    path = args.file
+    payloads = []  # (time_sec, bytes)
+    if path.lower().endswith((".mp4", ".mov", ".360")):
+        with open(path, "rb") as f:
+            samples = mp4.extract_gpmf_samples(f)
+        payloads = [(s.time_sec, s.data) for s in samples]
+        print(f"# {os.path.basename(path)}: gpmd サンプル {len(samples)} 個")
+    else:
+        with open(path, "rb") as f:
+            payloads = [(0.0, f.read())]
+
+    all_items = []
+    for t, data in payloads:
+        items = klv.parse(data, strict=not args.lenient)
+        all_items.append({"time_sec": t, "items": klv.to_dict(items)})
+        if not args.json:
+            print(f"\n--- payload @ {t:.3f}s ({len(data)} bytes) ---")
+            print(klv.dump(items, max_values=args.max_values))
+
+    if args.json:
+        with open(args.json, "w", encoding="utf-8") as f:
+            json.dump(all_items, f, ensure_ascii=False, indent=2)
+        print(f"JSON を書き出しました: {args.json}")
+
+
+# ---------------------------------------------------------------------------
+# extract
+# ---------------------------------------------------------------------------
+
+def cmd_extract(args: argparse.Namespace) -> None:
+    with open(args.file, "rb") as f:
+        samples = mp4.extract_gpmf_samples(f)
+    print(f"gpmd サンプル {len(samples)} 個 "
+          f"({sum(len(s.data) for s in samples)} bytes) を抽出")
+
+    if args.output:
+        with open(args.output, "wb") as f:
+            for s in samples:
+                f.write(s.data)
+        print(f"生 GPMF: {args.output}")
+
+    if args.json or args.gpx:
+        parsed = [(s.time_sec, klv.parse(s.data, strict=False)) for s in samples]
+        if args.json:
+            data = [{"time_sec": t, "items": klv.to_dict(items)}
+                    for t, items in parsed]
+            with open(args.json, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"JSON: {args.json}")
+        if args.gpx:
+            points = telemetry.extract_gps_points(parsed)
+            if not points:
+                print("警告: GPS ストリーム (GPS5/GPS9) が見つかりません",
+                      file=sys.stderr)
+            else:
+                telemetry.write_gpx(args.gpx, points)
+                print(f"GPX: {args.gpx} ({len(points)} 点)")
+
+
+# ---------------------------------------------------------------------------
+# inject (共通処理)
+# ---------------------------------------------------------------------------
+
+# 一括処理で対象にする動画拡張子
+VIDEO_EXTS = (".mp4", ".mov", ".m4v", ".360")
+
+
+def inject_file(input_path: str, output_path: str, device: str,
+                gpx: str = None, rate: float = 10.0, fit: bool = True,
+                device_name: str = None, firmware: str = None,
+                serial_seed: str = None, handler_rename: bool = True,
+                keep_ftyp: bool = False, from_video: bool = False,
+                log=lambda m: None, gpx_cache: dict = None) -> dict:
+    """1 本の MP4 に GPMF を注入する共通関数 (CLI/GUI/一括処理から呼ぶ)。
+
+    テレメトリ源の優先順: gpx (明示) > from_video (動画内蔵) > なし。
+    gpx_cache: 同じ GPX を使い回す一括処理用の {path: (points, start)} キャッシュ。
+    """
+    preset = gopro.DEVICE_PRESETS.get(device)
+    if preset is None:
+        raise klv.GPMFError(
+            f"未知のデバイス: {device} (選択肢: {', '.join(gopro.DEVICE_PRESETS)})")
+    dname = device_name or preset.device_name
+
+    # 出力先の空き容量を事前チェック (巨大ファイルで書き込み途中の失敗を防ぐ)
+    need = os.path.getsize(input_path)
+    out_dir = os.path.dirname(os.path.abspath(output_path)) or "."
+    try:
+        free = shutil.disk_usage(out_dir).free
+    except OSError:
+        free = None
+    if free is not None and free < need * 1.02:
+        raise OSError(
+            errno.ENOSPC,
+            f"保存先の空き容量が不足しています "
+            f"(必要 約{need / 1024**3:.1f}GB / 空き {free / 1024**3:.1f}GB)",
+            output_path)
+
+    with open(input_path, "rb") as f:
+        duration = mp4.movie_duration_seconds(f)
+    log(f"動画の長さ: {duration:.2f} 秒")
+
+    points = None
+    start_time = None
+    if gpx:
+        if gpx_cache is not None and gpx in gpx_cache:
+            points, start_time = gpx_cache[gpx]
+        else:
+            points, start_time = telemetry.load_gpx(gpx)
+            if gpx_cache is not None:
+                gpx_cache[gpx] = (points, start_time)
+    elif from_video:
+        from . import sources
+        got = sources.load_video_telemetry(input_path)
+        if got:
+            points, start_time, label = got
+            log(f"動画内蔵テレメトリを利用: {label} ({len(points)} 点)")
+        else:
+            log("動画内蔵テレメトリは見つかりませんでした")
+
+    if points:
+        resampled = telemetry.resample_track(points, duration, rate_hz=rate,
+                                             fit_duration=fit)
+        payloads, durations = telemetry.build_payloads(
+            resampled, duration, dname, start_time)
+        log(f"GPS5 を {rate:g} Hz で {len(resampled)} サンプル生成")
+    else:
+        payloads, durations = telemetry.build_device_only_payloads(
+            duration, dname)
+        log("GPS なし: デバイス情報のみの GPMF を生成")
+
+    udta = gopro.build_udta_boxes(
+        preset,
+        serial_seed=serial_seed or os.path.basename(input_path),
+        firmware=firmware, device_name=dname)
+    renames = gopro.HANDLER_RENAMES if handler_rename else None
+    new_ftyp = None if keep_ftyp else mp4.build_ftyp_gopro()
+
+    with open(input_path, "rb") as src, open(output_path, "wb") as dst:
+        stats = mp4.inject_gpmf_track(
+            src, dst, payloads=payloads, payload_durations_ms=durations,
+            udta_extra=udta, new_ftyp=new_ftyp, handler_renames=renames)
+    stats["duration"] = duration
+    stats["device_name"] = dname
+    stats["firmware"] = firmware or preset.firmware
+    return stats
+
+
+def _default_output(input_path: str, out_dir: str = None) -> str:
+    """入力パスから出力パス (<stem>_gopro<ext>) を決める。"""
+    base = os.path.basename(input_path)
+    stem, ext = os.path.splitext(base)
+    if not ext:
+        ext = ".mp4"
+    name = f"{stem}_gopro{ext}"
+    return os.path.join(out_dir or os.path.dirname(input_path) or ".", name)
+
+
+def cmd_inject(args: argparse.Namespace) -> None:
+    stats = inject_file(
+        args.file, args.output, args.device,
+        gpx=args.gpx, rate=args.rate, fit=not args.no_fit,
+        device_name=args.device_name, firmware=args.firmware,
+        serial_seed=args.serial_seed, from_video=args.from_video,
+        handler_rename=not args.no_handler_rename, keep_ftyp=args.keep_ftyp,
+        log=print)
+    print(f"完了: {args.output}")
+    print(f"  gpmd トラック ID: {stats['track_id']}")
+    print(f"  ペイロード: {stats['payload_count']} 個 / {stats['gpmf_bytes']} bytes")
+    print(f"  機種: {stats['device_name']} / FW: {stats['firmware']}")
+    if stats["renamed_handlers"]:
+        for h, name in stats["renamed_handlers"]:
+            print(f"  hdlr 変更: {h} -> {name!r}")
+
+
+# ---------------------------------------------------------------------------
+# batch (一括処理)
+# ---------------------------------------------------------------------------
+
+def is_junk_file(path: str) -> bool:
+    """動画として扱ってはいけない隠し/付随ファイルか。
+
+    - "._xxx.MP4": macOS が exFAT/FAT32 (SDカード等) に作る AppleDouble
+      メタデータ。拡張子が動画でも中身は数KBの属性情報で、動画ではない
+    - "." で始まる隠しファイル (.DS_Store など)
+    """
+    name = os.path.basename(path)
+    return name.startswith("._") or name.startswith(".")
+
+
+def collect_videos(paths, recursive: bool = False) -> list:
+    """ファイル/フォルダのリストから動画ファイルを集める。
+
+    出力物 (*_gopro) と、macOS の "._" 付随ファイル等の隠しファイルは除外する。
+    """
+    out = []
+    for p in paths:
+        if os.path.isdir(p):
+            if recursive:
+                walker = (os.path.join(r, f)
+                          for r, _, fs in os.walk(p) for f in fs)
+            else:
+                walker = (os.path.join(p, f) for f in sorted(os.listdir(p)))
+            for f in walker:
+                if (os.path.isfile(f)
+                        and not is_junk_file(f)
+                        and f.lower().endswith(VIDEO_EXTS)
+                        and not os.path.splitext(f)[0].endswith("_gopro")):
+                    out.append(f)
+        elif os.path.isfile(p):
+            if not is_junk_file(p):
+                out.append(p)
+        else:
+            raise FileNotFoundError(p)
+    # 重複を除いて順序維持
+    seen, uniq = set(), []
+    for f in out:
+        rp = os.path.realpath(f)
+        if rp not in seen:
+            seen.add(rp)
+            uniq.append(f)
+    return uniq
+
+
+def cmd_batch(args: argparse.Namespace) -> None:
+    files = collect_videos(args.inputs, recursive=args.recursive)
+    if not files:
+        _err("処理対象の動画が見つかりません "
+             f"(対象拡張子: {', '.join(VIDEO_EXTS)})")
+
+    out_dir = args.output_dir
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+
+    print(f"一括処理: {len(files)} 本の動画を GoPro 化します")
+    if args.gpx:
+        print(f"  全ファイルに GPX を適用: {args.gpx}")
+    print("")
+
+    gpx_cache: dict = {}
+    ok = skipped = failed = 0
+    for i, path in enumerate(files, 1):
+        out_path = _default_output(path, out_dir)
+        label = f"[{i}/{len(files)}] {os.path.basename(path)}"
+        if os.path.realpath(out_path) == os.path.realpath(path):
+            print(f"{label}: スキップ (入力と出力が同じ)")
+            skipped += 1
+            continue
+        if os.path.exists(out_path) and not args.overwrite:
+            print(f"{label}: スキップ (出力済み。上書きは --overwrite)")
+            skipped += 1
+            continue
+        try:
+            stats = inject_file(
+                path, out_path, args.device,
+                gpx=args.gpx, rate=args.rate, fit=not args.no_fit,
+                device_name=args.device_name, firmware=args.firmware,
+                from_video=args.from_video,
+                handler_rename=not args.no_handler_rename,
+                keep_ftyp=args.keep_ftyp,
+                log=lambda m: None, gpx_cache=gpx_cache)
+            print(f"{label}: 完了 -> {os.path.basename(out_path)} "
+                  f"({stats['duration']:.0f}秒)")
+            ok += 1
+        except (klv.GPMFError, mp4.MP4Error) as e:
+            print(f"{label}: スキップ ({humanize_error(e)})")
+            skipped += 1
+        except Exception as e:
+            print(f"{label}: 失敗 ({humanize_error(e)})")
+            failed += 1
+            if os.environ.get("GPMF_DEBUG"):
+                raise
+
+    print("")
+    print(f"一括処理おわり: 成功 {ok} / スキップ {skipped} / 失敗 {failed}")
+    if out_dir:
+        print(f"出力先: {out_dir}")
+    if failed:
+        sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# to-gpx (どの機種の動画でもテレメトリ → GPX)
+# ---------------------------------------------------------------------------
+
+def cmd_join(args: argparse.Namespace) -> None:
+    """分割された動画を再エンコードなしで結合する。"""
+    from . import concat
+
+    files = collect_videos(args.inputs, recursive=args.recursive)
+    if not files:
+        _err("動画が見つかりません")
+
+    if getattr(args, "diagnose", False):
+        from . import split_detect
+        print(split_detect.diagnose(files))
+        if getattr(args, "meta", False):
+            from . import metadump
+            print()
+            print(metadump.dump_files(files))
+        return
+
+    if args.no_detect:
+        # 明示的に「全部まとめて1本」
+        if len(files) < 2:
+            _err(f"結合には2本以上必要です (見つかったのは {len(files)} 本)")
+        groups = [files]
+    else:
+        # 撮影時刻の連続性から「強制分割された1本」を判定
+        groups = concat.detect_split_groups(files)
+        print("分割の判定結果:")
+        print(concat.describe_groups(groups))
+
+    if args.dry_run:
+        print("\n(--dry-run のため実際の結合は行いません)")
+        return
+
+    made = skipped = 0
+    joinable = [g for g in groups if len(g) >= 2]
+    for gi, group in enumerate(groups, 1):
+        if len(group) < 2:
+            skipped += 1
+            continue
+        if args.output and len(joinable) == 1:
+            out_path = args.output
+        else:
+            stem, ext = os.path.splitext(os.path.basename(group[0]))
+            stem = stem.rstrip("0123456789_-") or stem
+            out_dir = args.output_dir or os.path.dirname(group[0]) or "."
+            os.makedirs(out_dir, exist_ok=True)
+            suffix = "_結合_gopro" if args.gopro else "_結合"
+            out_path = os.path.join(out_dir, f"{stem}{suffix}{ext}")
+
+        print(f"\n[{gi}/{len(groups)}] {len(group)} 本を結合:")
+        stats = concat.concat_files(
+            group, out_path, log=print,
+            gopro_device=args.device if args.gopro else None,
+            gpx=args.gpx, from_video=args.from_video, rate=args.rate)
+        mins = int(stats["duration_sec"] // 60)
+        secs = stats["duration_sec"] % 60
+        print(f"  完了: {out_path}")
+        print(f"    長さ {mins}分{secs:.0f}秒 / "
+              f"{stats['bytes'] / 1024**3:.2f} GB")
+        if stats["gopro"]:
+            print(f"    GoPro化: {stats['gopro']}")
+        if stats["shot_at"]:
+            print(f"    撮影日時: {stats['shot_at']:%Y-%m-%d %H:%M:%S}"
+                  " (先頭素材から引き継ぎ)")
+        made += 1
+
+    if made == 0:
+        _err("強制分割されたグループが見つかりませんでした "
+             "(すべて単独の動画です)。まとめて1本にするなら --no-detect")
+    print(f"\n結合おわり: {made} 本を作成 / {skipped} 本は単独のため対象外")
+
+
+def cmd_ui(args: argparse.Namespace) -> None:
+    """ブラウザで結合選択画面 (Web UI) を開く。終了までブロックする。"""
+    from .webui.server import serve_blocking
+    serve_blocking(folder=args.folder, port=args.port,
+                   open_browser=not args.no_browser, log=print)
+
+
+def cmd_to_gpx(args: argparse.Namespace) -> None:
+    from . import sources
+    got = sources.load_video_telemetry(args.file)
+    if not got:
+        _err("この動画からは GPS/テレメトリを取り出せませんでした "
+             "(位置情報が埋め込まれていないか、未対応の形式です)")
+    points, start, label = got
+    print(f"テレメトリ形式: {label} ({len(points)} 点)")
+
+    import datetime
+    tuples = []
+    for p in points:
+        when = (start + datetime.timedelta(seconds=p.time)) if start else None
+        tuples.append((when, p))
+    telemetry.write_gpx(args.output, tuples, name=f"{label} から抽出")
+    print(f"GPX: {args.output}")
+
+
+# ---------------------------------------------------------------------------
+# info
+# ---------------------------------------------------------------------------
+
+def cmd_info(args: argparse.Namespace) -> None:
+    with open(args.file, "rb") as f:
+        tops = mp4.scan_top_level(f)
+        print("トップレベルボックス:")
+        for b in tops:
+            print(f"  {b.type.decode('latin-1'):6s} offset={b.offset:<12} size={b.size}")
+
+        moov_top = next(b for b in tops if b.type == b"moov")
+        moov = mp4.parse_box_tree(mp4.read_box_bytes(f, moov_top), b"moov")
+        mvhd = mp4.parse_mvhd(moov.find(b"mvhd").payload)
+
+        # --- 動画の基本情報 ---
+        f.seek(0)
+        m = mp4.media_summary(f)
+        print("\n動画情報:")
+        dur = m["duration_sec"]
+        print(f"  長さ: {int(dur // 60)}分{dur % 60:.0f}秒 ({dur:.2f}秒)")
+        name_wall = mp4.wall_time_from_name(args.file)
+        if name_wall is not None:
+            print(f"  撮影日時: {name_wall:%Y-%m-%d %H:%M:%S} (ファイル名の時刻)")
+            inner = m.get("creation_local")
+            if inner and abs((inner - name_wall).total_seconds()) >= 60:
+                print(f"    動画内の記録: {inner:%Y-%m-%d %H:%M:%S} "
+                      "(この機種は UTC で記録している可能性)")
+        elif m.get("creation_local"):
+            src = ("タイムゾーン付きの記録" if m.get("creation_source") == "quicktime"
+                   else "カメラの時計の値をそのまま表示")
+            print(f"  撮影日時: {m['creation_local']:%Y-%m-%d %H:%M:%S} ({src})")
+        else:
+            print("  撮影日時: 記録なし")
+        if m["width"]:
+            print(f"  解像度: {m['width']} x {m['height']}")
+        if m["fps"]:
+            print(f"  フレームレート: {m['fps']:.2f} fps")
+        if m["video_codec"]:
+            print(f"  映像コーデック: {m['video_codec']}")
+        if m["audio_codec"]:
+            print(f"  音声コーデック: {m['audio_codec']}")
+        size = os.path.getsize(args.file)
+        if dur > 0:
+            mbps = size * 8 / dur / 1_000_000
+            print(f"  平均ビットレート: {mbps:.1f} Mbps")
+
+        print("\nトラック:")
+        for i, trak in enumerate(moov.find_all(b"trak"), 1):
+            hdlr = trak.find(b"mdia", b"hdlr")
+            info = mp4.parse_hdlr(hdlr.payload) if hdlr else {}
+            handler = info.get("handler", b"????").decode("latin-1")
+            print(f"  #{i} handler={handler} name={info.get('name', '')!r}")
+
+        gpmd = mp4.find_gpmd_trak(moov)
+        udta = moov.find(b"udta")
+        gopro_boxes = ([c.type.decode('latin-1') for c in udta.children
+                        if c.type in (b"FIRM", b"LENS", b"CAME", b"MUID",
+                                      b"GPMF", b"HMMT", b"SETT")]
+                       if udta else [])
+        print(f"\ngpmd トラック: {'あり' if gpmd else 'なし'}")
+        print(f"GoPro udta ボックス: {', '.join(gopro_boxes) if gopro_boxes else 'なし'}")
+        if udta:
+            for c in udta.children:
+                if c.type == b"FIRM":
+                    print(f"  FIRM: {c.payload.decode('ascii', 'replace')}")
+
+        # --- 位置情報・テレメトリの検出 (GoPro 以外も含む) ---
+        f.seek(0)
+        tele = mp4.detect_telemetry(f)
+        print("\n位置情報・テレメトリ:")
+        if tele["formats"]:
+            for fmt in tele["formats"]:
+                print(f"  ● {fmt}")
+        else:
+            print("  検出されず (位置情報は埋め込まれていません)")
+        loc = tele["location_iso6709"]
+        if loc:
+            lat, lon, ele = loc
+            ele_s = f", 高度 {ele:.1f}m" if ele is not None else ""
+            print(f"  撮影地点: 緯度 {lat:.6f}, 経度 {lon:.6f}{ele_s}")
+            print(f"    地図: https://maps.google.com/?q={lat:.6f},{lon:.6f}")
+        if gpmd:
+            print("  → GoPro 形式。`extract --gpx out.gpx` で軌跡を書き出せます")
+        elif not tele["formats"]:
+            print("  → `inject --gpx <GPXファイル>` で GPS を後付けできます")
+
+        # --- 360 度動画マーカー ---
+        f.seek(0)
+        sph = mp4.detect_spherical(f)
+        print("\n360度動画マーカー:")
+        if sph["is_360"]:
+            kinds = []
+            if sph["v1"]:
+                kinds.append("V1 (uuid)")
+            if sph["v2"]:
+                kinds.append("V2 (sv3d)")
+            print(f"  ● あり: {', '.join(kinds)}")
+            if sph["projection"]:
+                print(f"  投影方式: {sph['projection']}")
+            if sph["stereo"]:
+                print("  ステレオ(st3d) 情報あり")
+            print("  → GoPro化しても保持されます (360度動画として再生可能)")
+        else:
+            print("  なし (通常の平面動画として扱われます)")
+            print("  → 360度として再生させたい場合は書き出し設定を確認してください")
+
+        # --- 出力に必要な空き容量の目安 ---
+        size = os.path.getsize(args.file)
+        print(f"\nファイルサイズ: {size / 1024 / 1024:.0f} MB")
+        print(f"  GoPro化には保存先に約 {size / 1024 / 1024:.0f} MB "
+              "の空き容量が必要です (元ファイルは残ります)")
+
+
+# ---------------------------------------------------------------------------
+
+def main(argv=None) -> None:
+    ensure_utf8_output()
+    ap = JapaneseArgumentParser(
+        prog="gpmf",
+        description="GPMF (GoPro Metadata Format) パーサ / MP4 注入ツール",
+        add_help=False)
+    ap.add_argument("-h", "--help", action="help",
+                    help="このヘルプを表示して終了する")
+    sub = ap.add_subparsers(dest="command", metavar="コマンド", required=True)
+
+    p = sub.add_parser("parse", help="GPMF を人間可読形式でダンプ")
+    p.add_argument("file", help="MP4 または生 GPMF バイナリ")
+    p.add_argument("--json", help="JSON 出力先")
+    p.add_argument("--lenient", action="store_true",
+                   help="壊れた要素をスキップして続行")
+    p.add_argument("--max-values", type=int, default=6,
+                   help="1 要素あたりの表示サンプル数 (default: 6)")
+    p.set_defaults(func=cmd_parse)
+
+    p = sub.add_parser("extract", help="MP4 から GPMF を抽出")
+    p.add_argument("file", help="入力 MP4")
+    p.add_argument("-o", "--output", help="生 GPMF バイナリ出力先")
+    p.add_argument("--json", help="JSON 出力先")
+    p.add_argument("--gpx", help="GPX 出力先 (GPS5/GPS9 ストリームから)")
+    p.set_defaults(func=cmd_extract)
+
+    p = sub.add_parser("inject",
+                       help="MP4 に GPMF トラック + GoPro 識別情報を注入")
+    p.add_argument("file", help="入力 MP4 (他社カメラの動画)")
+    p.add_argument("-o", "--output", required=True, help="出力 MP4")
+    p.add_argument("--gpx", help="GPS テレメトリの元になる GPX ファイル")
+    p.add_argument("--from-video", action="store_true",
+                   help="動画に埋め込まれたGPS(DJI/iPhone/Android/Sony等)を使う")
+    p.add_argument("--device", default=gopro.DEFAULT_PRESET,
+                   choices=sorted(gopro.DEVICE_PRESETS),
+                   help=f"機種プリセット (default: {gopro.DEFAULT_PRESET})")
+    p.add_argument("--device-name", help="DVNM に入れるデバイス名の上書き")
+    p.add_argument("--firmware", help="FIRM に入れる FW バージョンの上書き")
+    p.add_argument("--serial-seed",
+                   help="シリアル番号生成用シード (default: ファイル名)")
+    p.add_argument("--rate", type=float, default=10.0,
+                   help="GPS サンプリングレート Hz (default: 10 = GoPro 実機相当)")
+    p.add_argument("--no-fit", action="store_true",
+                   help="GPX の時間を動画長に合わせて伸縮しない")
+    p.add_argument("--no-handler-rename", action="store_true",
+                   help="既存トラックの hdlr 名を GoPro 風に変更しない")
+    p.add_argument("--keep-ftyp", action="store_true",
+                   help="ftyp を GoPro 風 (mp41) に置換しない")
+    p.set_defaults(func=cmd_inject)
+
+    p = sub.add_parser("batch",
+                       help="複数の MP4 をまとめて GoPro 化 (フォルダ指定可)")
+    p.add_argument("inputs", nargs="+",
+                   help="入力の動画ファイルまたはフォルダ (複数指定可)")
+    p.add_argument("-o", "--output-dir",
+                   help="出力フォルダ (省略時は各入力と同じ場所に <名前>_gopro.mp4)")
+    p.add_argument("--gpx", help="全ファイルに適用する GPX (任意)")
+    p.add_argument("--from-video", action="store_true",
+                   help="各動画に埋め込まれたGPSを個別に使う(DJI/iPhone等)")
+    p.add_argument("--device", default=gopro.DEFAULT_PRESET,
+                   choices=sorted(gopro.DEVICE_PRESETS),
+                   help=f"機種プリセット (default: {gopro.DEFAULT_PRESET})")
+    p.add_argument("--device-name", help="デバイス名の上書き")
+    p.add_argument("--firmware", help="FW バージョンの上書き")
+    p.add_argument("--rate", type=float, default=10.0,
+                   help="GPS サンプリングレート Hz (default: 10)")
+    p.add_argument("--no-fit", action="store_true",
+                   help="GPX の時間を動画長に合わせて伸縮しない")
+    p.add_argument("--no-handler-rename", action="store_true",
+                   help="既存トラックの hdlr 名を GoPro 風に変更しない")
+    p.add_argument("--keep-ftyp", action="store_true",
+                   help="ftyp を GoPro 風 (mp41) に置換しない")
+    p.add_argument("--recursive", action="store_true",
+                   help="フォルダを再帰的に探索する")
+    p.add_argument("--overwrite", action="store_true",
+                   help="既存の出力ファイルを上書きする")
+    p.set_defaults(func=cmd_batch)
+
+    p = sub.add_parser(
+        "join",
+        help="分割された動画を1本に結合 (再エンコードなし・画質劣化なし)")
+    p.add_argument("inputs", nargs="+",
+                   help="結合する動画ファイルまたはフォルダ (並び順に結合)")
+    p.add_argument("-o", "--output", help="出力ファイル名 (1グループのときのみ)")
+    p.add_argument("--output-dir", help="出力フォルダ")
+    p.add_argument("--no-detect", action="store_true",
+                   help="自動判定せず、指定した全ファイルを1本にまとめる")
+    p.add_argument("--dry-run", action="store_true",
+                   help="判定結果だけ表示して結合しない")
+    p.add_argument("--diagnose", action="store_true",
+                   help="判定の材料 (時刻・長さ・構成) と隣同士の判断を"
+                        "すべて表示して結合しない (問題報告用)")
+    p.add_argument("--meta", action="store_true",
+                   help="--diagnose 時、動画の内部メタデータ (udta・トラック・"
+                        "メーカー独自データの先頭/末尾サンプル) も hex で表示。"
+                        "映像・音声のデータは含まない")
+    p.add_argument("--gopro", action="store_true",
+                   help="結合と同時に GoPro 化する (一時ファイルなし)")
+    p.add_argument("--device", default=gopro.DEFAULT_PRESET,
+                   choices=sorted(gopro.DEVICE_PRESETS),
+                   help=f"--gopro 時の機種 (default: {gopro.DEFAULT_PRESET})")
+    p.add_argument("--gpx", help="--gopro 時に載せる GPX")
+    p.add_argument("--from-video", action="store_true",
+                   help="--gopro 時、動画内蔵のGPSを使う")
+    p.add_argument("--rate", type=float, default=10.0,
+                   help="GPS サンプリングレート Hz (default: 10)")
+    p.add_argument("--recursive", action="store_true",
+                   help="フォルダを再帰的に探索する")
+    p.set_defaults(func=cmd_join)
+
+    p = sub.add_parser("to-gpx",
+                       help="動画のGPS(GoPro/DJI/iPhone/Android/Sony等)をGPXに書き出す")
+    p.add_argument("file", help="入力の動画")
+    p.add_argument("-o", "--output", required=True, help="出力 GPX")
+    p.set_defaults(func=cmd_to_gpx)
+
+    p = sub.add_parser("info", help="MP4 の構造と GoPro メタデータ状況を表示")
+    p.add_argument("file", help="入力 MP4")
+    p.set_defaults(func=cmd_info)
+
+    p = sub.add_parser(
+        "ui", help="ブラウザで結合選択画面を開く (エクスプローラー風の一覧)")
+    p.add_argument("folder", nargs="?", help="最初に開くフォルダ (任意)")
+    p.add_argument("--port", type=int, default=0,
+                   help="待ち受けポート (default: 空きポートを自動選択)")
+    p.add_argument("--no-browser", action="store_true",
+                   help="ブラウザを自動で開かない (URL だけ表示)")
+    p.set_defaults(func=cmd_ui)
+
+    args = ap.parse_args(argv)
+    try:
+        args.func(args)
+    except BrokenPipeError:
+        # `| head` などでの中断は正常終了扱い
+        try:
+            sys.stdout.close()
+        except OSError:
+            pass
+        sys.exit(0)
+    except KeyboardInterrupt:
+        _err("処理を中断しました。")
+    except (klv.GPMFError, mp4.MP4Error, OSError) as e:
+        _err(humanize_error(e))
+    except Exception as e:  # 想定外も日本語で表示 (詳細は GPMF_DEBUG=1)
+        if os.environ.get("GPMF_DEBUG"):
+            raise
+        _err(f"予期しないエラーが発生しました: {humanize_error(e)}\n"
+             f"（詳しい情報を見るには環境変数 GPMF_DEBUG=1 を付けて再実行）")
+
+
+if __name__ == "__main__":
+    main()

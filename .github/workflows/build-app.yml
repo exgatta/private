@@ -1,0 +1,85 @@
+name: Build gpmf app (Windows / macOS)
+
+# Mac 用 (Apple Silicon) と Windows 用のアプリを、それぞれの実機ランナー上で
+# 別々にビルドする。(PyInstaller はクロスコンパイル不可のため OS ごとに必要)
+#
+#   Windows -> gpmf-windows.exe          (ダブルクリックで GUI / 引数付きで CLI)
+#   macOS   -> GPMF-GoPro.app (zip 圧縮)  (Finder でダブルクリック起動できる)
+#
+# 実行: Actions タブ → "Build gpmf app" → Run workflow
+# 完了後、実行結果ページ下部の Artifacts からダウンロードする。
+
+on:
+  workflow_dispatch:        # 手動実行 (Actions タブから)
+  push:
+    branches:
+      - "claude/**"          # 作業ブランチへの push で自動ビルド確認
+    paths:                   # ビルドに関係するファイルが変わった時だけ
+      - "gpmf_tool/**"
+      - "gpmf_app.py"
+      - "gpmf_tool.spec"
+      - ".github/workflows/build-app.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: gpmf-windows
+          - os: macos-latest          # Apple Silicon (arm64)
+            artifact: gpmf-macos-arm64
+
+    runs-on: ${{ matrix.os }}
+    name: build (${{ matrix.artifact }})
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyInstaller + drag&drop lib
+        run: python -m pip install --upgrade pip pyinstaller tkinterdnd2 pillow
+
+      - name: Run tests
+        run: python -m unittest discover -s gpmf_tool/tests
+
+      - name: Build app
+        run: python -m PyInstaller --clean --noconfirm gpmf_tool.spec
+
+      # --- Windows: 単体 exe ---
+      - name: Smoke test & package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          dist/gpmf.exe --help || true
+          dist/gpmf.exe inject --help
+          mkdir -p out
+          cp dist/gpmf.exe out/gpmf-windows.exe
+
+      # --- macOS: .app バンドル ---
+      - name: Smoke test & package (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          APP="dist/GPMF-GoPro.app"
+          BIN="$APP/Contents/MacOS/gpmf"
+          test -d "$APP" || { echo ".app が生成されていません"; exit 1; }
+          "$BIN" inject --help
+          mkdir -p out
+          # ditto で .app の構造・実行権限を保ったまま zip 化 (Finder で解凍できる)
+          ditto -c -k --keepParent "$APP" "out/GPMF-GoPro-mac-arm64.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: out/*
+          if-no-files-found: error
